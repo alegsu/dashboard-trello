@@ -18,7 +18,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
 
   // AI Summary
   const [aiSummary, setAiSummary] = useState('');
-  const [generatingAi, setGeneratingAi] = useState(false);
+  const [loadingSummary, setLoadingSummary] = useState(false);
   
   const [mentionQuery, setMentionQuery] = useState(null);
   const [aiError, setAiError] = useState('');
