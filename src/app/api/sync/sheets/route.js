@@ -15,8 +15,11 @@ export async function POST(request) {
       csvUrl = csvUrl.split('/edit')[0] + `/export?format=csv&gid=${gid}`;
     }
 
-    const res = await fetch(csvUrl);
-    if (!res.ok) throw new Error('Impossibile scaricare il file CSV. Assicurati che sia condiviso o pubblico.');
+    const res = await fetch(csvUrl, { cache: 'no-store', headers: { 'Accept': 'text/csv' } });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status} ${res.statusText}. Dettagli: ${text.substring(0, 100)}`);
+    }
     
     const csvData = await res.text();
     
