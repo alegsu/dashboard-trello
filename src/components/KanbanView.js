@@ -156,7 +156,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ listId: destListId, order: newOrder })
     });
-    if (onCardUpdate) onCardUpdate();
+    if (onCardUpdate && optimisticCard) onCardUpdate(optimisticCard);
   };
 
   const handleAddList = async () => {
