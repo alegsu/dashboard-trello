@@ -85,24 +85,20 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     if (sourceCell === destCell && sourceIndex === destIndex) return;
 
     // Calcoliamo il nuovo order
-    let cellCards = Array.from(cardsByCell[destCell] || []);
-    if (sourceCell === destCell) {
-      // Rimuoviamo l'elemento dalla sua vecchia posizione per calcolare correttamente i vicini
-      const [removed] = cellCards.splice(sourceIndex, 1);
-    }
+    // Per calcolare il nuovo ordine, prendiamo la lista di destinazione ESCLUDENDO la scheda che stiamo spostando
+    let targetCards = Array.from(cardsByCell[destCell] || []).filter(c => c.id !== cardId);
     
     let newOrder = 0;
-    if (cellCards.length === 0) {
+    if (targetCards.length === 0) {
       newOrder = 1000;
     } else if (destIndex === 0) {
-      newOrder = cellCards[0].order - 1000;
-    } else if (destIndex >= cellCards.length) {
-      newOrder = cellCards[cellCards.length - 1].order + 1000;
+      newOrder = targetCards[0].order - 1000;
+    } else if (destIndex >= targetCards.length) {
+      newOrder = targetCards[targetCards.length - 1].order + 1000;
     } else {
-      newOrder = (cellCards[destIndex - 1].order + cellCards[destIndex].order) / 2.0;
+      newOrder = (targetCards[destIndex - 1].order + targetCards[destIndex].order) / 2.0;
     }
-    
-    // Aggiornamento ottimistico dell'interfaccia (elimina i glitch/scatti)
+
     const updatedCards = [...localCards];
     const targetCardIdx = updatedCards.findIndex(c => c.id === cardId);
     let optimisticCard = null;
