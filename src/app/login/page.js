@@ -51,6 +51,8 @@ export default function LoginPage() {
     });
 
     if (loginRes.ok) {
+      const data = await loginRes.json();
+      localStorage.setItem('userId', data.userId);
       router.push('/');
       router.refresh();
     } else {

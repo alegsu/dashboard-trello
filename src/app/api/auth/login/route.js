@@ -43,7 +43,7 @@ export async function POST(request) {
       maxAge: 60 * 60 * 24 * 7, // 7 giorni di login persistente
     });
 
-    return NextResponse.json({ success: true, user: sessionData });
+    return NextResponse.json({ success: true, userId: user.id });
   } catch (error) {
     console.error("Errore di Login:", error);
     return NextResponse.json({ error: 'Errore interno del server' }, { status: 500 });
