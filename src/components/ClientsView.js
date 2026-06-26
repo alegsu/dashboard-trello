@@ -13,6 +13,9 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
   // Google Sheets Sync
   const [csvUrl, setCsvUrl] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
+  
+  // Filtri
+  const [filterActive, setFilterActive] = useState(true);
 
   useEffect(() => {
     setClients(initialClients);
@@ -112,9 +115,15 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
       <div style={{ display: 'flex', gap: '2rem', marginTop: '1rem', flexWrap: 'wrap' }}>
         {/* Lista Clienti */}
         <div style={{ flex: '1 1 300px', background: 'var(--bg-glass)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', alignSelf: 'flex-start' }}>
-          <h3>I Tuoi Clienti ({clients.length})</h3>
-          <ul style={{ listStyle: 'none', padding: 0, marginTop: '1rem' }}>
-            {clients.map(c => (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ margin: 0 }}>I Tuoi Clienti ({clients.filter(c => filterActive ? !!c.sheetData : true).length})</h3>
+            <label style={{ fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+              <input type="checkbox" checked={filterActive} onChange={e => setFilterActive(e.target.checked)} />
+              Solo Attivi
+            </label>
+          </div>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {clients.filter(c => filterActive ? !!c.sheetData : true).map(c => (
               <li 
                 key={c.id} 
                 onClick={() => handleSelectClient(c)}
