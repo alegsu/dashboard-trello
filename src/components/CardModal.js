@@ -491,18 +491,29 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
                           </div>
                         </div>
                         {openNotes[item.id] && (
-                          <div style={{ width: '100%', marginTop: '0.5rem', position: 'relative', paddingLeft: '1.5rem' }}>
+                          <div style={{ width: '100%', marginTop: '0.5rem', position: 'relative', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             <textarea
                               id={`textarea-item-notes-${item.id}`}
                               value={itemNotes[item.id] !== undefined ? itemNotes[item.id] : (item.notes || '')}
                               onChange={e => handleMentionChange(e.target.value, `item-notes-${item.id}`, val => setItemNotes(prev => ({ ...prev, [item.id]: val })))}
-                              onBlur={() => saveChecklistItemNotes(item.id, itemNotes[item.id])}
                               className={styles.textarea}
                               placeholder="Aggiungi istruzioni o note per questa voce... (usa @ per menzionare)"
                               rows={2}
                               style={{ fontSize: '0.85rem' }}
                             />
                             {renderMentionDropdown(`item-notes-${item.id}`, itemNotes[item.id] !== undefined ? itemNotes[item.id] : (item.notes || ''), val => setItemNotes(prev => ({ ...prev, [item.id]: val })))}
+                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                              <button 
+                                onClick={() => {
+                                  saveChecklistItemNotes(item.id, itemNotes[item.id] !== undefined ? itemNotes[item.id] : item.notes);
+                                  toggleNotes(item.id, item.notes); // Close the notes area after saving
+                                }}
+                                className={styles.btnSecondary}
+                                style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
+                              >
+                                Salva Nota
+                              </button>
+                            </div>
                           </div>
                         )}
                       </li>
