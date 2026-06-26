@@ -147,19 +147,19 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
 
   return (
     <main className={styles.mainContainer}>
-      <header className={`glass-panel ${styles.header}`} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem', padding: '1rem 1.5rem' }}>
+      <header className={`glass-panel ${styles.header}`} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem', padding: '1rem 1.5rem', borderTop: '3px solid var(--accent-primary)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <h1 className="text-gradient" style={{ margin: 0 }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
-            <span style={{ background: 'var(--accent-primary)', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v1.1.1
+            <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
+            <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+              v2.0.0
             </span>
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <button 
               onClick={() => setZenMode(!zenMode)}
-              style={{ background: zenMode ? 'var(--accent-primary)' : 'var(--bg-secondary)', color: zenMode ? 'white' : 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '20px', padding: '0.4rem 1rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.3s' }}
+              style={{ background: zenMode ? 'var(--accent-primary)' : 'rgba(161, 189, 207, 0.05)', color: zenMode ? 'white' : 'var(--accent-primary)', border: '1px solid var(--accent-primary)', borderRadius: '20px', padding: '0.4rem 1rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.3s', boxShadow: zenMode ? '0 0 15px rgba(161, 189, 207, 0.5)' : 'none' }}
             >
               {zenMode ? '🧘‍♂️ Esci da Zen' : '🧘‍♂️ Zen Mode'}
             </button>
