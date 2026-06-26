@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
-import { sendNotificationEmail } from '@/utils/mailer';
 
 export async function GET(request, { params }) {
   try {
@@ -55,11 +54,18 @@ export async function PUT(request, { params }) {
       const addedIds = data.assignees.filter(userId => !oldAssigneeIds.includes(userId));
       if (addedIds.length > 0) {
         const usersToNotify = updated.assignees.filter(a => addedIds.includes(a.id));
-        usersToNotify.forEach(user => {
+        for (const user of usersToNotify) {
           if (user.email && user.notifyAssignedCard !== false) {
-            sendNotificationEmail(user.email, 'Nuovo Task Assegnato', `Ciao ${user.name},\n\nSei stato appena assegnato al task "${updated.name}" sulla bacheca.\n\nAccedi al gestionale per vedere i dettagli.\n\nIl Team`);
+            await prisma.pendingNotification.create({
+              data: {
+                userId: user.id,
+                type: "ASSIGN",
+                message: `Sei stato assegnato alla scheda "${updated.name}"`,
+                link: data.baseUrl ? `${data.baseUrl}/?card=${id}` : `/?card=${id}`
+              }
+            });
           }
-        });
+        }
       }
     }
 

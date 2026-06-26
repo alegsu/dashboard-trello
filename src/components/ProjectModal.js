@@ -121,12 +121,11 @@ export default function ProjectModal({ project, clients, members, currentUser, o
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     const authorId = localStorage.getItem('userId');
-    const baseUrl = window.location.origin;
 
     await fetch(`/api/projects/${project.id}/comments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: newComment, authorId, baseUrl })
+      body: JSON.stringify({ text: newComment, authorId, baseUrl: window.location.origin })
     });
     setNewComment('');
     fetchComments();
@@ -137,7 +136,7 @@ export default function ProjectModal({ project, clients, members, currentUser, o
       <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ maxWidth: '900px', display: 'flex', flexDirection: 'row', padding: '2rem' }}>
         
         {/* Main Content Area */}
-        <div style={{ flex: 2, paddingRight: '1rem', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
+        <div style={{ flex: 2, paddingRight: '1.5rem', marginRight: '0.5rem', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1.5rem', overflowY: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <input 
               value={formData.name} 

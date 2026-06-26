@@ -145,6 +145,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
   }, []);
 
   const updateCard = async (updates) => {
+    updates.baseUrl = window.location.origin;
     await fetch(`/api/cards/${cardId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -318,7 +319,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
     await fetch(`/api/cards/${cardId}/comments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: newComment, authorId, mentions })
+      body: JSON.stringify({ text: newComment, authorId, mentions, baseUrl: window.location.origin })
     });
     setNewComment('');
     fetchCard();

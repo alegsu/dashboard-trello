@@ -28,6 +28,14 @@ export async function PUT(request, { params }) {
       return NextResponse.json(updatedBoard);
     }
 
+    if (body.name !== undefined) {
+      const updatedBoard = await prisma.board.update({
+        where: { id },
+        data: { name: body.name }
+      });
+      return NextResponse.json(updatedBoard);
+    }
+
     return NextResponse.json({ error: 'Nessun dato valido da aggiornare' }, { status: 400 });
   } catch (error) {
     console.error(error);

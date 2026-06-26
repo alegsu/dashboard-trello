@@ -8,7 +8,7 @@ import SettingsPanel from './SettingsPanel';
 import ProjectsView from './ProjectsView';
 import ClientsView from './ClientsView';
 import PomodoroTimer from './PomodoroTimer';
-import { Search, Filter, Tag, Folder, Building, Bell } from 'lucide-react';
+import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell } from 'lucide-react';
 
 export default function DashboardClient({ initialBoards, initialLists, initialCards, initialMembers, initialClients }) {
   const router = useRouter();
@@ -170,15 +170,36 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
             )}
             
             {initialBoards.length > 0 && !zenMode && (
-              <select 
-                value={selectedBoardId} 
-                onChange={(e) => setSelectedBoardId(e.target.value)}
-                style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontWeight: 'bold' }}
-              >
-                {initialBoards.map(b => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
-              </select>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <select 
+                  value={selectedBoardId} 
+                  onChange={(e) => setSelectedBoardId(e.target.value)}
+                  style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontWeight: 'bold' }}
+                >
+                  {initialBoards.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+                <button 
+                  onClick={async () => {
+                    const board = initialBoards.find(b => b.id === selectedBoardId);
+                    if (!board) return;
+                    const newName = prompt('Nuovo nome bacheca:', board.name);
+                    if (newName && newName.trim() !== '' && newName !== board.name) {
+                      await fetch(`/api/boards/${selectedBoardId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: newName.trim() })
+                      });
+                      window.location.reload(); // Refresh veloce per aggiornare la UI
+                    }
+                  }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                  title="Rinomina Bacheca"
+                >
+                  <Edit2 size={16} />
+                </button>
+              </div>
             )}
             {!zenMode && (
               <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>

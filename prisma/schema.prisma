@@ -25,6 +25,7 @@ model User {
   projectComments ProjectComment[]
   checklistItems ChecklistItem[] @relation("ChecklistItemAssignees")
   notifications  Notification[]
+  pendingNotifications PendingNotification[]
   clients        Client[]        @relation("ClientCollaborators")
   
   // Impostazioni Notifiche
@@ -224,5 +225,15 @@ model Attachment {
   projectId String?
   project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   
+  createdAt DateTime @default(now())
+}
+
+model PendingNotification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "MENTION", "ASSIGN", "COMMENT", "CARD_ADD", "BOARD_UPDATE"
+  message   String
+  link      String?
   createdAt DateTime @default(now())
 }

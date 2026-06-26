@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/process-queue",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/cron/rollover",
       "schedule": "0 0 * * 1" 
     },

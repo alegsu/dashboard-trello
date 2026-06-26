@@ -40,6 +40,34 @@ export async function POST(request, { params }) {
     // Processa Menzioni!
     await processMentions(text, authorId, link, `Scheda: ${card?.name || 'Sconosciuta'}`);
 
+    // Notifica tutti i collaboratori della bacheca
+    if (card && card.boardId) {
+      // Trova tutti gli utenti assegnati ad almeno una scheda o lista in questa bacheca
+      const boardMembers = await prisma.user.findMany({
+        where: {
+          OR: [
+            { cards: { some: { boardId: card.boardId } } },
+            { lists: { some: { boardId: card.boardId } } }
+          ]
+        }
+      });
+
+      for (const member of boardMembers) {
+        if (member.id !== authorId && member.email) {
+          // Non duplicare le notifiche se è stato già menzionato?
+          // Per semplicità inseriamo tutto in coda, l'utente vedrà "Nuovo commento" e "Sei stato menzionato"
+          await prisma.pendingNotification.create({
+            data: {
+              userId: member.id,
+              type: "BOARD_UPDATE",
+              message: `${comment.author.name} ha commentato sulla scheda "${card.name}"`,
+              link: link
+            }
+          });
+        }
+      }
+    }
+
     return NextResponse.json(comment, { status: 201 });
   } catch (error) {
     console.error('Error creating card comment:', error);
