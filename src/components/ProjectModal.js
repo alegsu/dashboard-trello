@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, Folder, Clock, DollarSign, Tag, Calendar, AlertCircle } from 'lucide-react';
 import styles from './CardModal.module.css'; // Possiamo riusare alcuni stili del CardModal
 
-export default function ProjectModal({ project, clients, onClose, onRefresh }) {
+export default function ProjectModal({ project, clients, members, currentUser, onClose, onRefresh }) {
   const [formData, setFormData] = useState({
     name: project.name || '',
     clientId: project.clientId || 'none',
@@ -26,6 +26,65 @@ export default function ProjectModal({ project, clients, onClose, onRefresh }) {
   const [newComment, setNewComment] = useState('');
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState([]);
+  
+  const [mentionQuery, setMentionQuery] = useState(null);
+  const [mentionTarget, setMentionTarget] = useState(null);
+
+  const handleMentionChange = (val, target, setter) => {
+    setter(val);
+    const textarea = document.getElementById(`textarea-${target}`);
+    if (textarea) {
+      const cursor = textarea.selectionStart;
+      const textBefore = val.slice(0, cursor);
+      const match = /(?:^|\s)@([a-zA-Z0-9_.]*)$/.exec(textBefore);
+      if (match) {
+        setMentionQuery(match[1].toLowerCase());
+        setMentionTarget(target);
+      } else {
+        if (mentionTarget === target) {
+          setMentionQuery(null);
+          setMentionTarget(null);
+        }
+      }
+    }
+  };
+
+  const renderMentionDropdown = (target, currentText, setter) => {
+    if (mentionTarget !== target || mentionQuery === null) return null;
+    return (
+      <div style={{ position: 'absolute', top: '100%', left: 0, background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', zIndex: 100, maxHeight: '150px', overflowY: 'auto', width: '250px', boxShadow: 'var(--shadow-md)' }}>
+        {(members || []).filter(m => m?.name && m.name.toLowerCase().replace(/\s+/g, '').includes(mentionQuery)).map(m => (
+          <div 
+            key={m.id} 
+            onClick={() => {
+              const textarea = document.getElementById(`textarea-${target}`);
+              const cursor = textarea.selectionStart;
+              const textBefore = currentText.slice(0, cursor);
+              const textAfter = currentText.slice(cursor);
+              const match = /(?:^|\s)@([a-zA-Z0-9_.]*)$/.exec(textBefore);
+              if (match) {
+                const startIdx = textBefore.lastIndexOf('@' + match[1]);
+                const mentionText = `@${m.name.replace(/\s+/g, '')} `;
+                setter(textBefore.slice(0, startIdx) + mentionText + textAfter);
+                setMentionQuery(null);
+                setMentionTarget(null);
+                textarea.focus();
+              }
+            }}
+            style={{ padding: '0.5rem', cursor: 'pointer', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontSize: '0.7rem', fontWeight: 'bold' }}>
+              {m.name.charAt(0).toUpperCase()}
+            </div>
+            <span style={{ fontSize: '0.85rem' }}>{m.name}</span>
+          </div>
+        ))}
+        {(members || []).filter(m => m?.name && m.name.toLowerCase().replace(/\s+/g, '').includes(mentionQuery)).length === 0 && (
+          <div style={{ padding: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Nessun utente trovato</div>
+        )}
+      </div>
+    );
+  };
 
   useEffect(() => {
     fetchComments();
@@ -90,38 +149,50 @@ export default function ProjectModal({ project, clients, onClose, onRefresh }) {
 
           <div>
             <h4 style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Tag size={16}/> Descrizione Pubblica</h4>
-            <textarea 
-              value={formData.description} 
-              onChange={e => setFormData({ ...formData, description: e.target.value })}
-              className={styles.textarea}
-              placeholder="Descrizione visibile a tutti..."
-              rows={3}
-            />
+            <div style={{ position: 'relative' }}>
+              <textarea 
+                id="textarea-description"
+                value={formData.description} 
+                onChange={e => handleMentionChange(e.target.value, 'description', val => setFormData({ ...formData, description: val }))}
+                className={styles.textarea}
+                placeholder="Descrizione visibile a tutti... usa @ per menzionare"
+                rows={3}
+              />
+              {renderMentionDropdown('description', formData.description, val => setFormData({ ...formData, description: val }))}
+            </div>
           </div>
 
           <div>
             <h4 style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Folder size={16}/> Note Interne (PM)</h4>
-            <textarea 
-              value={formData.notes} 
-              onChange={e => setFormData({ ...formData, notes: e.target.value })}
-              className={styles.textarea}
-              placeholder="Note visibili solo internamente..."
-              rows={4}
-              style={{ background: 'rgba(255,200,0,0.05)', borderLeft: '3px solid #ffcc00' }}
-            />
+            <div style={{ position: 'relative' }}>
+              <textarea 
+                id="textarea-notes"
+                value={formData.notes} 
+                onChange={e => handleMentionChange(e.target.value, 'notes', val => setFormData({ ...formData, notes: val }))}
+                className={styles.textarea}
+                placeholder="Note visibili solo internamente... usa @ per menzionare"
+                rows={4}
+                style={{ background: 'rgba(255,200,0,0.05)', borderLeft: '3px solid #ffcc00' }}
+              />
+              {renderMentionDropdown('notes', formData.notes, val => setFormData({ ...formData, notes: val }))}
+            </div>
           </div>
 
           {/* Comments Section */}
           <div style={{ marginTop: '1rem' }}>
             <h4>Commenti del Progetto</h4>
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-              <textarea 
-                value={newComment} 
-                onChange={e => setNewComment(e.target.value)} 
-                className={styles.textarea} 
-                placeholder="Scrivi un commento e usa @ per menzionare..." 
-                rows={2}
-              />
+              <div style={{ flex: 1, position: 'relative' }}>
+                <textarea 
+                  id="textarea-comment"
+                  value={newComment} 
+                  onChange={e => handleMentionChange(e.target.value, 'comment', setNewComment)} 
+                  className={styles.textarea} 
+                  placeholder="Scrivi un commento e usa @ per menzionare..." 
+                  rows={2}
+                />
+                {renderMentionDropdown('comment', newComment, setNewComment)}
+              </div>
               <button onClick={handleAddComment} className={styles.saveBtn} style={{ height: 'auto' }}>Invia</button>
             </div>
             <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>

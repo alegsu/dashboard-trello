@@ -389,6 +389,8 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
           {view === 'projects' && (
             <ProjectsView 
               clients={initialClients || []} 
+              members={initialMembers || []}
+              currentUser={currentUser}
               onRefresh={handleRefresh} 
             />
           )}

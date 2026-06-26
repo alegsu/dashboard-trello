@@ -4,7 +4,7 @@ import { Briefcase, Plus, TrendingUp, CheckSquare, Layers, Clock, DollarSign, Ca
 import styles from './ProjectsView.module.css';
 import ProjectModal from './ProjectModal';
 
-export default function ProjectsView({ clients = [], onRefresh }) {
+export default function ProjectsView({ clients = [], members = [], currentUser, onRefresh }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -176,38 +176,45 @@ export default function ProjectsView({ clients = [], onRefresh }) {
               
               <p className={styles.projectDesc}>{project.description || 'Nessuna descrizione. Clicca per espandere il progetto.'}</p>
               
-              <div className={styles.statsRow} style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
-                <div className={styles.statBox}>
-                  <Layers size={14} /> {project.cards.length} Cards
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', margin: '1.5rem 0' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-color)' }}>
+                  <div title="Task Collegati" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    <Layers size={14} /> <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{project.cards.length} Cards</span>
+                  </div>
+                  {project.category && (
+                    <div title="Categoria Progetto" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      <Tag size={14} /> <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{project.category}</span>
+                    </div>
+                  )}
+                  {project.priority && (
+                    <div title={`Priorità: ${project.priority}`} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: project.priority === 'Urgente' ? 'var(--status-danger)' : project.priority === 'Alta' ? 'var(--status-warning, #f59e0b)' : 'var(--text-secondary)' }}>
+                      <AlertCircle size={14} /> <span style={{ fontWeight: '500' }}>{project.priority}</span>
+                    </div>
+                  )}
+                  {project.estimatedHours && (
+                    <div title="Ore consumate / Ore stimate" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      <Clock size={14} /> <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{project.actualHours || 0}/{project.estimatedHours}h</span>
+                    </div>
+                  )}
+                  {project.effort && (
+                    <div title="Livello di Effort richiesto (da 1 a 10)" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: Number(project.effort) >= 8 ? 'var(--status-danger)' : Number(project.effort) >= 5 ? 'var(--status-warning, #f59e0b)' : 'var(--status-success)' }}>
+                      <Activity size={14} /> <span style={{ fontWeight: '500' }}>Effort: {project.effort}/10</span>
+                    </div>
+                  )}
                 </div>
-                {project.category && (
-                  <div className={styles.statBox}>
-                    <Tag size={14} /> {project.category}
-                  </div>
-                )}
-                {project.priority && (
-                  <div className={styles.statBox} style={{ color: project.priority === 'Urgente' ? 'var(--status-danger)' : 'inherit' }}>
-                    <AlertCircle size={14} /> {project.priority}
-                  </div>
-                )}
-                {project.estimatedHours && (
-                  <div className={styles.statBox}>
-                    <Clock size={14} /> {project.actualHours || 0}/{project.estimatedHours}h
-                  </div>
-                )}
-                {project.effort && (
-                  <div className={styles.statBox} style={{ color: Number(project.effort) >= 8 ? 'var(--status-danger)' : Number(project.effort) >= 5 ? 'var(--status-warning, #f59e0b)' : 'var(--status-success)' }}>
-                    <Activity size={14} /> Effort: {project.effort}/10
-                  </div>
-                )}
-                {project.sellingPrice && (
-                  <div className={styles.statBox} style={{ color: 'var(--status-success)' }}>
-                    <DollarSign size={14} /> Ricavi: {project.sellingPrice}€
-                  </div>
-                )}
-                {project.budget && (
-                  <div className={styles.statBox} style={{ color: 'var(--status-danger)' }}>
-                    <DollarSign size={14} /> Costi: {project.budget}€
+
+                {(project.sellingPrice || project.budget) && (
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    {project.sellingPrice && (
+                      <div title="Ricavi Stimati" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--status-success)', background: 'rgba(34, 197, 94, 0.1)', padding: '0.3rem 0.6rem', borderRadius: '6px' }}>
+                        <DollarSign size={14} /> <span style={{ fontWeight: 'bold' }}>Ricavi: {project.sellingPrice}€</span>
+                      </div>
+                    )}
+                    {project.budget && (
+                      <div title="Budget Costi" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--status-danger)', background: 'rgba(239, 68, 68, 0.1)', padding: '0.3rem 0.6rem', borderRadius: '6px' }}>
+                        <DollarSign size={14} style={{ color: 'var(--status-danger)' }} /> <span style={{ fontWeight: 'bold', color: 'var(--status-danger)' }}>Costi: {project.budget}€</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -294,6 +301,8 @@ export default function ProjectsView({ clients = [], onRefresh }) {
         <ProjectModal 
           project={activeProject} 
           clients={clients} 
+          members={members}
+          currentUser={currentUser}
           onClose={() => setActiveProject(null)} 
           onRefresh={() => {
             fetchProjects();
