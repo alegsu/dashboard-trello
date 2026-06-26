@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import React, { useState, useEffect } from 'react';
 import { flushSync } from 'react-dom';
 import CardModal from './CardModal';
 import styles from './KanbanView.module.css';
