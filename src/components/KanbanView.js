@@ -424,6 +424,12 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
 
          <div className={styles.kanbanBody}>
             {allClientIds.map(clientId => {
+              // Hide "Nessun Cliente" row if there are no cards at all for it
+              if (clientId === unassignedId) {
+                const hasCards = lists.some(list => (cardsByCell[`${clientId}-${list.id}`] || []).length > 0);
+                if (!hasCards) return null;
+              }
+
               const client = clientId === unassignedId ? { name: 'Nessun Cliente' } : clientMap.get(clientId);
               return (
                 <div key={clientId} className={styles.kanbanSwimlane}>
