@@ -177,6 +177,11 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
 
   return (
     <div className={styles.container}>
+      <div style={{ background: '#ff4444', color: 'white', padding: '10px', borderRadius: '8px', marginBottom: '1rem', wordBreak: 'break-all' }}>
+        <strong>DEBUG ADMIN:</strong><br/>
+        User dal server (currentUser): {JSON.stringify(currentUser)}<br/>
+        User dal database live (effectiveCurrentUser): {JSON.stringify(effectiveCurrentUser)}
+      </div>
       <h2 className={styles.title}>⚙️ Impostazioni & Gestione</h2>
       
       {error && <div style={{background: '#fee2e2', color: '#b91c1c', padding: '1rem', borderRadius: '8px', marginBottom: '1rem'}}>{error}</div>}
