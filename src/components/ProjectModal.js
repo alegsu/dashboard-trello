@@ -25,10 +25,20 @@ export default function ProjectModal({ project, clients, onClose, onRefresh }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     fetchComments();
+    fetchCategories();
   }, [project.id]);
+
+  const fetchCategories = async () => {
+    const res = await fetch('/api/labels');
+    if (res.ok) {
+      const data = await res.json();
+      setCategories(data);
+    }
+  };
 
   const fetchComments = async () => {
     const res = await fetch(`/api/projects/${project.id}/comments`);
@@ -159,7 +169,10 @@ export default function ProjectModal({ project, clients, onClose, onRefresh }) {
 
             <div>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Categoria</label>
-              <input value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} placeholder="Es. Sviluppo Web" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+              <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
+                <option value="">-- Nessuna Categoria --</option>
+                {categories.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+              </select>
             </div>
 
             <div>
