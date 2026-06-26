@@ -5,11 +5,18 @@ import { parse } from 'csv-parse/sync';
 
 export async function POST(request) {
   try {
-    const { csvUrl } = await request.json();
+    let { csvUrl } = await request.json();
     if (!csvUrl) return NextResponse.json({ error: 'URL CSV mancante' }, { status: 400 });
 
+    // Auto-conversione dell'URL standard nel formato CSV da esportare
+    if (csvUrl.includes('/edit')) {
+      const urlObj = new URL(csvUrl);
+      const gid = urlObj.searchParams.get('gid') || '0';
+      csvUrl = csvUrl.split('/edit')[0] + `/export?format=csv&gid=${gid}`;
+    }
+
     const res = await fetch(csvUrl);
-    if (!res.ok) throw new Error('Impossibile scaricare il file CSV. Assicurati che sia pubblico.');
+    if (!res.ok) throw new Error('Impossibile scaricare il file CSV. Assicurati che sia condiviso o pubblico.');
     
     const csvData = await res.text();
     
