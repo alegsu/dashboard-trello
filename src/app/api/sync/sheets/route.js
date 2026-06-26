@@ -121,6 +121,6 @@ export async function POST(request) {
     return NextResponse.json({ success: true, results });
   } catch (error) {
     console.error("Sheets Sync Error:", error);
-    return NextResponse.json({ error: 'Errore durante la sincronizzazione' }, { status: 500 });
+    return NextResponse.json({ error: 'Errore durante la sincronizzazione: ' + error.message, stack: error.stack }, { status: 500 });
   }
 }
