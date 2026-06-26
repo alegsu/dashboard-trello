@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import styles from './SettingsPanel.module.css';
 
-export default function SettingsPanel({ members, boards, clients = [], lists = [], onRefresh }) {
+export default function SettingsPanel({ members, boards, clients = [], lists = [], onRefresh, currentUser }) {
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
