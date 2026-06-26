@@ -1,0 +1,204 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String?
+  role         String   @default("user")
+  avatarUrl    String?
+  
+  // Relazioni
+  cards          Card[]          @relation("CardAssignees")
+  lists          List[]          @relation("ListAssignees")
+  comments       Comment[]
+  projectComments ProjectComment[]
+  checklistItems ChecklistItem[] @relation("ChecklistItemAssignees")
+  notifications  Notification[]
+}
+
+model Board {
+  id        String   @id @default(cuid())
+  name      String
+  
+  lists     List[]
+  cards     Card[]
+  labels    Label[]
+}
+
+model List {
+  id        String    @id @default(cuid())
+  name      String
+  order     Float     @default(0)
+  
+  startDate DateTime?
+  endDate   DateTime?
+  
+  boardId   String
+  board     Board     @relation(fields: [boardId], references: [id])
+  
+  cards     Card[]
+  
+  // Custom feature: Assegnare intere liste agli utenti (impossibile su Trello standard)
+  assignees User[]    @relation("ListAssignees")
+}
+
+model Card {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  due         DateTime?
+  order       Float     @default(0)
+  listId      String
+  list        List      @relation(fields: [listId], references: [id], onDelete: Cascade)
+  boardId     String
+  board       Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  color       String?  // New field for whole card color
+  
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
+  clientId    String?
+  client      Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  
+  checklists  Checklist[]
+  comments    Comment[]
+  assignees   User[]    @relation("CardAssignees")
+  labels      Label[]   @relation("CardLabels")
+  attachments Attachment[]
+}
+
+model Label {
+  id        String   @id @default(cuid())
+  name      String
+  color     String
+  
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id])
+  
+  cards     Card[]   @relation("CardLabels")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  createdAt DateTime @default(now())
+  
+  cardId    String
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Checklist {
+  id        String   @id @default(cuid())
+  title     String
+  order     Float    @default(0)
+  
+  cardId    String
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  
+  items     ChecklistItem[]
+}
+
+model ChecklistItem {
+  id          String    @id @default(cuid())
+  text        String
+  isCompleted Boolean   @default(false)
+  order       Float     @default(0)
+  
+  checklistId String
+  checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  
+  assignees   User[]    @relation("ChecklistItemAssignees")
+}
+
+model Client {
+  id          String   @id @default(cuid())
+  name        String
+  createdAt   DateTime @default(now())
+  
+  driveFolderId String? // Google Drive folder ID
+  
+  projects    Project[]
+  cards       Card[]
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  clientName  String?  // Kept for backwards compatibility
+  
+  clientId    String?
+  client      Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  
+  createdAt   DateTime @default(now())
+  
+  // KPI e Nuovi Campi
+  status      String   @default("In Coda") // Preventivo, In Coda, In Corso, Completato, In Pausa
+  category    String?  // Sviluppo Web, SEO, Social, ecc.
+  priority    String   @default("Normale") // Bassa, Normale, Alta
+  dueDate     DateTime?
+  estimatedHours Float?
+  actualHours    Float?
+  sellingPrice   Float?
+  budget         Float?
+  effort         Float?
+  driveFolderId  String?
+  notes          String?
+  
+  cards       Card[]
+  comments    ProjectComment[]
+  attachments Attachment[]
+}
+
+model SystemSetting {
+  id    String @id @default("singleton")
+  key   String @unique
+  value String
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   String
+  read      Boolean  @default(false)
+  link      String?  
+  createdAt DateTime @default(now())
+}
+
+model ProjectComment {
+  id        String   @id @default(cuid())
+  text      String
+  createdAt DateTime @default(now())
+  
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  
+  cardId    String?
+  card      Card?    @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+}

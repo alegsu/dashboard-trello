@@ -1,30 +1,26 @@
-import { fetchLists, fetchCards, fetchMembers } from '@/utils/trello';
+import { prisma } from '@/utils/prisma';
 import DashboardClient from '@/components/DashboardClient';
+import styles from './page.module.css';
 
 export default async function Home() {
-  let lists = [], cards = [], members = [];
-  let error = null;
+  const users = await prisma.user.findMany({ orderBy: { name: 'asc' } });
+  const boards = await prisma.board.findMany({ orderBy: { name: 'asc' } });
+  const lists = await prisma.list.findMany({ orderBy: { order: 'asc' } });
+  const clients = await prisma.client.findMany({ orderBy: { name: 'asc' } });
+  const cards = await prisma.card.findMany({ 
+    include: { assignees: true, labels: true },
+    orderBy: { order: 'asc' }
+  });
 
-  try {
-    [lists, cards, members] = await Promise.all([
-      fetchLists(),
-      fetchCards(),
-      fetchMembers()
-    ]);
-  } catch (err) {
-    console.error(err);
-    error = err.message;
-  }
-
-  if (error) {
-    return (
-      <main style={{ padding: '2rem', color: 'var(--status-danger)' }}>
-        <h1>Errore di Connessione a Trello</h1>
-        <p>{error}</p>
-        <p>Assicurati che le chiavi API nel file .env.local siano corrette e che l'ID della board sia giusto.</p>
-      </main>
-    );
-  }
-
-  return <DashboardClient initialLists={lists} initialCards={cards} initialMembers={members} />;
+  return (
+    <main className={styles.main}>
+      <DashboardClient 
+        initialBoards={boards}
+        initialMembers={users} 
+        initialLists={lists} 
+        initialCards={cards} 
+        initialClients={clients}
+      />
+    </main>
+  );
 }

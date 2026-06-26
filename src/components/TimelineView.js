@@ -35,13 +35,13 @@ export default function TimelineView({ cards, members, lists }) {
     const dueDate = new Date(card.due);
     const dateStr = getFormatDate(dueDate);
 
-    if (!card.idMembers || card.idMembers.length === 0) {
+    if (!card.assignees || card.assignees.length === 0) {
       const key = `${unassignedId}-${dateStr}`;
       if(!cardsByCell[key]) cardsByCell[key] = [];
       cardsByCell[key].push(card);
     } else {
-      card.idMembers.forEach(mId => {
-        const key = `${mId}-${dateStr}`;
+      card.assignees.forEach(a => {
+        const key = `${a.id}-${dateStr}`;
         if(!cardsByCell[key]) cardsByCell[key] = [];
         cardsByCell[key].push(card);
       });
