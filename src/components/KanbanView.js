@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { flushSync } from 'react-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import CardModal from './CardModal';
 import styles from './KanbanView.module.css';
@@ -27,9 +26,14 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
   const unassignedId = 'unassigned';
   const allClientIds = [unassignedId, ...(clients || []).map(c => c.id)];
 
+  const [localCards, setLocalCards] = useState(cards);
+  useEffect(() => {
+    setLocalCards(cards);
+  }, [cards]);
+
   const cardsByCell = {};
 
-  cards.forEach(card => {
+  localCards.forEach(card => {
     const listId = card.listId;
     const clientId = card.clientId || unassignedId;
     const key = `${clientId}-${listId}`;
@@ -82,17 +86,13 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     }
     
     // Aggiornamento ottimistico dell'interfaccia (elimina i glitch/scatti)
-    const updatedCards = [...cards];
+    const updatedCards = [...localCards];
     const targetCardIdx = updatedCards.findIndex(c => c.id === cardId);
     let optimisticCard = null;
     if (targetCardIdx !== -1) {
       optimisticCard = { ...updatedCards[targetCardIdx], listId: destListId, order: newOrder };
-    }
-
-    if (optimisticCard && onCardUpdate) {
-      flushSync(() => {
-        onCardUpdate(optimisticCard);
-      });
+      updatedCards[targetCardIdx] = optimisticCard;
+      setLocalCards(updatedCards);
     }
 
     // API Call
