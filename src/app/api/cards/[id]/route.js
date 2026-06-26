@@ -22,7 +22,7 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   try {
     const { id } = await params;
-    const data = await request.json();
+    const { baseUrl, ...data } = await request.json();
     
     let oldAssigneeIds = [];
     if (data.assignees) {
@@ -61,7 +61,7 @@ export async function PUT(request, { params }) {
                 userId: user.id,
                 type: "ASSIGN",
                 message: `Sei stato assegnato alla scheda "${updated.name}"`,
-                link: data.baseUrl ? `${data.baseUrl}/?card=${id}` : `/?card=${id}`
+                link: baseUrl ? `${baseUrl}/?card=${id}` : `/?card=${id}`
               }
             });
           }
