@@ -26,7 +26,7 @@ export async function POST(request) {
 
     const openai = new OpenAI({ apiKey });
 
-    let prompt = `Sei un assistente per il project management. Riassumi brevemente questa scheda, evidenziando lo stato attuale e cosa manca da fare.\n\nTitolo: ${card.name}\nDescrizione: ${card.description || 'Nessuna'}\n\n`;
+    let prompt = `Analizza questa scheda e fornisci un riassunto chiaro dello stato dei lavori. Tieni in altissima considerazione sia la Descrizione principale che gli Ultimi Commenti, integrando queste informazioni con lo stato delle checklist per capire a che punto siamo.\n\nTitolo: ${card.name}\nDescrizione: ${card.description || 'Nessuna'}\n\n`;
     
     if (card.checklists.length > 0) {
       prompt += "Checklists:\n";
@@ -40,7 +40,7 @@ export async function POST(request) {
     }
 
     if (card.comments.length > 0) {
-      prompt += "Ultimi commenti:\n";
+      prompt += "Ultimi commenti (dal più recente al più vecchio):\n";
       card.comments.forEach(c => {
         prompt += `- ${c.author?.name || 'Sconosciuto'}: ${c.text}\n`;
       });
@@ -49,10 +49,10 @@ export async function POST(request) {
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: 'Sei un assistente agile. Rispondi con un riassunto conciso in massimo 3 o 4 frasi, in italiano.' },
+        { role: 'system', content: 'Sei un brillante project manager. Produci un riassunto discorsivo di 3-5 frasi (in italiano). Il riassunto DEVE sintetizzare la situazione basandosi su Descrizione e Commenti, spiegando a che punto siamo e le prossime azioni.' },
         { role: 'user', content: prompt }
       ],
-      max_tokens: 150,
+      max_tokens: 300,
       temperature: 0.5
     });
 
