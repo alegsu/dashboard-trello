@@ -376,6 +376,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               onCardUpdate={handleCardUpdate}
               currentUser={currentUser}
               zenMode={zenMode}
+              filterClientId={filterClientId}
             />
           )}
           {view === 'timeline' && selectedBoardId && (

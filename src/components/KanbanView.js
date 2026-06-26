@@ -18,7 +18,7 @@ function getContrastYIQ(hexcolor){
   return (yiq >= 128) ? '#000000' : '#ffffff';
 }
 
-export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh, onCardUpdate }) {
+export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh, onCardUpdate, currentUser, zenMode, filterClientId }) {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState(null);
 
@@ -424,10 +424,16 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
 
          <div className={styles.kanbanBody}>
             {allClientIds.map(clientId => {
-              // Hide "Nessun Cliente" row if there are no cards at all for it
-              if (clientId === unassignedId) {
-                const hasCards = lists.some(list => (cardsByCell[`${clientId}-${list.id}`] || []).length > 0);
-                if (!hasCards) return null;
+              const hasCards = lists.some(list => (cardsByCell[`${clientId}-${list.id}`] || []).length > 0);
+              
+              // Nascondi sempre se non ci sono task, a meno che non sia l'unico cliente filtrato (in modo da permettere di aggiungerne di nuove)
+              if (!hasCards && clientId !== filterClientId) {
+                // Per l'unassigned, mostralo solo se nessun cliente è stato filtrato e non ha task? No, meglio nascondere anche unassigned se vuoto, tranne se filterClientId è vuoto e board è vuota
+                if (clientId === unassignedId && !filterClientId && Object.keys(cardsByCell).length === 0) {
+                  // Fallback: se la board è completamente vuota e non c'è filtro, mostra unassigned per permettere di creare task
+                } else {
+                  return null;
+                }
               }
 
               const client = clientId === unassignedId ? { name: 'Nessun Cliente' } : clientMap.get(clientId);
