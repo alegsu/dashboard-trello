@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import { prisma } from './prisma';
 
-export async function sendNotificationEmail(to, subject, text) {
+export async function sendNotificationEmail(to, subject, text, html = null) {
   try {
     const settings = await prisma.systemSetting.findMany();
     const config = {};
@@ -22,12 +22,15 @@ export async function sendNotificationEmail(to, subject, text) {
       },
     });
 
-    const info = await transporter.sendMail({
+    const mailOptions = {
       from: `"Gestionale Notifiche" <${config.SMTP_USER}>`,
       to,
       subject,
       text,
-    });
+    };
+    if (html) mailOptions.html = html;
+
+    const info = await transporter.sendMail(mailOptions);
     console.log('Email sent: ' + info.messageId);
     return true;
   } catch (error) {

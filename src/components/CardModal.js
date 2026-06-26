@@ -18,7 +18,9 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
 
   // AI Summary
   const [aiSummary, setAiSummary] = useState('');
-  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [generatingAi, setGeneratingAi] = useState(false);
+  
+  const [mentionQuery, setMentionQuery] = useState(null);
   const [aiError, setAiError] = useState('');
   const [boardLabels, setBoardLabels] = useState([]);
   const [newLabelName, setNewLabelName] = useState('');
@@ -447,14 +449,59 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
             {/* Comments Section */}
             <div className={styles.section}>
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MessageSquare size={16}/> Commenti & Menzioni</h3>
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', position: 'relative' }}>
                 <textarea 
+                  id="comment-textarea"
                   value={newComment} 
-                  onChange={e => setNewComment(e.target.value)} 
+                  onChange={e => {
+                    setNewComment(e.target.value);
+                    const cursor = e.target.selectionStart;
+                    const textBefore = e.target.value.slice(0, cursor);
+                    const match = /(?:^|\s)@([a-zA-Z0-9_.]*)$/.exec(textBefore);
+                    if (match) {
+                      setMentionQuery(match[1].toLowerCase());
+                    } else {
+                      setMentionQuery(null);
+                    }
+                  }} 
                   className={styles.textarea} 
                   placeholder="Scrivi un commento e usa @ per menzionare (es. @mario)..." 
                   rows={2}
                 />
+                
+                {mentionQuery !== null && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', zIndex: 100, maxHeight: '150px', overflowY: 'auto', width: '250px', boxShadow: 'var(--shadow-md)' }}>
+                    {members.filter(m => m.name.toLowerCase().replace(/\s+/g, '').includes(mentionQuery)).map(m => (
+                      <div 
+                        key={m.id} 
+                        onClick={() => {
+                          const textarea = document.getElementById('comment-textarea');
+                          const cursor = textarea.selectionStart;
+                          const textBefore = newComment.slice(0, cursor);
+                          const textAfter = newComment.slice(cursor);
+                          const match = /(?:^|\s)@([a-zA-Z0-9_.]*)$/.exec(textBefore);
+                          if (match) {
+                            const startIdx = textBefore.lastIndexOf('@' + match[1]);
+                            const mentionText = `@${m.name.replace(/\s+/g, '')} `;
+                            setNewComment(textBefore.slice(0, startIdx) + mentionText + textAfter);
+                            setMentionQuery(null);
+                            textarea.focus();
+                          }
+                        }}
+                        style={{ padding: '0.5rem', cursor: 'pointer', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                      >
+                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontSize: '0.7rem', fontWeight: 'bold' }}>
+                          {m.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span style={{ fontSize: '0.85rem' }}>{m.name}</span>
+                      </div>
+                    ))}
+                    {members.filter(m => m.name.toLowerCase().replace(/\s+/g, '').includes(mentionQuery)).length === 0 && (
+                      <div style={{ padding: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Nessun utente trovato</div>
+                    )}
+                  </div>
+                )}
+
                 <button onClick={addComment} className={styles.saveBtn} style={{ height: 'auto' }}>Invia</button>
               </div>
               
