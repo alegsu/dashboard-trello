@@ -60,10 +60,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     // Se stiamo cercando di cambiare cliente spostando la riga, blocchiamo
     if (sourceClientId !== destClientId) return;
 
-    // Draggable ID is now `${cellKey}-${cardId}`
-    const draggableId = result.draggableId;
-    const parts = draggableId.split('-');
-    const cardId = parts[parts.length - 1];
+    const cardId = result.draggableId;
     
     const destListId = destParts[1];
     const sourceIndex = result.source.index;
@@ -294,7 +291,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                               className={`${styles.kanbanCell} ${snapshot.isDraggingOver ? styles.dragOver : ''}`}
                             >
                               {cellCards.map((card, index) => (
-                                <Draggable key={`${cellKey}-${card.id}`} draggableId={`${cellKey}-${card.id}`} index={index}>
+                                <Draggable key={card.id} draggableId={card.id} index={index}>
                                   {(provided, snapshot) => (
                                     <div 
                                       ref={provided.innerRef}
