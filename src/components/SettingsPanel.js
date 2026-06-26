@@ -279,12 +279,12 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           </div>
         </div>
 
-        {/* Preferenze Visive (Slegato) */}
+        {/* Impostazioni Account Corrente */}
         <div className={styles.card}>
-          <h3>🎨 Preferenze Visive</h3>
-          <p className={styles.subtitle}>Cambia l'aspetto grafico solo per il tuo account.</p>
+          <h3>🎨 Il Mio Account</h3>
+          <p className={styles.subtitle}>Gestisci le tue preferenze visive e le notifiche email.</p>
           <div style={{ background: 'var(--bg-glass)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
-            <span>Tema:</span>
+            <span>Tema visivo:</span>
             <select 
               value={effectiveCurrentUser?.theme || 'dark'}
               onChange={async (e) => {
@@ -306,26 +306,26 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           </div>
 
           <h3 style={{ marginTop: '2rem' }}>🔔 Notifiche Email</h3>
-          <p className={styles.subtitle}>Scegli quando desideri ricevere un avviso via email.</p>
+          <p className={styles.subtitle}>Scegli quando desideri ricevere un avviso via email sulla tua casella.</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'var(--bg-glass)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginTop: '1rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input type="checkbox" checked={effectiveCurrentUser?.notifyMentions !== false} onChange={() => toggleUserPreference('notifyMentions', effectiveCurrentUser?.notifyMentions !== false)} />
-              Quando vengo menzionato in un commento
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.notifyMentions !== false} onChange={() => toggleUserPreference('notifyMentions', effectiveCurrentUser?.notifyMentions !== false)} />
+              Quando vengo @menzionato in un commento
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input type="checkbox" checked={effectiveCurrentUser?.notifyAssignedCard !== false} onChange={() => toggleUserPreference('notifyAssignedCard', effectiveCurrentUser?.notifyAssignedCard !== false)} />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.notifyAssignedCard !== false} onChange={() => toggleUserPreference('notifyAssignedCard', effectiveCurrentUser?.notifyAssignedCard !== false)} />
               Quando vengo assegnato a una scheda
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input type="checkbox" checked={effectiveCurrentUser?.notifyAssignedList !== false} onChange={() => toggleUserPreference('notifyAssignedList', effectiveCurrentUser?.notifyAssignedList !== false)} />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.notifyAssignedList !== false} onChange={() => toggleUserPreference('notifyAssignedList', effectiveCurrentUser?.notifyAssignedList !== false)} />
               Quando vengo assegnato a una lista intera
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input type="checkbox" checked={effectiveCurrentUser?.notifyCardDue !== false} onChange={() => toggleUserPreference('notifyCardDue', effectiveCurrentUser?.notifyCardDue !== false)} />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.notifyCardDue !== false} onChange={() => toggleUserPreference('notifyCardDue', effectiveCurrentUser?.notifyCardDue !== false)} />
               Quando una scheda a me assegnata è in scadenza
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input type="checkbox" checked={effectiveCurrentUser?.notifyDailyRecap !== false} onChange={() => toggleUserPreference('notifyDailyRecap', effectiveCurrentUser?.notifyDailyRecap !== false)} />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.notifyDailyRecap !== false} onChange={() => toggleUserPreference('notifyDailyRecap', effectiveCurrentUser?.notifyDailyRecap !== false)} />
               Recap quotidiano delle mie attività (Mattina)
             </label>
           </div>
@@ -368,51 +368,6 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
             <button onClick={handleAddBoard} disabled={loading} className={styles.button}>
               + Crea
             </button>
-          </div>
-        </div>
-
-        {/* Preferenze Utente (Notifiche) */}
-        <div className={styles.card}>
-          <h3>🔔 Le Mie Notifiche</h3>
-          <p className={styles.subtitle}>Scegli quali avvisi via email vuoi ricevere per l'account <strong>{effectiveCurrentUser?.email}</strong>.</p>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-              <input 
-                type="checkbox" 
-                checked={effectiveCurrentUser?.notifyMentions ?? true} 
-                onChange={() => toggleUserPreference('notifyMentions', effectiveCurrentUser?.notifyMentions ?? true)} 
-                style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }}
-              />
-              Quando qualcuno mi @menziona
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-              <input 
-                type="checkbox" 
-                checked={effectiveCurrentUser?.notifyAssignedCard ?? true} 
-                onChange={() => toggleUserPreference('notifyAssignedCard', effectiveCurrentUser?.notifyAssignedCard ?? true)} 
-                style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }}
-              />
-              Quando mi assegnano una Scheda
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-              <input 
-                type="checkbox" 
-                checked={effectiveCurrentUser?.notifyAssignedList ?? true} 
-                onChange={() => toggleUserPreference('notifyAssignedList', effectiveCurrentUser?.notifyAssignedList ?? true)} 
-                style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }}
-              />
-              Quando mi assegnano un'intera Lista
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-              <input 
-                type="checkbox" 
-                checked={effectiveCurrentUser?.notifyCardDue ?? true} 
-                onChange={() => toggleUserPreference('notifyCardDue', effectiveCurrentUser?.notifyCardDue ?? true)} 
-                style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }}
-              />
-              Promemoria schede in scadenza a breve
-            </label>
           </div>
         </div>
 
