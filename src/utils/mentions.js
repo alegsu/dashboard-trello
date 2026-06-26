@@ -29,7 +29,7 @@ export async function processMentions(text, authorId, link, contextText) {
     const isMentioned = partials.some(p => rawName === p || rawName.startsWith(p));
     
     if (isMentioned) {
-      if (user.id === authorId) continue; // Non auto-notificarsi
+      // if (user.id === authorId) continue; // L'utente vuole ricevere notifiche anche se si auto-menziona
       
       const message = `${author.name} ti ha menzionato: "${contextText}"`;
       
