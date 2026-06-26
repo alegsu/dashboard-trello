@@ -371,6 +371,51 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           </div>
         </div>
 
+        {/* Preferenze Utente (Notifiche) */}
+        <div className={styles.card}>
+          <h3>🔔 Le Mie Notifiche</h3>
+          <p className={styles.subtitle}>Scegli quali avvisi via email vuoi ricevere per l'account <strong>{effectiveCurrentUser?.email}</strong>.</p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input 
+                type="checkbox" 
+                checked={effectiveCurrentUser?.notifyMentions ?? true} 
+                onChange={() => toggleUserPreference('notifyMentions', effectiveCurrentUser?.notifyMentions ?? true)} 
+                style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }}
+              />
+              Quando qualcuno mi @menziona
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input 
+                type="checkbox" 
+                checked={effectiveCurrentUser?.notifyAssignedCard ?? true} 
+                onChange={() => toggleUserPreference('notifyAssignedCard', effectiveCurrentUser?.notifyAssignedCard ?? true)} 
+                style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }}
+              />
+              Quando mi assegnano una Scheda
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input 
+                type="checkbox" 
+                checked={effectiveCurrentUser?.notifyAssignedList ?? true} 
+                onChange={() => toggleUserPreference('notifyAssignedList', effectiveCurrentUser?.notifyAssignedList ?? true)} 
+                style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }}
+              />
+              Quando mi assegnano un'intera Lista
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input 
+                type="checkbox" 
+                checked={effectiveCurrentUser?.notifyCardDue ?? true} 
+                onChange={() => toggleUserPreference('notifyCardDue', effectiveCurrentUser?.notifyCardDue ?? true)} 
+                style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }}
+              />
+              Promemoria schede in scadenza a breve
+            </label>
+          </div>
+        </div>
+
         {/* Impostazioni Email */}
         <div className={styles.card}>
           <h3>📧 Server di Posta (SMTP)</h3>
