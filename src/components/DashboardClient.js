@@ -244,6 +244,9 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
           >
             ⚙️ Impostazioni
           </button>
+          <a href="/archive" className={styles.navButton} style={{ textDecoration: 'none' }}>
+            🗄️ Archivio
+          </a>
 
           <div style={{ position: 'relative', marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
             <button 

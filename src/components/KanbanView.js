@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { flushSync } from 'react-dom';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import CardModal from './CardModal';
 import styles from './KanbanView.module.css';
 
@@ -63,31 +63,73 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     });
   });
 
-  const handleDragEnd = async (result) => {
-    if (!result.destination) return;
-    const sourceCell = result.source.droppableId;
-    const destCell = result.destination.droppableId;
+  const [draggedCard, setDraggedCard] = useState(null); // { id, sourceCell, sourceIndex }
+  const [dragOverCell, setDragOverCell] = useState(null);
 
-    const sourceParts = sourceCell.split('-');
+  const handleDragStart = (e, card, sourceCell, sourceIndex) => {
+    setDraggedCard({ id: card.id, sourceCell, sourceIndex });
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', card.id);
+    
+    // Piccolo delay per permettere all'elemento di essere clonato visivamente dal browser prima di aggiungere l'opacità
+    setTimeout(() => {
+      if (e.target) e.target.classList.add(styles.draggingNative);
+    }, 0);
+  };
+
+  const handleDragEnd = (e) => {
+    e.target.classList.remove(styles.draggingNative);
+    setDraggedCard(null);
+    setDragOverCell(null);
+  };
+
+  const handleDragOverCell = (e, cellKey) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverCell !== cellKey) {
+      const parts = cellKey.split('-');
+      // Impedisci il drag su clienti diversi
+      if (draggedCard && draggedCard.sourceCell.split('-')[0] !== parts[0]) return;
+      setDragOverCell(cellKey);
+    }
+  };
+
+  const handleDragLeaveCell = (e, cellKey) => {
+    if (dragOverCell === cellKey) setDragOverCell(null);
+  };
+
+  const handleDropOnCell = async (e, destCell) => {
+    e.preventDefault();
+    setDragOverCell(null);
+    if (!draggedCard) return;
+
+    // Se stiamo droppando direttamente sulla cella e non su una scheda specifica, lo mettiamo in fondo
+    const cellCards = cardsByCell[destCell] || [];
+    await performMove(draggedCard.id, draggedCard.sourceCell, draggedCard.sourceIndex, destCell, cellCards.length);
+  };
+
+  const handleDropOnCard = async (e, destCell, destIndex) => {
+    e.preventDefault();
+    e.stopPropagation(); // Evita che l'evento bubbling attivi l'handleDropOnCell
+    setDragOverCell(null);
+    if (!draggedCard) return;
+    
+    await performMove(draggedCard.id, draggedCard.sourceCell, draggedCard.sourceIndex, destCell, destIndex);
+  };
+
+  const performMove = async (cardId, sourceCell, sourceIndex, destCell, destIndex) => {
+    if (sourceCell === destCell && sourceIndex === destIndex) return;
+    
     const destParts = destCell.split('-');
-    const sourceClientId = sourceParts[0];
     const destClientId = destParts[0];
-
-    // Se stiamo cercando di cambiare cliente spostando la riga, blocchiamo
+    const destListId = destParts[1];
+    
+    const sourceParts = sourceCell.split('-');
+    const sourceClientId = sourceParts[0];
+    
     if (sourceClientId !== destClientId) return;
 
-    const cardId = result.draggableId;
-    
-    const destListId = destParts[1];
-    const sourceIndex = result.source.index;
-    const destIndex = result.destination.index;
-    
-    if (sourceCell === destCell && sourceIndex === destIndex) return;
-
-    // Calcoliamo il nuovo order
-    // Per calcolare il nuovo ordine, prendiamo la lista di destinazione ESCLUDENDO la scheda che stiamo spostando
     let targetCards = Array.from(cardsByCell[destCell] || []).filter(c => c.id !== cardId);
-    
     let newOrder = 0;
     if (targetCards.length === 0) {
       newOrder = 1000;
@@ -110,15 +152,12 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
       });
     }
 
-    // API Call
     await fetch(`/api/cards/${cardId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ listId: destListId, order: newOrder })
     });
-    
-    // Non chiamiamo onRefresh qui per non fare bounce back, 
-    // l'aggiornamento è già salvato nello stato liveCards di DashboardClient.
+    if (onCardUpdate) onCardUpdate();
   };
 
   const handleAddList = async () => {
@@ -207,7 +246,6 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
   if (!isMounted) return null;
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
       <div className={styles.kanbanContainer}>
          <div className={styles.kanbanHeaderRow}>
             <div className={styles.kanbanUserCorner}>Utente \ Stato</div>
@@ -293,57 +331,52 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                       const cellKey = `${clientId}-${list.id}`;
                       const cellCards = cardsByCell[cellKey] || [];
                       return (
-                        <Droppable key={cellKey} droppableId={cellKey} type={clientId}>
-                          {(provided, snapshot) => (
+                        <div 
+                          key={cellKey}
+                          className={`${styles.kanbanCell} ${dragOverCell === cellKey ? styles.dragOver : ''}`}
+                          onDragOver={(e) => handleDragOverCell(e, cellKey)}
+                          onDragLeave={(e) => handleDragLeaveCell(e, cellKey)}
+                          onDrop={(e) => handleDropOnCell(e, cellKey)}
+                        >
+                          {cellCards.map((card, index) => (
                             <div 
-                              ref={provided.innerRef} 
-                              {...provided.droppableProps}
-                              className={`${styles.kanbanCell} ${snapshot.isDraggingOver ? styles.dragOver : ''}`}
+                              key={card.id}
+                              draggable={true}
+                              onDragStart={(e) => handleDragStart(e, card, cellKey, index)}
+                              onDragEnd={handleDragEnd}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={(e) => handleDropOnCard(e, cellKey, index)}
+                              className={styles.kanbanCard}
+                              onClick={() => setSelectedCardId(card.id)}
+                              style={{ 
+                                background: card.color || 'var(--bg-secondary)',
+                                color: getContrastYIQ(card.color)
+                              }}
                             >
-                              {cellCards.map((card, index) => (
-                                <Draggable key={card.id} draggableId={card.id} index={index}>
-                                  {(provided, snapshot) => (
-                                    <div 
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      className={`${styles.kanbanCard} ${snapshot.isDragging ? styles.dragging : ''}`}
-                                      onClick={() => setSelectedCardId(card.id)}
-                                      style={{ 
-                                        ...provided.draggableProps.style, 
-                                        background: card.color || 'var(--bg-secondary)',
-                                        color: getContrastYIQ(card.color)
-                                      }}
-                                    >
-                                      {card.labels && card.labels.length > 0 && (
-                                        <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
-                                          {card.labels.map(l => (
-                                            <span key={l.id} style={{ background: l.color, width: '24px', height: '6px', borderRadius: '3px' }} title={l.name}></span>
-                                          ))}
-                                        </div>
-                                      )}
-                                      <div className={styles.kanbanCardName} style={{ color: getContrastYIQ(card.color) }}>{card.name}</div>
-                                      {card.due && <div className={styles.kanbanCardDue} style={{ color: getContrastYIQ(card.color) }}>📅 {new Date(card.due).toLocaleDateString('it-IT')}</div>}
-                                    </div>
-                                  )}
-                                </Draggable>
-                              ))}
-                              {provided.placeholder}
-                              
-                              {newCardCell === cellKey ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.3rem' }}>
-                                  <input autoFocus value={newCardName} onChange={e => setNewCardName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddCard(clientId, list.id)} placeholder="Nome Task..." style={{ padding: '0.3rem', borderRadius: '4px', fontSize: '0.8rem' }} />
-                                  <div style={{ display: 'flex', gap: '0.3rem' }}>
-                                    <button onClick={() => handleAddCard(clientId, list.id)} style={{ padding: '0.2rem 0.4rem', cursor: 'pointer', fontSize: '0.75rem', background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '4px' }}>Salva</button>
-                                    <button onClick={() => setNewCardCell(null)} style={{ padding: '0.2rem 0.4rem', cursor: 'pointer', fontSize: '0.75rem', background: 'var(--status-danger)', color: 'white', border: 'none', borderRadius: '4px' }}>X</button>
-                                  </div>
+                              {card.labels && card.labels.length > 0 && (
+                                <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
+                                  {card.labels.map(l => (
+                                    <span key={l.id} style={{ background: l.color, width: '24px', height: '6px', borderRadius: '3px' }} title={l.name}></span>
+                                  ))}
                                 </div>
-                              ) : (
-                                <div className={styles.addCardBtn} onClick={() => setNewCardCell(cellKey)} title="Aggiungi Task">+</div>
                               )}
+                              <div className={styles.kanbanCardName} style={{ color: getContrastYIQ(card.color) }}>{card.name}</div>
+                              {card.due && <div className={styles.kanbanCardDue} style={{ color: getContrastYIQ(card.color) }}>📅 {new Date(card.due).toLocaleDateString('it-IT')}</div>}
                             </div>
+                          ))}
+                          
+                          {newCardCell === cellKey ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.3rem' }}>
+                              <input autoFocus value={newCardName} onChange={e => setNewCardName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddCard(clientId, list.id)} placeholder="Nome Task..." style={{ padding: '0.3rem', borderRadius: '4px', fontSize: '0.8rem' }} />
+                              <div style={{ display: 'flex', gap: '0.3rem' }}>
+                                <button onClick={() => handleAddCard(clientId, list.id)} style={{ padding: '0.2rem 0.4rem', cursor: 'pointer', fontSize: '0.75rem', background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '4px' }}>Salva</button>
+                                <button onClick={() => setNewCardCell(null)} style={{ padding: '0.2rem 0.4rem', cursor: 'pointer', fontSize: '0.75rem', background: 'var(--status-danger)', color: 'white', border: 'none', borderRadius: '4px' }}>X</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className={styles.addCardBtn} onClick={() => setNewCardCell(cellKey)} title="Aggiungi Task">+</div>
                           )}
-                        </Droppable>
+                        </div>
                       )
                     })}
                     {newListMode && <div className={styles.kanbanCell} style={{ background: 'transparent', border: 'none', minWidth: '180px', flex: '0 0 auto' }}></div>}
@@ -353,7 +386,6 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
               )
             })}
          </div>
-      </div>
 
       {selectedCardId && (
         <CardModal 
@@ -363,6 +395,6 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
           onRefresh={onRefresh} 
         />
       )}
-    </DragDropContext>
+    </div>
   );
 }

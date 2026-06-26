@@ -1,0 +1,88 @@
+.archiveContainer {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  color: var(--text-primary);
+}
+
+.archiveHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.archiveHeader h1 {
+  font-family: var(--font-title);
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.backButton {
+  padding: 0.6rem 1.2rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  text-decoration: none;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.backButton:hover {
+  background: var(--border-color);
+}
+
+.archiveContent {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.emptyMessage {
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 2rem 0;
+}
+
+.archiveTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.archiveTable th,
+.archiveTable td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.archiveTable th {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.archiveTable tr:last-child td {
+  border-bottom: none;
+}
+
+.restoreButton {
+  padding: 0.5rem 1rem;
+  background: var(--status-success);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.restoreButton:hover {
+  opacity: 0.9;
+}
