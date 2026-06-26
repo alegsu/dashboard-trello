@@ -6,6 +6,7 @@ import KanbanView from './KanbanView';
 import TimelineView from './TimelineView';
 import SettingsPanel from './SettingsPanel';
 import ProjectsView from './ProjectsView';
+import PomodoroTimer from './PomodoroTimer';
 import { Search, Filter, Tag, Folder, Building, Bell } from 'lucide-react';
 
 export default function DashboardClient({ initialBoards, initialLists, initialCards, initialMembers, initialClients }) {
@@ -13,6 +14,9 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
   // Se non c'è una board, mostra settings. Altrimenti kanban.
   const [view, setView] = useState(initialBoards.length > 0 ? 'kanban' : 'settings'); 
   const [selectedBoardId, setSelectedBoardId] = useState(initialBoards.length > 0 ? initialBoards[0].id : '');
+  
+  const [currentUser, setCurrentUser] = useState(null);
+  const [zenMode, setZenMode] = useState(false);
   
   // Filtri
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,8 +42,25 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
   useEffect(() => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 60000);
+    
+    // Auth and Tracking
+    const storedUserId = localStorage.getItem('userId');
+    if (storedUserId) {
+      const userObj = initialMembers.find(m => m.id === storedUserId);
+      setCurrentUser(userObj);
+      
+      // Tracking ping
+      const trackInterval = setInterval(() => {
+        fetch('/api/auth/track', { method: 'POST', body: JSON.stringify({ userId: storedUserId }) }).catch(() => {});
+      }, 60000);
+      return () => {
+        clearInterval(interval);
+        clearInterval(trackInterval);
+      };
+    }
+
     return () => clearInterval(interval);
-  }, []);
+  }, [initialMembers]);
 
   const fetchNotifications = async () => {
     const res = await fetch(`/api/notifications`);
@@ -127,7 +148,19 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            {initialBoards.length > 0 && (
+            <button 
+              onClick={() => setZenMode(!zenMode)}
+              style={{ background: zenMode ? 'var(--accent-primary)' : 'var(--bg-secondary)', color: zenMode ? 'white' : 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '20px', padding: '0.4rem 1rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.3s' }}
+            >
+              {zenMode ? '🧘‍♂️ Esci da Zen' : '🧘‍♂️ Zen Mode'}
+            </button>
+            {zenMode && (
+               <div style={{ background: 'rgba(0,0,0,0.1)', padding: '0.3rem 0.8rem', borderRadius: '12px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                 ⏱️ Focus
+               </div>
+            )}
+            
+            {initialBoards.length > 0 && !zenMode && (
               <select 
                 value={selectedBoardId} 
                 onChange={(e) => setSelectedBoardId(e.target.value)}
@@ -138,13 +171,15 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
                 ))}
               </select>
             )}
-            <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              Liste: {boardLists.length} | Task: {boardCards.length}
-            </div>
+            {!zenMode && (
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                Liste: {boardLists.length} | Task: {boardCards.length}
+              </div>
+            )}
           </div>
         </div>
 
-        {view !== 'settings' && (
+        {view !== 'settings' && !zenMode && (
           <div style={{ display: 'flex', gap: '1rem', background: 'rgba(0,0,0,0.05)', padding: '0.5rem', borderRadius: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-primary)', padding: '0 0.5rem', borderRadius: '6px', flex: 1, border: '1px solid var(--border-color)' }}>
               <Search size={18} color="var(--text-secondary)" />
@@ -209,84 +244,96 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               >
                 <option value="">Tutti gli Utenti</option>
                 <option value="unassigned">Non Assegnati</option>
-                {initialMembers.map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
-                ))}
+                {initialMembers.map(m => {
+                  // Calculate workload: incomplete cards assigned to this member
+                  const assignedCards = initialCards.filter(c => c.assignees && c.assignees.some(a => a.id === m.id));
+                  let workloadEmoji = '🟢';
+                  if (assignedCards.length >= 5 && assignedCards.length <= 10) workloadEmoji = '🟡';
+                  if (assignedCards.length > 10) workloadEmoji = '🔴';
+                  
+                  return (
+                    <option key={m.id} value={m.id}>
+                      {workloadEmoji} {m.name} ({assignedCards.length})
+                    </option>
+                  );
+                })}
               </select>
             </div>
           </div>
         )}
         
-        <div className={styles.navBar} style={{ display: 'flex', alignItems: 'center' }}>
-          <button 
-            className={`${styles.navButton} ${view === 'kanban' ? styles.active : ''}`}
-            onClick={() => setView('kanban')}
-            disabled={initialBoards.length === 0}
-          >
-            📋 Kanban
-          </button>
-          <button 
-            className={`${styles.navButton} ${view === 'timeline' ? styles.active : ''}`}
-            onClick={() => setView('timeline')}
-            disabled={initialBoards.length === 0}
-          >
-            📊 Timeline
-          </button>
-          <button 
-            className={`${styles.navButton} ${view === 'projects' ? styles.active : ''}`}
-            onClick={() => setView('projects')}
-          >
-            🏢 Progetti
-          </button>
-          <button 
-            className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`}
-            onClick={() => setView('settings')}
-          >
-            ⚙️ Impostazioni
-          </button>
-          <a href="/archive" className={styles.navButton} style={{ textDecoration: 'none' }}>
-            🗄️ Archivio
-          </a>
-
-          <div style={{ position: 'relative', marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+        {!zenMode && (
+          <div className={styles.navBar} style={{ display: 'flex', alignItems: 'center' }}>
             <button 
-              onClick={() => setShowNotificationsModal(!showNotificationsModal)}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', position: 'relative', padding: '0.5rem' }}
+              className={`${styles.navButton} ${view === 'kanban' ? styles.active : ''}`}
+              onClick={() => setView('kanban')}
+              disabled={initialBoards.length === 0}
             >
-              <Bell size={20} />
-              {notifications.filter(n => !n.read).length > 0 && (
-                <span style={{ position: 'absolute', top: 0, right: 0, background: 'var(--status-danger)', color: 'white', fontSize: '0.65rem', padding: '2px 6px', borderRadius: '10px', fontWeight: 'bold' }}>
-                  {notifications.filter(n => !n.read).length}
-                </span>
-              )}
+              📋 Kanban
             </button>
+            <button 
+              className={`${styles.navButton} ${view === 'timeline' ? styles.active : ''}`}
+              onClick={() => setView('timeline')}
+              disabled={initialBoards.length === 0}
+            >
+              📊 Timeline
+            </button>
+            <button 
+              className={`${styles.navButton} ${view === 'projects' ? styles.active : ''}`}
+              onClick={() => setView('projects')}
+            >
+              🏢 Progetti
+            </button>
+            <button 
+              className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`}
+              onClick={() => setView('settings')}
+            >
+              ⚙️ Impostazioni
+            </button>
+            <a href="/archive" className={styles.navButton} style={{ textDecoration: 'none' }}>
+              🗄️ Archivio
+            </a>
 
-            {showNotificationsModal && (
-              <div style={{ position: 'absolute', top: '100%', right: 0, width: '300px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', zIndex: 1000, overflow: 'hidden' }}>
-                <div style={{ padding: '0.8rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h4 style={{ margin: 0 }}>Notifiche</h4>
-                  <button onClick={markAllAsRead} style={{ fontSize: '0.75rem', background: 'transparent', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer' }}>Letto tutto</button>
+            <div style={{ position: 'relative', marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+              <button 
+                onClick={() => setShowNotificationsModal(!showNotificationsModal)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', position: 'relative', padding: '0.5rem' }}
+              >
+                <Bell size={20} />
+                {notifications.filter(n => !n.read).length > 0 && (
+                  <span style={{ position: 'absolute', top: 0, right: 0, background: 'var(--status-danger)', color: 'white', fontSize: '0.65rem', padding: '2px 6px', borderRadius: '10px', fontWeight: 'bold' }}>
+                    {notifications.filter(n => !n.read).length}
+                  </span>
+                )}
+              </button>
+
+              {showNotificationsModal && (
+                <div style={{ position: 'absolute', top: '100%', right: 0, width: '300px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', zIndex: 1000, overflow: 'hidden' }}>
+                  <div style={{ padding: '0.8rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h4 style={{ margin: 0 }}>Notifiche</h4>
+                    <button onClick={markAllAsRead} style={{ fontSize: '0.75rem', background: 'transparent', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer' }}>Letto tutto</button>
+                  </div>
+                  <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                    {notifications.length === 0 ? (
+                      <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Nessuna notifica.</div>
+                    ) : (
+                      notifications.map(n => (
+                        <div 
+                          key={n.id} 
+                          onClick={() => markNotificationAsRead(n.id, n.link)}
+                          style={{ padding: '0.8rem', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', background: n.read ? 'transparent' : 'rgba(var(--accent-rgb), 0.1)' }}
+                        >
+                          <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{n.message}</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>{new Date(n.createdAt).toLocaleString()}</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-                <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
-                  {notifications.length === 0 ? (
-                    <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Nessuna notifica.</div>
-                  ) : (
-                    notifications.map(n => (
-                      <div 
-                        key={n.id} 
-                        onClick={() => markNotificationAsRead(n.id, n.link)}
-                        style={{ padding: '0.8rem', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', background: n.read ? 'transparent' : 'rgba(var(--accent-rgb), 0.1)' }}
-                      >
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{n.message}</div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>{new Date(n.createdAt).toLocaleString()}</div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </header>
       
       <div className={styles.content}>
@@ -300,6 +347,8 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               clients={initialClients || []}
               onRefresh={handleRefresh} 
               onCardUpdate={handleCardUpdate}
+              currentUser={currentUser}
+              zenMode={zenMode}
             />
           )}
           {view === 'timeline' && selectedBoardId && (
@@ -320,6 +369,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               members={initialMembers} 
               boards={initialBoards} 
               clients={initialClients || []} 
+              currentUser={currentUser}
               lists={initialLists || []}
               onRefresh={handleRefresh}
             />
@@ -331,6 +381,8 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
           )}
         </section>
       </div>
+      
+      {zenMode && <PomodoroTimer />}
     </main>
   );
 }

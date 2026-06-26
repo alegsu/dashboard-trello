@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { flushSync } from 'react-dom';
+import confetti from 'canvas-confetti';
 import CardModal from './CardModal';
 import styles from './KanbanView.module.css';
 
@@ -156,6 +157,33 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ listId: destListId, order: newOrder })
     });
+    
+    // Check if the destination list is a "done" list
+    const destinationList = lists.find(l => l.id === destListId);
+    if (destinationList) {
+      const lowerName = destinationList.name.toLowerCase();
+      if (lowerName.includes('fatto') || lowerName.includes('completat') || lowerName.includes('fine')) {
+        confetti({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.6 }
+        });
+        
+        // Push a notification
+        if (currentUser) {
+          fetch('/api/notifications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: currentUser.id, // we might want to notify all admins or something, but for now we just show it to everyone locally or toast
+              message: `Task completata da ${currentUser.name}! Ottimo lavoro!`,
+              link: `/`
+            })
+          }).catch(()=>{});
+        }
+      }
+    }
+    
     if (onCardUpdate && optimisticCard) onCardUpdate(optimisticCard);
   };
 

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, User, CheckSquare, Clock, Tag, MessageSquare, Paperclip, ExternalLink, Copy, Archive, Trash2 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import styles from './CardModal.module.css';
 
 export default function CardModal({ cardId, members, onClose, onRefresh }) {
@@ -14,6 +15,11 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
   const [attachments, setAttachments] = useState([]);
   const [newAttachmentUrl, setNewAttachmentUrl] = useState('');
   const [newAttachmentName, setNewAttachmentName] = useState('');
+
+  // AI Summary
+  const [aiSummary, setAiSummary] = useState('');
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [aiError, setAiError] = useState('');
   const [boardLabels, setBoardLabels] = useState([]);
   const [newLabelName, setNewLabelName] = useState('');
   const [newLabelColor, setNewLabelColor] = useState('#ff5722');
@@ -216,6 +222,16 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isCompleted: !isCompleted })
     });
+    
+    if (!isCompleted) {
+      // It was unchecked, now we are checking it!
+      confetti({
+        particleCount: 100,
+        spread: 60,
+        origin: { y: 0.7 }
+      });
+    }
+    
     fetchCard();
   };
 
@@ -259,6 +275,28 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
     fetchAttachments();
   };
 
+  const generateAiSummary = async () => {
+    setLoadingSummary(true);
+    setAiError('');
+    setAiSummary('');
+    try {
+      const res = await fetch('/api/ai/summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cardId })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAiSummary(data.summary);
+      } else {
+        setAiError(data.error);
+      }
+    } catch (err) {
+      setAiError('Errore di connessione al server AI.');
+    }
+    setLoadingSummary(false);
+  };
+
   if (loading) return <div className={styles.overlay}><div className={styles.modal} style={{padding: '2rem', textAlign: 'center'}}>Caricamento...</div></div>;
 
   return (
@@ -282,6 +320,26 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
 
         <div className={styles.content}>
           <div className={styles.mainCol}>
+            
+            <div className={styles.section} style={{ background: 'linear-gradient(to right, rgba(var(--accent-rgb), 0.05), transparent)', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid var(--accent-primary)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>✨ Intelligenza Artificiale</h3>
+                <button 
+                  onClick={generateAiSummary} 
+                  disabled={loadingSummary}
+                  style={{ background: 'var(--accent-primary)', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                >
+                  {loadingSummary ? 'Generazione...' : 'Riassumi Scheda'}
+                </button>
+              </div>
+              {aiError && <div style={{ color: 'var(--status-danger)', fontSize: '0.85rem' }}>{aiError}</div>}
+              {aiSummary && (
+                <div style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '8px', fontSize: '0.95rem', color: 'var(--text-primary)', border: '1px solid var(--border-color)', marginTop: '0.5rem', whiteSpace: 'pre-wrap' }}>
+                  {aiSummary}
+                </div>
+              )}
+            </div>
+
             <div className={styles.section}>
               <h3>Descrizione</h3>
               <textarea 

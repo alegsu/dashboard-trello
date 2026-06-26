@@ -177,10 +177,16 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
             {members.map(m => (
               <li key={m.id} className={styles.listItem}>
                 <div className={styles.avatar}>{m.name.charAt(0).toUpperCase()}</div>
-                <div>
+                <div style={{ flex: 1 }}>
                   <strong>{m.name}</strong>
                   <div style={{fontSize: '0.75rem', color: 'var(--text-secondary)'}}>{m.email || 'Nessuna email'} • {m.role === 'admin' ? 'Amministratore' : 'Utente'}</div>
                 </div>
+                {currentUser?.role === 'admin' && (
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
+                    <div>Logins: {m.loginCount || 0}</div>
+                    <div>Uso: {m.totalUsageTime ? Math.round(m.totalUsageTime / 60) : 0} ore {m.totalUsageTime ? m.totalUsageTime % 60 : 0} min</div>
+                  </div>
+                )}
               </li>
             ))}
             {members.length === 0 && <p className={styles.empty}>Nessun membro. Aggiungine uno!</p>}

@@ -23,6 +23,12 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Password errata' }, { status: 401 });
     }
 
+    // Incrementa loginCount
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { loginCount: { increment: 1 } }
+    });
+
     // Creazione del token JWT
     const sessionData = { id: user.id, email: user.email, name: user.name, role: user.role };
     const sessionToken = await encrypt(sessionData);
