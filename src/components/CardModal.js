@@ -228,7 +228,8 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
       confetti({
         particleCount: 100,
         spread: 60,
-        origin: { y: 0.7 }
+        origin: { y: 0.7 },
+        zIndex: 10000
       });
     }
     

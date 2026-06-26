@@ -166,7 +166,8 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
         confetti({
           particleCount: 150,
           spread: 80,
-          origin: { y: 0.6 }
+          origin: { y: 0.6 },
+          zIndex: 10000
         });
         
         // Push a notification
