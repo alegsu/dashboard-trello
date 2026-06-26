@@ -9,6 +9,7 @@ export async function GET() {
         cards: {
           include: {
             list: true,
+            board: true,
             checklists: {
               include: { items: true }
             }
