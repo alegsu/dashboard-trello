@@ -63,8 +63,73 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     });
   });
 
-  const [draggedCard, setDraggedCard] = useState(null); // { id, sourceCell, sourceIndex }
+  const [draggedCardId, setDraggedCardId] = useState(null);
+  const [dragSourceCell, setDragSourceCell] = useState(null);
+  const [dragSourceIndex, setDragSourceIndex] = useState(null);
   const [dragOverCell, setDragOverCell] = useState(null);
+
+  // --- List Drag & Drop ---
+  const [draggedListId, setDraggedListId] = useState(null);
+  const [dragOverListId, setDragOverListId] = useState(null);
+
+  const handleListDragStart = (e, list) => {
+    setDraggedListId(list.id);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', list.id);
+    // Needed to prevent card drop handlers from firing sometimes
+    e.stopPropagation();
+  };
+
+  const handleListDragOver = (e, listId) => {
+    e.preventDefault();
+    if (draggedListId && draggedListId !== listId) {
+      setDragOverListId(listId);
+    }
+  };
+
+  const handleListDrop = async (e, destListId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverListId(null);
+    if (!draggedListId || draggedListId === destListId) {
+      setDraggedListId(null);
+      return;
+    }
+
+    // Reorder logic
+    const draggedListIndex = lists.findIndex(l => l.id === draggedListId);
+    const destListIndex = lists.findIndex(l => l.id === destListId);
+    
+    if (draggedListIndex === -1 || destListIndex === -1) return;
+
+    let newOrder = 0;
+    if (destListIndex === 0 && draggedListIndex > 0) {
+      newOrder = lists[0].order - 1000;
+    } else if (destListIndex === lists.length - 1 && draggedListIndex < lists.length - 1) {
+      newOrder = lists[lists.length - 1].order + 1000;
+    } else {
+      // Find the adjacent list to average with
+      const beforeIndex = draggedListIndex < destListIndex ? destListIndex : destListIndex - 1;
+      const afterIndex = draggedListIndex < destListIndex ? destListIndex + 1 : destListIndex;
+      
+      const beforeOrder = lists[beforeIndex]?.order ?? (lists[0].order - 1000);
+      const afterOrder = lists[afterIndex]?.order ?? (lists[lists.length - 1].order + 1000);
+      
+      newOrder = (beforeOrder + afterOrder) / 2.0;
+    }
+
+    // Optimistic refresh logic could be complex here since `lists` is a prop, but we can call onRefresh
+    await fetch(`/api/lists/${draggedListId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order: newOrder })
+    });
+    setDraggedListId(null);
+    onRefresh();
+  };
+
+  // --- Card Drag & Drop ---
+  const [draggedCard, setDraggedCard] = useState(null); // { id, sourceCell, sourceIndex }
 
   const handleDragStart = (e, card, sourceCell, sourceIndex) => {
     setDraggedCard({ id: card.id, sourceCell, sourceIndex });
@@ -280,7 +345,18 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
             {lists.map(list => {
               const hasDates = list.startDate || list.endDate;
               return (
-                <div key={list.id} className={styles.kanbanColumnHeader}>
+                <div 
+                  key={list.id} 
+                  className={styles.kanbanColumnHeader}
+                  draggable={true}
+                  onDragStart={(e) => handleListDragStart(e, list)}
+                  onDragOver={(e) => handleListDragOver(e, list.id)}
+                  onDrop={(e) => handleListDrop(e, list.id)}
+                  style={{
+                    borderLeft: dragOverListId === list.id ? '3px solid var(--accent-primary)' : undefined,
+                    opacity: draggedListId === list.id ? 0.5 : 1
+                  }}
+                >
                   {editingListId === list.id ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', alignItems: 'center' }}>
                       <input 

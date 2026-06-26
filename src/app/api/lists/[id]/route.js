@@ -14,6 +14,7 @@ export async function PUT(request, { params }) {
         ...(body.startDate !== undefined && { startDate: body.startDate }),
         ...(body.endDate !== undefined && { endDate: body.endDate }),
         ...(body.isArchived !== undefined && { isArchived: body.isArchived }),
+        ...(body.order !== undefined && { order: body.order }),
       }
     });
     
