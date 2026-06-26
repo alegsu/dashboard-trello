@@ -6,6 +6,7 @@ import KanbanView from './KanbanView';
 import TimelineView from './TimelineView';
 import SettingsPanel from './SettingsPanel';
 import ProjectsView from './ProjectsView';
+import ClientsView from './ClientsView';
 import PomodoroTimer from './PomodoroTimer';
 import { Search, Filter, Tag, Folder, Building, Bell } from 'lucide-react';
 
@@ -293,6 +294,12 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               🏢 Progetti
             </button>
             <button 
+              className={`${styles.navButton} ${view === 'clients' ? styles.active : ''}`}
+              onClick={() => setView('clients')}
+            >
+              👥 Clienti e Rubrica
+            </button>
+            <button 
               className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`}
               onClick={() => setView('settings')}
             >
@@ -371,6 +378,9 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               clients={initialClients || []} 
               onRefresh={handleRefresh} 
             />
+          )}
+          {view === 'clients' && (
+            <ClientsView clients={initialClients} onRefresh={handleRefresh} />
           )}
           {view === 'settings' && (
             <SettingsPanel 
