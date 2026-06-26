@@ -39,6 +39,12 @@ export async function PUT(request, { params }) {
       }
     }
 
+    if (data.notes && data.baseUrl && data.authorId) {
+      const { processMentions } = require('@/utils/mentions');
+      const link = `${data.baseUrl}/?card=${updated.checklist?.card?.id || ''}`;
+      await processMentions(data.notes, data.authorId, link, `Checklist: ${updated.text}`);
+    }
+
     return NextResponse.json(updated);
   } catch (err) {
     return NextResponse.json({ error: 'Error updating item' }, { status: 500 });

@@ -132,6 +132,7 @@ model ChecklistItem {
   text        String
   isCompleted Boolean   @default(false)
   order       Float     @default(0)
+  notes       String?   @db.Text
   
   checklistId String
   checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)

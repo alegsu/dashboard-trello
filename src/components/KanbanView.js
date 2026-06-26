@@ -507,6 +507,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
         <CardModal 
           cardId={selectedCardId} 
           members={members} 
+          currentUser={currentUser}
           onClose={() => setSelectedCardId(null)} 
           onRefresh={onRefresh} 
         />

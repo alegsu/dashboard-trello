@@ -4,7 +4,7 @@ import { X, Calendar, User, CheckSquare, Clock, Tag, MessageSquare, Paperclip, E
 import confetti from 'canvas-confetti';
 import styles from './CardModal.module.css';
 
-export default function CardModal({ cardId, members, onClose, onRefresh }) {
+export default function CardModal({ cardId, members, onClose, onRefresh, currentUser }) {
   const [card, setCard] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -15,6 +15,10 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
   const [attachments, setAttachments] = useState([]);
   const [newAttachmentUrl, setNewAttachmentUrl] = useState('');
   const [newAttachmentName, setNewAttachmentName] = useState('');
+
+  // Checklist Item Notes State
+  const [openNotes, setOpenNotes] = useState({});
+  const [itemNotes, setItemNotes] = useState({});
 
   // AI Summary
   const [aiSummary, setAiSummary] = useState('');
@@ -249,9 +253,35 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
     if (res.ok) {
       const newClient = await res.json();
       setAllClients([...allClients, newClient]);
-      updateCard({ clientId: newClient.id });
+      updateCard({ clientId: newClient.id, projectId: null });
       setNewClientName('');
     }
+  };
+
+  const saveChecklistItemNotes = async (itemId, notes) => {
+    try {
+      const res = await fetch(`/api/checklist-items/${itemId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          notes,
+          authorId: currentUser?.id,
+          baseUrl: window.location.origin
+        })
+      });
+      if (res.ok) {
+        fetchCard();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const toggleNotes = (itemId, currentNotes) => {
+    if (!openNotes[itemId]) {
+      setItemNotes(prev => ({ ...prev, [itemId]: currentNotes || '' }));
+    }
+    setOpenNotes(prev => ({ ...prev, [itemId]: !prev[itemId] }));
   };
 
   const addChecklist = async () => {
@@ -425,30 +455,56 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
                   </div>
                   <ul className={styles.checklistItems}>
                     {checklist.items.map(item => (
-                      <li key={item.id} className={styles.checklistItem}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
-                          <input type="checkbox" checked={item.isCompleted} onChange={() => toggleChecklistItem(item.id, item.isCompleted)} />
-                          <span style={{ textDecoration: item.isCompleted ? 'line-through' : 'none', flex: 1 }}>{item.text}</span>
-                        </div>
-                        <div className={styles.itemAssignees}>
-                          {item.assignees && item.assignees.map(a => (
-                            <div key={a.id} className={styles.itemAssigneeAvatar} onClick={() => toggleChecklistItemAssignee(item, a.id)} title={`Rimuovi ${a.name}`}>
-                              {a.name.substring(0, 2).toUpperCase()}
+                      <li key={item.id} className={styles.checklistItem} style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+                            <input type="checkbox" checked={item.isCompleted} onChange={() => toggleChecklistItem(item.id, item.isCompleted)} />
+                            <span style={{ textDecoration: item.isCompleted ? 'line-through' : 'none', flex: 1 }}>{item.text}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <button 
+                              title="Note / Commenti"
+                              onClick={() => toggleNotes(item.id, item.notes)}
+                              style={{ background: 'transparent', border: 'none', color: item.notes ? 'var(--accent-primary)' : 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                            >
+                              <MessageSquare size={14} />
+                            </button>
+                            <div className={styles.itemAssignees}>
+                              {item.assignees && item.assignees.map(a => (
+                                <div key={a.id} className={styles.itemAssigneeAvatar} onClick={() => toggleChecklistItemAssignee(item, a.id)} title={`Rimuovi ${a.name}`}>
+                                  {a.name.substring(0, 2).toUpperCase()}
+                                </div>
+                              ))}
+                              <select 
+                                className={styles.itemAssignSelect} 
+                                value="" 
+                                onChange={(e) => {
+                                  if (e.target.value) toggleChecklistItemAssignee(item, e.target.value);
+                                }}
+                              >
+                                <option value="">+ Assegna</option>
+                                {members.map(m => (
+                                  <option key={m.id} value={m.id}>{m.name}</option>
+                                ))}
+                              </select>
                             </div>
-                          ))}
-                          <select 
-                            className={styles.itemAssignSelect} 
-                            value="" 
-                            onChange={(e) => {
-                              if (e.target.value) toggleChecklistItemAssignee(item, e.target.value);
-                            }}
-                          >
-                            <option value="">+ Assegna</option>
-                            {members.map(m => (
-                              <option key={m.id} value={m.id}>{m.name}</option>
-                            ))}
-                          </select>
+                          </div>
                         </div>
+                        {openNotes[item.id] && (
+                          <div style={{ width: '100%', marginTop: '0.5rem', position: 'relative', paddingLeft: '1.5rem' }}>
+                            <textarea
+                              id={`textarea-item-notes-${item.id}`}
+                              value={itemNotes[item.id] !== undefined ? itemNotes[item.id] : (item.notes || '')}
+                              onChange={e => handleMentionChange(e.target.value, `item-notes-${item.id}`, val => setItemNotes(prev => ({ ...prev, [item.id]: val })))}
+                              onBlur={() => saveChecklistItemNotes(item.id, itemNotes[item.id])}
+                              className={styles.textarea}
+                              placeholder="Aggiungi istruzioni o note per questa voce... (usa @ per menzionare)"
+                              rows={2}
+                              style={{ fontSize: '0.85rem' }}
+                            />
+                            {renderMentionDropdown(`item-notes-${item.id}`, itemNotes[item.id] !== undefined ? itemNotes[item.id] : (item.notes || ''), val => setItemNotes(prev => ({ ...prev, [item.id]: val })))}
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>
