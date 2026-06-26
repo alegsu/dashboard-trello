@@ -39,6 +39,7 @@ export async function PUT(request, { params }) {
         ...(body.effort !== undefined && { effort: body.effort ? parseFloat(body.effort) : null }),
         ...(body.driveFolderId !== undefined && { driveFolderId: body.driveFolderId }),
         ...(body.notes !== undefined && { notes: body.notes }),
+        ...(body.isArchived !== undefined && { isArchived: body.isArchived }),
       }
     });
     

@@ -31,6 +31,8 @@ model Board {
   lists     List[]
   cards     Card[]
   labels    Label[]
+
+  isArchived Boolean @default(false)
 }
 
 model List {
@@ -48,6 +50,8 @@ model List {
   
   // Custom feature: Assegnare intere liste agli utenti (impossibile su Trello standard)
   assignees User[]    @relation("ListAssignees")
+
+  isArchived Boolean @default(false)
 }
 
 model Card {
@@ -73,6 +77,8 @@ model Card {
   assignees   User[]    @relation("CardAssignees")
   labels      Label[]   @relation("CardLabels")
   attachments Attachment[]
+
+  isArchived Boolean @default(false)
 }
 
 model Label {
@@ -159,6 +165,8 @@ model Project {
   cards       Card[]
   comments    ProjectComment[]
   attachments Attachment[]
+
+  isArchived Boolean @default(false)
 }
 
 model SystemSetting {

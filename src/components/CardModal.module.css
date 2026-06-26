@@ -58,10 +58,12 @@
   padding: 1.5rem;
   gap: 2rem;
   overflow-y: auto;
+  flex-wrap: wrap; /* Prevent horizontal scroll on small screens */
 }
 
 .mainCol {
   flex: 2;
+  min-width: 300px;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -69,6 +71,7 @@
 
 .sideCol {
   flex: 1;
+  min-width: 250px;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;

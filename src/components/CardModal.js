@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, User, CheckSquare, MessageSquare, Tag, Paperclip, ExternalLink } from 'lucide-react';
+import { X, Calendar, User, CheckSquare, Clock, Tag, MessageSquare, Paperclip, ExternalLink, Copy, Archive, Trash2 } from 'lucide-react';
 import styles from './CardModal.module.css';
 
 export default function CardModal({ cardId, members, onClose, onRefresh }) {
@@ -92,6 +92,26 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
     if (!confirm('Vuoi duplicare questa scheda e le sue checklist?')) return;
     const res = await fetch(`/api/cards/${cardId}/copy`, { method: 'POST' });
     if (res.ok) {
+      onRefresh();
+      onClose();
+    }
+  };
+
+  const archiveCard = async () => {
+    if (window.confirm("Sei sicuro di voler archiviare questa scheda? Potrai ripristinarla dalle impostazioni.")) {
+      await fetch(`/api/cards/${cardId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isArchived: true })
+      });
+      onRefresh();
+      onClose();
+    }
+  };
+
+  const deleteCard = async () => {
+    if (window.confirm("Sei sicuro di voler ELIMINARE DEFINITIVAMENTE questa scheda? L'azione è irreversibile.")) {
+      await fetch(`/api/cards/${cardId}`, { method: 'DELETE' });
       onRefresh();
       onClose();
     }
@@ -246,7 +266,18 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <header className={styles.header}>
           <h2>{card.name}</h2>
-          <button className={styles.closeBtn} onClick={onClose}><X size={20} /></button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button title="Copia Scheda" onClick={copyCard} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.5rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}>
+              <Copy size={16} />
+            </button>
+            <button title="Archivia Scheda" onClick={archiveCard} style={{ background: 'transparent', border: '1px solid var(--status-warning)', color: 'var(--status-warning)', cursor: 'pointer', padding: '0.5rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}>
+              <Archive size={16} />
+            </button>
+            <button title="Elimina Scheda" onClick={deleteCard} style={{ background: 'transparent', border: '1px solid var(--status-danger)', color: 'var(--status-danger)', cursor: 'pointer', padding: '0.5rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}>
+              <Trash2 size={16} />
+            </button>
+            <button className={styles.closeBtn} onClick={onClose}><X size={20} /></button>
+          </div>
         </header>
 
         <div className={styles.content}>
@@ -550,24 +581,6 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
                   <button onClick={createLabel} className={styles.btnSecondary} style={{ flex: 1, padding: '0.25rem' }}>Crea</button>
                 </div>
               </div>
-            </div>
-
-            {/* Actions */}
-            <div className={styles.widget}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>⚡ Azioni</h4>
-              <button 
-                onClick={copyCard} 
-                className={styles.btnSecondary} 
-                style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}
-              >
-                Copia Scheda
-              </button>
-            </div>
-
-            <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
-              <button onClick={onClose} style={{ width: '100%', background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.6rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                <X size={16} /> Chiudi Scheda
-              </button>
             </div>
 
           </div>

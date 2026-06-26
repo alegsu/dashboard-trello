@@ -10,7 +10,7 @@ export async function GET(request) {
   }
 
   const lists = await prisma.list.findMany({
-    where: { boardId },
+    where: { boardId, isArchived: false },
     orderBy: { order: 'asc' },
     include: { assignees: true }
   });

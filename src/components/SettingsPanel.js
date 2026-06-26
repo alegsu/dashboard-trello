@@ -22,6 +22,9 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
   const [selectedList, setSelectedList] = useState(lists.length > 0 ? lists[0].id : '');
   const [generatingTemplate, setGeneratingTemplate] = useState(false);
 
+  // Archive
+  const [archive, setArchive] = useState({ boards: [], lists: [], cards: [], projects: [] });
+
   React.useEffect(() => {
     fetch('/api/settings').then(res => res.json()).then(data => {
       if (data.SMTP_HOST) setSmtpHost(data.SMTP_HOST);
@@ -36,7 +39,45 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
          if (Array.isArray(data)) setTemplates(data);
       })
       .catch(console.error);
+
+    fetchArchive();
   }, []);
+
+  const fetchArchive = async () => {
+    try {
+      const res = await fetch('/api/archive');
+      if (res.ok) {
+        setArchive(await res.json());
+      }
+    } catch (e) {
+      console.error('Failed to fetch archive', e);
+    }
+  };
+
+  const restoreEntity = async (type, id) => {
+    if (!window.confirm('Vuoi ripristinare questo elemento?')) return;
+    try {
+      await fetch(`/api/${type}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isArchived: false })
+      });
+      fetchArchive();
+      if (onRefresh) onRefresh();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const deleteEntityPermanently = async (type, id) => {
+    if (!window.confirm('ATTENZIONE: Eliminazione definitiva! Sei sicuro?')) return;
+    try {
+      await fetch(`/api/${type}/${id}`, { method: 'DELETE' });
+      fetchArchive();
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleSaveSmtp = async () => {
     setLoading(true);
@@ -180,8 +221,19 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           
           <ul className={styles.list}>
             {boards.map(b => (
-              <li key={b.id} className={styles.listItem}>
-                <span style={{marginRight: '8px'}}>📁</span> {b.name}
+              <li key={b.id} className={styles.listItem} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div><span style={{marginRight: '8px'}}>📁</span> {b.name}</div>
+                <button 
+                  onClick={async () => {
+                    if(window.confirm('Sei sicuro di archiviare questa bacheca?')) {
+                      await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isArchived: true }) });
+                      if (onRefresh) onRefresh();
+                    }
+                  }}
+                  style={{ background: 'transparent', border: '1px solid var(--status-warning)', color: 'var(--status-warning)', borderRadius: '4px', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.8rem' }}
+                >
+                  Archivia
+                </button>
               </li>
             ))}
             {boards.length === 0 && <p className={styles.empty}>Nessuna bacheca creata.</p>}
@@ -283,6 +335,80 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           >
             {generatingTemplate ? 'Generazione...' : 'Genera Scheda da Template'}
           </button>
+        </div>
+
+        {/* Archivio */}
+        <div className={styles.card} style={{ gridColumn: '1 / -1' }}>
+          <h3>🗑️ Archivio Storico</h3>
+          <p className={styles.subtitle}>Gli elementi archiviati vengono nascosti dal gestionale. Da qui puoi ripristinarli o eliminarli definitivamente.</p>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+            
+            <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '8px' }}>
+              <h4>Bacheche Archiviate</h4>
+              <ul className={styles.list}>
+                {archive.boards.map(item => (
+                  <li key={item.id} className={styles.listItem} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{item.name}</span>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button onClick={() => restoreEntity('boards', item.id)} style={{ background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem' }}>Ripristina</button>
+                      <button onClick={() => deleteEntityPermanently('boards', item.id)} style={{ background: 'var(--status-danger)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem' }}>Elimina</button>
+                    </div>
+                  </li>
+                ))}
+                {archive.boards.length === 0 && <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Nessuna bacheca.</span>}
+              </ul>
+            </div>
+
+            <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '8px' }}>
+              <h4>Progetti Archiviati</h4>
+              <ul className={styles.list}>
+                {archive.projects.map(item => (
+                  <li key={item.id} className={styles.listItem} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{item.name}</span>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button onClick={() => restoreEntity('projects', item.id)} style={{ background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem' }}>Ripristina</button>
+                      <button onClick={() => deleteEntityPermanently('projects', item.id)} style={{ background: 'var(--status-danger)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem' }}>Elimina</button>
+                    </div>
+                  </li>
+                ))}
+                {archive.projects.length === 0 && <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Nessun progetto.</span>}
+              </ul>
+            </div>
+
+            <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '8px' }}>
+              <h4>Liste Archiviate</h4>
+              <ul className={styles.list}>
+                {archive.lists.map(item => (
+                  <li key={item.id} className={styles.listItem} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{item.name}</span>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button onClick={() => restoreEntity('lists', item.id)} style={{ background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem' }}>Ripristina</button>
+                      <button onClick={() => deleteEntityPermanently('lists', item.id)} style={{ background: 'var(--status-danger)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem' }}>Elimina</button>
+                    </div>
+                  </li>
+                ))}
+                {archive.lists.length === 0 && <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Nessuna lista.</span>}
+              </ul>
+            </div>
+
+            <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '8px' }}>
+              <h4>Schede Archiviate</h4>
+              <ul className={styles.list}>
+                {archive.cards.map(item => (
+                  <li key={item.id} className={styles.listItem} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{item.name}</span>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button onClick={() => restoreEntity('cards', item.id)} style={{ background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem' }}>Ripristina</button>
+                      <button onClick={() => deleteEntityPermanently('cards', item.id)} style={{ background: 'var(--status-danger)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem' }}>Elimina</button>
+                    </div>
+                  </li>
+                ))}
+                {archive.cards.length === 0 && <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Nessuna scheda.</span>}
+              </ul>
+            </div>
+
+          </div>
         </div>
 
       </div>

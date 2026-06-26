@@ -4,6 +4,7 @@ import { prisma } from '@/utils/prisma';
 export async function GET() {
   try {
     const projects = await prisma.project.findMany({
+      where: { isArchived: false },
       include: {
         cards: {
           include: {

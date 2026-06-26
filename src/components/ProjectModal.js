@@ -232,6 +232,15 @@ export default function ProjectModal({ project, clients, onClose, onRefresh }) {
             <button onClick={handleSave} disabled={saving} style={{ width: '100%', background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.6rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
               <Save size={16} /> {saving ? 'Salvataggio...' : 'Salva Modifiche'}
             </button>
+            <button onClick={async () => {
+              if(window.confirm('Vuoi archiviare questo progetto?')) {
+                await fetch(`/api/projects/${project.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isArchived: true }) });
+                if (onRefresh) onRefresh();
+                onClose();
+              }
+            }} style={{ width: '100%', background: 'transparent', color: 'var(--status-warning)', border: '1px solid var(--status-warning)', borderRadius: '4px', padding: '0.6rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+              Archivia Progetto
+            </button>
             <button onClick={onClose} style={{ width: '100%', background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.6rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
               <X size={16} /> Chiudi
             </button>

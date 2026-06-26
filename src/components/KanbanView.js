@@ -147,6 +147,18 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     onRefresh();
   };
 
+  const archiveList = async (listId) => {
+    if (window.confirm("Sei sicuro di voler archiviare questa lista? Potrai ripristinarla dalle impostazioni.")) {
+      await fetch(`/api/lists/${listId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isArchived: true })
+      });
+      setEditingListId(null);
+      onRefresh();
+    }
+  };
+
   const handleAddCard = async (clientId, listId) => {
     if (!newCardName.trim()) {
       setNewCardCell(null);
@@ -208,6 +220,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                       </button>
                       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.2rem', width: '100%' }}>
                         <button onClick={() => saveEditingList(list.id)} style={{ flex: 1, background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '0.2rem 0.4rem', fontSize: '0.8rem' }}>Salva</button>
+                        <button onClick={() => archiveList(list.id)} style={{ flex: 1, background: 'var(--status-warning)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '0.2rem 0.4rem', fontSize: '0.8rem' }}>Archivia</button>
                         <button onClick={() => setEditingListId(null)} style={{ flex: 1, background: 'var(--status-danger)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '0.2rem 0.4rem', fontSize: '0.8rem' }}>Annulla</button>
                       </div>
                     </div>
@@ -228,17 +241,29 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                 </div>
               );
             })}
-            <div className={styles.kanbanColumnHeader} style={{ background: 'transparent', border: '1px dashed var(--border-color)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {newListMode ? (
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input autoFocus value={newListName} onChange={e => setNewListName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddList()} placeholder="Nome Lista..." style={{ width: '120px', padding: '0.2rem' }} />
-                  <button onClick={handleAddList} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>✔️</button>
-                  <button onClick={() => setNewListMode(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>❌</button>
+            {newListMode && (
+              <div className={styles.kanbanColumnHeader} style={{ background: 'var(--bg-secondary)', borderLeft: '1px solid var(--border-color)', minWidth: '180px', flex: '0 0 auto' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <input autoFocus value={newListName} onChange={e => setNewListName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddList()} placeholder="Nome Lista..." style={{ width: '100%', padding: '0.4rem' }} />
+                  <div style={{ display: 'flex', gap: '0.3rem' }}>
+                    <button onClick={handleAddList} style={{ flex: 1, background: 'var(--status-success)', color: 'white', border: 'none', padding: '0.2rem', borderRadius: '4px', cursor: 'pointer' }}>Salva</button>
+                    <button onClick={() => setNewListMode(false)} style={{ flex: 1, background: 'var(--status-danger)', color: 'white', border: 'none', padding: '0.2rem', borderRadius: '4px', cursor: 'pointer' }}>X</button>
+                  </div>
                 </div>
-              ) : (
-                <div onClick={() => setNewListMode(true)} style={{ color: 'var(--text-secondary)' }}>+ Nuova Lista</div>
-              )}
-            </div>
+              </div>
+            )}
+            
+            {!newListMode && (
+              <div style={{ minWidth: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 0.5rem' }}>
+                <button 
+                  onClick={() => setNewListMode(true)} 
+                  title="Nuova Lista"
+                  style={{ background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-sm)' }}
+                >
+                  +
+                </button>
+              </div>
+            )}
          </div>
 
          <div className={styles.kanbanBody}>
@@ -303,8 +328,8 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                         </Droppable>
                       )
                     })}
-                    {/* Dummy cell to align with the "+ Nuova Lista" header */}
-                    <div className={styles.kanbanCell} style={{ background: 'transparent', border: 'none' }}></div>
+                    {newListMode && <div className={styles.kanbanCell} style={{ background: 'transparent', border: 'none', minWidth: '180px', flex: '0 0 auto' }}></div>}
+                    {!newListMode && <div style={{ minWidth: '40px' }}></div>}
                   </div>
                 </div>
               )

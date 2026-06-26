@@ -4,6 +4,7 @@ import { prisma } from '@/utils/prisma';
 export async function GET() {
   try {
     const boards = await prisma.board.findMany({
+      where: { isArchived: false },
       orderBy: { name: 'asc' }
     });
     return NextResponse.json(boards);

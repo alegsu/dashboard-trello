@@ -7,7 +7,7 @@ export async function GET(request) {
   if (!boardId) return NextResponse.json({ error: 'boardId required' }, { status: 400 });
 
   const cards = await prisma.card.findMany({
-    where: { boardId },
+    where: { boardId, isArchived: false },
     orderBy: { order: 'asc' },
     include: { assignees: true, labels: true }
   });
