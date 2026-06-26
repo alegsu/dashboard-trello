@@ -177,11 +177,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
 
   return (
     <div className={styles.container}>
-      <div style={{ background: '#ff4444', color: 'white', padding: '10px', borderRadius: '8px', marginBottom: '1rem', wordBreak: 'break-all' }}>
-        <strong>DEBUG ADMIN:</strong><br/>
-        User dal server (currentUser): {JSON.stringify(currentUser)}<br/>
-        User dal database live (effectiveCurrentUser): {JSON.stringify(effectiveCurrentUser)}
-      </div>
+
       <h2 className={styles.title}>⚙️ Impostazioni & Gestione</h2>
       
       {error && <div style={{background: '#fee2e2', color: '#b91c1c', padding: '1rem', borderRadius: '8px', marginBottom: '1rem'}}>{error}</div>}
@@ -194,12 +190,17 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           
           <ul className={styles.list}>
             {liveMembers.map(m => (
-              <li key={m.id} className={styles.listItem}>
-                <div className={styles.avatar}>{m.name.charAt(0).toUpperCase()}</div>
-                <div style={{ flex: 1 }}>
-                  <strong>{m.name}</strong>
-                  <div style={{fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-                    {m.email || 'Nessuna email'} • 
+              <li key={m.id} className={styles.listItem} style={{ alignItems: 'flex-start', flexWrap: 'wrap', padding: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '1 1 200px' }}>
+                  <div className={styles.avatar}>{m.name.charAt(0).toUpperCase()}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                    <strong>{m.name}</strong>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{m.email || 'Nessuna email'}</span>
+                  </div>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '1 1 300px', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                  <div>
                     {effectiveCurrentUser?.role === 'admin' && m.id !== effectiveCurrentUser.id ? (
                       <select 
                         value={m.role}
@@ -211,78 +212,80 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                           });
                           window.location.reload();
                         }}
-                        style={{ fontSize: '0.7rem', padding: '0.1rem', background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                        style={{ fontSize: '0.8rem', padding: '0.3rem', background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
                       >
                         <option value="user">Utente</option>
                         <option value="admin">Amministratore</option>
                       </select>
                     ) : (
-                      <span>{m.role === 'admin' ? 'Amministratore' : 'Utente'}</span>
+                      <span style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', background: 'var(--bg-elevated)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                        {m.role === 'admin' ? 'Amministratore' : 'Utente'}
+                      </span>
                     )}
                   </div>
+
+                  {effectiveCurrentUser?.role === 'admin' && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'var(--bg-elevated)', padding: '0.4rem 0.8rem', borderRadius: '4px', textAlign: 'right' }}>
+                      <div style={{ marginBottom: '2px' }}><strong>Logins:</strong> {m.loginCount || 0}</div>
+                      <div><strong>Tempo:</strong> {m.totalUsageTime ? Math.round(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m</div>
+                    </div>
+                  )}
                 </div>
-                {effectiveCurrentUser?.role === 'admin' && (
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
-                    <div>Logins: {m.loginCount || 0}</div>
-                    <div>Uso: {m.totalUsageTime ? Math.round(m.totalUsageTime / 60) : 0} ore {m.totalUsageTime ? m.totalUsageTime % 60 : 0} min</div>
-                  </div>
-                )}
               </li>
             ))}
             {liveMembers.length === 0 && <p className={styles.empty}>Nessun membro. Aggiungine uno!</p>}
           </ul>
 
-          <div style={{marginTop: '2rem'}}>
-            <h3 className={styles.subtitle}>🎨 Preferenze Visive</h3>
-            <div style={{ background: 'var(--bg-glass)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <span>Tema:</span>
-              <select 
-                value={effectiveCurrentUser?.theme || 'dark'}
-                onChange={async (e) => {
-                  const newTheme = e.target.value;
-                  await fetch(`/api/users/${effectiveCurrentUser.id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ theme: newTheme })
-                  });
-                  document.documentElement.setAttribute('data-theme', newTheme);
-                  window.location.reload();
-                }}
-                className={styles.input}
-                style={{ width: 'auto' }}
-              >
-                <option value="dark">Scuro (Default)</option>
-                <option value="light">Chiaro</option>
-              </select>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Cambia l'aspetto grafico solo per te.</span>
-            </div>
-          </div>
-
           <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'rgba(0,0,0,0.1)', padding: '1rem', borderRadius: '8px', marginTop: '2rem'}}>
             <input 
               type="text" 
               value={newUserName} 
-              onChange={e => setNewUserName(e.target.value)} 
-              placeholder="Nome Completo (Es. Giulia Verdi)"
-              className={styles.input}
+              onChange={e => setNewUserName(e.target.value)}
+              placeholder="Nome del collega..." 
+              className={styles.input} 
             />
             <input 
               type="email" 
               value={newUserEmail} 
-              onChange={e => setNewUserEmail(e.target.value)} 
-              placeholder="Email Aziendale"
-              className={styles.input}
+              onChange={e => setNewUserEmail(e.target.value)}
+              placeholder="Email aziendale..." 
+              className={styles.input} 
             />
             <input 
               type="password" 
               value={newUserPassword} 
-              onChange={e => setNewUserPassword(e.target.value)} 
-              placeholder="Password Iniziale"
-              className={styles.input}
+              onChange={e => setNewUserPassword(e.target.value)}
+              placeholder="Password temporanea..." 
+              className={styles.input} 
             />
-            <button onClick={handleAddUser} disabled={loading} className={styles.button} style={{marginTop: '0.5rem'}}>
-              + Crea Account
-            </button>
+            <button onClick={handleAddUser} disabled={loading} className={styles.btnPrimary}>Crea Utente</button>
+          </div>
+        </div>
+
+        {/* Preferenze Visive (Slegato) */}
+        <div className={styles.card}>
+          <h3>🎨 Preferenze Visive</h3>
+          <p className={styles.subtitle}>Cambia l'aspetto grafico solo per il tuo account.</p>
+          <div style={{ background: 'var(--bg-glass)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+            <span>Tema:</span>
+            <select 
+              value={effectiveCurrentUser?.theme || 'dark'}
+              onChange={async (e) => {
+                const newTheme = e.target.value;
+                await fetch(`/api/users/${effectiveCurrentUser.id}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ theme: newTheme })
+                });
+                document.documentElement.setAttribute('data-theme', newTheme);
+                window.location.reload();
+              }}
+              className={styles.input}
+              style={{ width: 'auto' }}
+            >
+              <option value="dark">Scuro (Default)</option>
+              <option value="light">Chiaro</option>
+            </select>
           </div>
         </div>
 

@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const users = await prisma.user.findMany({
       orderBy: { name: 'asc' },
-      select: { id: true, name: true, email: true, role: true, avatarUrl: true } // Sicurezza: MAI inviare l'hash
+      select: { id: true, name: true, email: true, role: true, avatarUrl: true, loginCount: true, totalUsageTime: true, theme: true }
     });
     return NextResponse.json(users);
   } catch (error) {
