@@ -68,11 +68,16 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
     fetchNotifications();
   };
 
+  const [liveCards, setLiveCards] = useState(initialCards);
+  useEffect(() => {
+    setLiveCards(initialCards);
+  }, [initialCards]);
+
   // Filtriamo Liste e Cards per la board selezionata
   const boardLists = useMemo(() => initialLists.filter(l => l.boardId === selectedBoardId), [initialLists, selectedBoardId]);
   
   const boardCards = useMemo(() => {
-    let cards = initialCards.filter(c => c.boardId === selectedBoardId);
+    let cards = liveCards.filter(c => c.boardId === selectedBoardId);
     
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -104,6 +109,10 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
 
   const handleRefresh = () => {
     router.refresh(); 
+  };
+
+  const handleCardUpdate = (updatedCard) => {
+    setLiveCards(prev => prev.map(c => c.id === updatedCard.id ? updatedCard : c));
   };
 
   return (
@@ -287,6 +296,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               members={initialMembers} 
               clients={initialClients || []}
               onRefresh={handleRefresh} 
+              onCardUpdate={handleCardUpdate}
             />
           )}
           {view === 'timeline' && selectedBoardId && (

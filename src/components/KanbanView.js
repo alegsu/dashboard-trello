@@ -4,7 +4,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import CardModal from './CardModal';
 import styles from './KanbanView.module.css';
 
-export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh }) {
+export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh, onCardUpdate }) {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState(null);
 
@@ -92,9 +92,15 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     // Aggiornamento ottimistico dell'interfaccia (elimina i glitch/scatti)
     const updatedCards = [...localCards];
     const targetCardIdx = updatedCards.findIndex(c => c.id === cardId);
+    let optimisticCard = null;
     if (targetCardIdx !== -1) {
-      updatedCards[targetCardIdx] = { ...updatedCards[targetCardIdx], listId: destListId, order: newOrder };
+      optimisticCard = { ...updatedCards[targetCardIdx], listId: destListId, order: newOrder };
+      updatedCards[targetCardIdx] = optimisticCard;
       setLocalCards(updatedCards);
+    }
+
+    if (optimisticCard && onCardUpdate) {
+      onCardUpdate(optimisticCard);
     }
 
     // API Call
@@ -104,7 +110,8 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
       body: JSON.stringify({ listId: destListId, order: newOrder })
     });
     
-    onRefresh();
+    // Non chiamiamo onRefresh qui per non fare bounce back, 
+    // l'aggiornamento è già salvato nello stato liveCards di DashboardClient.
   };
 
   const handleAddList = async () => {
