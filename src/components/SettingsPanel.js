@@ -10,6 +10,20 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
+  const [liveMembers, setLiveMembers] = useState(members || []);
+  
+  React.useEffect(() => {
+    fetch('/api/users', { cache: 'no-store' })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setLiveMembers(data);
+        }
+      });
+  }, []);
+
+  const effectiveCurrentUser = liveMembers.find(m => m.id === currentUser?.id) || currentUser;
+
   const [smtpHost, setSmtpHost] = useState('');
   const [smtpPort, setSmtpPort] = useState('465');
   const [smtpUser, setSmtpUser] = useState('');
@@ -174,14 +188,14 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           <p className={styles.subtitle}>Crea le credenziali per i tuoi colleghi (loro non potranno registrarsi da soli).</p>
           
           <ul className={styles.list}>
-            {members.map(m => (
+            {liveMembers.map(m => (
               <li key={m.id} className={styles.listItem}>
                 <div className={styles.avatar}>{m.name.charAt(0).toUpperCase()}</div>
                 <div style={{ flex: 1 }}>
                   <strong>{m.name}</strong>
                   <div style={{fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
                     {m.email || 'Nessuna email'} • 
-                    {currentUser?.role === 'admin' && m.id !== currentUser.id ? (
+                    {effectiveCurrentUser?.role === 'admin' && m.id !== effectiveCurrentUser.id ? (
                       <select 
                         value={m.role}
                         onChange={async (e) => {
@@ -202,7 +216,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                     )}
                   </div>
                 </div>
-                {currentUser?.role === 'admin' && (
+                {effectiveCurrentUser?.role === 'admin' && (
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
                     <div>Logins: {m.loginCount || 0}</div>
                     <div>Uso: {m.totalUsageTime ? Math.round(m.totalUsageTime / 60) : 0} ore {m.totalUsageTime ? m.totalUsageTime % 60 : 0} min</div>
@@ -210,7 +224,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                 )}
               </li>
             ))}
-            {members.length === 0 && <p className={styles.empty}>Nessun membro. Aggiungine uno!</p>}
+            {liveMembers.length === 0 && <p className={styles.empty}>Nessun membro. Aggiungine uno!</p>}
           </ul>
 
           <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'rgba(0,0,0,0.1)', padding: '1rem', borderRadius: '8px'}}>
