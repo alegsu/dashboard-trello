@@ -187,6 +187,8 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                 {(() => {
                   try {
                     const data = JSON.parse(selectedClient.sheetData);
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <div style={{ marginTop: '1rem' }}>
                           <strong>Dettaglio Servizi e Collaboratori: </strong>
                           {data.servicesDetails && Object.keys(data.servicesDetails).length > 0 ? (
