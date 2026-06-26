@@ -88,7 +88,8 @@ export async function POST(request) {
       // Costruiamo i dati del foglio come JSON
       const sheetDataObj = {
         effort: rawEffort || '',
-        services: servicesSold
+        services: servicesSold,
+        orderedNames: Array.from(rawNames)
       };
 
       // Aggiorniamo o Creiamo il Cliente

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './ProjectsView.module.css'; // Possiamo riusare questo CSS per comodità
 import { FaSync, FaGoogle } from 'react-icons/fa';
 
-export default function ClientsView({ clients: initialClients, onRefresh }) {
+export default function ClientsView({ clients: initialClients, cards = [], onRefresh }) {
   const [clients, setClients] = useState(initialClients);
   const [selectedClient, setSelectedClient] = useState(null);
   
@@ -15,7 +15,16 @@ export default function ClientsView({ clients: initialClients, onRefresh }) {
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
-    setClients(initialClients);
+    // Filtra i clienti per mostrare solo quelli con schede attive se richiesto o se ci sono cards.
+    // Oppure mostriamo tutti. Se "cards" sono fornite, calcoliamo i clienti attivi:
+    let activeClients = initialClients;
+    if (cards && cards.length > 0) {
+      activeClients = initialClients.filter(c => 
+        cards.some(card => card.clientId === c.id && !card.isArchived && !card.list?.isArchived)
+      );
+    }
+    setClients(activeClients.length > 0 ? activeClients : initialClients);
+
     // Fetch global settings for CSV URL
     fetch('/api/settings').then(res => res.json()).then(data => {
       if (data.SHEETS_CSV_URL) setCsvUrl(data.SHEETS_CSV_URL);
@@ -203,18 +212,35 @@ export default function ClientsView({ clients: initialClients, onRefresh }) {
                           <strong>Collaboratori Assegnati: </strong>
                           {selectedClient.collaborators && selectedClient.collaborators.length > 0 ? (
                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
-                              {selectedClient.collaborators.map(user => (
-                                <div key={user.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-elevated)', padding: '0.25rem 0.5rem', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
-                                  {user.avatarUrl ? (
-                                    <img src={user.avatarUrl} alt={user.name} style={{ width: '20px', height: '20px', borderRadius: '50%' }} />
-                                  ) : (
-                                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontSize: '0.6rem', fontWeight: 'bold' }}>
-                                      {user.name.charAt(0).toUpperCase()}
-                                    </div>
-                                  )}
-                                  <span style={{ fontSize: '0.85rem' }}>{user.name}</span>
-                                </div>
-                              ))}
+                              {selectedClient.collaborators.map(user => {
+                                // Match effort to user
+                                let userEffort = null;
+                                if (data.effort && data.orderedNames) {
+                                  const efforts = data.effort.split('-').map(e => e.trim());
+                                  const idx = data.orderedNames.findIndex(n => n.toUpperCase() === user.name.toUpperCase());
+                                  if (idx >= 0 && idx < efforts.length) {
+                                    userEffort = efforts[idx];
+                                  }
+                                } else if (data.effort && !data.orderedNames && selectedClient.collaborators.length === 1) {
+                                  userEffort = data.effort; // Se c'è un solo collaboratore, prende tutto l'effort
+                                }
+
+                                return (
+                                  <div key={user.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-elevated)', padding: '0.25rem 0.5rem', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
+                                    {user.avatarUrl ? (
+                                      <img src={user.avatarUrl} alt={user.name} style={{ width: '20px', height: '20px', borderRadius: '50%' }} />
+                                    ) : (
+                                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontSize: '0.6rem', fontWeight: 'bold' }}>
+                                        {user.name.charAt(0).toUpperCase()}
+                                      </div>
+                                    )}
+                                    <span style={{ fontSize: '0.85rem' }}>
+                                      {user.name}
+                                      {userEffort && <strong style={{ marginLeft: '4px', color: 'var(--accent-primary)' }}>({userEffort})</strong>}
+                                    </span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           ) : (
                             <span style={{ color: 'var(--text-secondary)' }}>Nessun collaboratore</span>

@@ -212,8 +212,10 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
                   style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
                 >
                   <option value="">Tutti i Clienti</option>
-                  {(initialClients || []).map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                  {(initialClients || [])
+                    .filter(c => liveCards.some(card => card.clientId === c.id && !card.isArchived && !card.list?.isArchived))
+                    .map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
               </div>
@@ -380,7 +382,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
             />
           )}
           {view === 'clients' && (
-            <ClientsView clients={initialClients} onRefresh={handleRefresh} />
+            <ClientsView clients={initialClients} cards={liveCards} onRefresh={handleRefresh} />
           )}
           {view === 'settings' && (
             <SettingsPanel 
