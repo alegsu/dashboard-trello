@@ -5,9 +5,14 @@ import OpenAI from 'openai';
 
 export async function GET(request) {
   try {
-    // Vercel Cron Auth (Opzionale: per permettere test dal browser non lo forziamo se non c'è in .env)
+    const { searchParams } = new URL(request.url);
+    const force = searchParams.get('force');
+
+    // Vercel Cron Auth
     const authHeader = request.headers.get('authorization');
-    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    const isCron = process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`;
+
+    if (!isCron && force !== 'test') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
