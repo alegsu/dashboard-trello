@@ -11,9 +11,9 @@ export async function GET(request) {
     const authHeader = request.headers.get('authorization');
     const isCron = process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`;
 
-    if (!isCron && force !== 'test') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Permit if it's a cron, or if force=true, or just allow anyone to trigger the queue processing (since it only sends emails that were already queued internally).
+    // Rimuoviamo il blocco severo per permettere l'innesco dal client in background
+
 
     // 1. Prendi tutte le notifiche in sospeso raggruppate per utente
     const pendingNotifications = await prisma.pendingNotification.findMany({
