@@ -303,7 +303,7 @@ export default function ProjectsView({ clients = [], members = [], currentUser, 
                   {project.cards && project.cards.length > 0 && (
                     <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
                       <button 
-                        onClick={() => toggleProjectCards(project.id)}
+                        onClick={(e) => { e.stopPropagation(); toggleProjectCards(project.id); }}
                         style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.2rem 0', fontWeight: 'bold' }}
                       >
                         {expandedProjects[project.id] ? '🔼 Nascondi Task' : `🔽 Vedi Task (${project.cards.length})`}
@@ -312,7 +312,16 @@ export default function ProjectsView({ clients = [], members = [], currentUser, 
                       {expandedProjects[project.id] && (
                         <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: '200px', overflowY: 'auto', paddingRight: '0.2rem' }}>
                           {project.cards.map(card => (
-                            <div key={card.id} style={{ background: 'var(--bg-glass)', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem', borderLeft: `3px solid ${card.color || 'var(--accent-primary)'}` }}>
+                            <div 
+                              key={card.id} 
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                if (onNavigateToBoard && card.boardId) onNavigateToBoard(card.boardId); 
+                              }}
+                              style={{ background: 'var(--bg-glass)', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem', borderLeft: `3px solid ${card.color || 'var(--accent-primary)'}`, cursor: 'pointer', transition: 'background 0.2s' }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                              onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-glass)'}
+                            >
                               <div style={{ fontWeight: '600', marginBottom: '0.2rem' }}>{card.name}</div>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 {card.list && <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', background: 'rgba(0,0,0,0.2)', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>Stato: {card.list.name}</span>}
