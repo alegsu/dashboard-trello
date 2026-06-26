@@ -15,15 +15,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
-    // Filtra i clienti per mostrare solo quelli con schede attive se richiesto o se ci sono cards.
-    // Oppure mostriamo tutti. Se "cards" sono fornite, calcoliamo i clienti attivi:
-    let activeClients = initialClients;
-    if (cards && cards.length > 0) {
-      activeClients = initialClients.filter(c => 
-        cards.some(card => card.clientId === c.id && !card.isArchived && !card.list?.isArchived)
-      );
-    }
-    setClients(activeClients.length > 0 ? activeClients : initialClients);
+    setClients(initialClients);
 
     // Fetch global settings for CSV URL
     fetch('/api/settings').then(res => res.json()).then(data => {

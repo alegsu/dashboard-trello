@@ -40,6 +40,23 @@ export async function GET(request) {
       return NextResponse.json({ error: 'OpenAI API Key mancante' }, { status: 400 });
     }
 
+    // 0. Sincronizzazione Automatica Google Sheets
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      const csvUrlSetting = settings.find(s => s.key === 'SHEETS_CSV_URL');
+      if (csvUrlSetting && csvUrlSetting.value) {
+        console.log("Inizio sincronizzazione automatica Google Sheets...");
+        await fetch(`${baseUrl}/api/sync/sheets`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ csvUrl: csvUrlSetting.value })
+        });
+        console.log("Sincronizzazione completata.");
+      }
+    } catch(e) {
+      console.error("Errore durante l'auto-sync di Google Sheets:", e);
+    }
+
     // 2. Recupero Utenti e Schede Assegnate da fare
     const users = await prisma.user.findMany({
       include: {
