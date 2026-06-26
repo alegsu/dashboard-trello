@@ -56,7 +56,7 @@ export async function PUT(request, { params }) {
       if (addedIds.length > 0) {
         const usersToNotify = updated.assignees.filter(a => addedIds.includes(a.id));
         usersToNotify.forEach(user => {
-          if (user.email) {
+          if (user.email && user.notifyAssignedCard !== false) {
             sendNotificationEmail(user.email, 'Nuovo Task Assegnato', `Ciao ${user.name},\n\nSei stato appena assegnato al task "${updated.name}" sulla bacheca.\n\nAccedi al gestionale per vedere i dettagli.\n\nIl Team`);
           }
         });

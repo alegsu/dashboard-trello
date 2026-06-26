@@ -15,8 +15,27 @@ export async function POST(request) {
 
     const newComment = await prisma.comment.create({
       data: { text, cardId, authorId: session.id },
-      include: { author: true }
+      include: { author: true, card: true }
     });
+
+    // Notifiche Mentions
+    const allUsers = await prisma.user.findMany();
+    const mentionedUsers = allUsers.filter(u => 
+      text.toLowerCase().includes(`@${u.name.toLowerCase()}`) || 
+      text.toLowerCase().includes(`@${u.name.split(' ')[0].toLowerCase()}`)
+    );
+
+    const { sendNotificationEmail } = await import('@/utils/mailer');
+    for (const u of mentionedUsers) {
+      if (u.id !== session.id && u.notifyMentions !== false && u.email) {
+        await sendNotificationEmail(
+          u.email,
+          `Nuova menzione in ${newComment.card.name}`,
+          `Ciao ${u.name}, sei stato menzionato in un commento da ${newComment.author.name}:\n\n"${text}"\n\nAccedi alla dashboard per rispondere.`
+        );
+      }
+    }
+
     return NextResponse.json(newComment, { status: 201 });
   } catch (err) {
     return NextResponse.json({ error: 'Error creating comment' }, { status: 500 });

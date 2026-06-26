@@ -56,6 +56,7 @@ export async function GET(request) {
 
     for (const user of users) {
       if (!user.email) continue;
+      if (user.notifyDailyRecap === false) continue; // Rispetta l'impostazione utente
 
       // Filtra le schede: ignora quelle in liste "Fatto" o "Completato"
       const todoCards = user.cards.filter(c => 

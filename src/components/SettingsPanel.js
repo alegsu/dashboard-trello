@@ -24,6 +24,23 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
 
   const effectiveCurrentUser = liveMembers.find(m => m.id === currentUser?.id) || currentUser;
 
+  // Toggle utility per le preferenze utente
+  const toggleUserPreference = async (field, currentValue) => {
+    try {
+      const newValue = !currentValue;
+      await fetch(`/api/users/${effectiveCurrentUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: newValue })
+      });
+      // Aggiorniamo la lista liveMembers per riflettere la modifica subito
+      setLiveMembers(prev => prev.map(m => m.id === effectiveCurrentUser.id ? { ...m, [field]: newValue } : m));
+    } catch (err) {
+      console.error(err);
+      alert('Errore aggiornamento preferenza');
+    }
+  };
+
   const [smtpHost, setSmtpHost] = useState('');
   const [smtpPort, setSmtpPort] = useState('465');
   const [smtpUser, setSmtpUser] = useState('');
@@ -286,6 +303,31 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
               <option value="dark">Scuro (Default)</option>
               <option value="light">Chiaro</option>
             </select>
+          </div>
+
+          <h3 style={{ marginTop: '2rem' }}>🔔 Notifiche Email</h3>
+          <p className={styles.subtitle}>Scegli quando desideri ricevere un avviso via email.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'var(--bg-glass)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginTop: '1rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input type="checkbox" checked={effectiveCurrentUser?.notifyMentions !== false} onChange={() => toggleUserPreference('notifyMentions', effectiveCurrentUser?.notifyMentions !== false)} />
+              Quando vengo menzionato in un commento
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input type="checkbox" checked={effectiveCurrentUser?.notifyAssignedCard !== false} onChange={() => toggleUserPreference('notifyAssignedCard', effectiveCurrentUser?.notifyAssignedCard !== false)} />
+              Quando vengo assegnato a una scheda
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input type="checkbox" checked={effectiveCurrentUser?.notifyAssignedList !== false} onChange={() => toggleUserPreference('notifyAssignedList', effectiveCurrentUser?.notifyAssignedList !== false)} />
+              Quando vengo assegnato a una lista intera
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input type="checkbox" checked={effectiveCurrentUser?.notifyCardDue !== false} onChange={() => toggleUserPreference('notifyCardDue', effectiveCurrentUser?.notifyCardDue !== false)} />
+              Quando una scheda a me assegnata è in scadenza
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input type="checkbox" checked={effectiveCurrentUser?.notifyDailyRecap !== false} onChange={() => toggleUserPreference('notifyDailyRecap', effectiveCurrentUser?.notifyDailyRecap !== false)} />
+              Recap quotidiano delle mie attività (Mattina)
+            </label>
           </div>
         </div>
 

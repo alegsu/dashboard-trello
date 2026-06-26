@@ -18,6 +18,11 @@ export async function PUT(request, { params }) {
         ...(body.loginCount !== undefined && { loginCount: body.loginCount }),
         ...(body.totalUsageTime !== undefined && { totalUsageTime: body.totalUsageTime }),
         ...(body.theme !== undefined && { theme: body.theme }),
+        ...(body.notifyMentions !== undefined && { notifyMentions: body.notifyMentions }),
+        ...(body.notifyAssignedCard !== undefined && { notifyAssignedCard: body.notifyAssignedCard }),
+        ...(body.notifyAssignedList !== undefined && { notifyAssignedList: body.notifyAssignedList }),
+        ...(body.notifyCardDue !== undefined && { notifyCardDue: body.notifyCardDue }),
+        ...(body.notifyDailyRecap !== undefined && { notifyDailyRecap: body.notifyDailyRecap }),
       }
     });
 
