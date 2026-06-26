@@ -514,12 +514,19 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
                             {renderMentionDropdown(`item-notes-${item.id}`, itemNotes[item.id] !== undefined ? itemNotes[item.id] : (item.notes || ''), val => setItemNotes(prev => ({ ...prev, [item.id]: val })))}
                             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                               <button 
-                                onClick={() => {
+                                onClick={(e) => {
+                                  const btn = e.target;
+                                  const originalText = btn.innerText;
+                                  btn.innerText = "Salvato ✓";
+                                  btn.style.background = "var(--status-success)";
                                   saveChecklistItemNotes(item.id, itemNotes[item.id] !== undefined ? itemNotes[item.id] : item.notes);
-                                  toggleNotes(item.id, item.notes); // Close the notes area after saving
+                                  setTimeout(() => {
+                                    btn.innerText = originalText;
+                                    btn.style.background = "var(--bg-elevated)";
+                                  }, 2000);
                                 }}
                                 className={styles.btnSecondary}
-                                style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
+                                style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', transition: 'all 0.3s ease' }}
                               >
                                 Salva Nota
                               </button>

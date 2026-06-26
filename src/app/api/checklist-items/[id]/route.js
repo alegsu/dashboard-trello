@@ -15,6 +15,10 @@ export async function PUT(request, { params }) {
     
     const updateData = { ...data };
     
+    // Rimuovi campi non presenti nello schema DB
+    delete updateData.baseUrl;
+    delete updateData.authorId;
+    
     if (data.assignees) {
       updateData.assignees = {
         set: data.assignees.map(userId => ({ id: userId }))
