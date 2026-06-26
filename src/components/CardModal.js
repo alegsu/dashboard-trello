@@ -471,7 +471,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
                 
                 {mentionQuery !== null && (
                   <div style={{ position: 'absolute', top: '100%', left: 0, background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', zIndex: 100, maxHeight: '150px', overflowY: 'auto', width: '250px', boxShadow: 'var(--shadow-md)' }}>
-                    {(members || []).filter(m => m?.name?.toLowerCase().replace(/\s+/g, '').includes(mentionQuery)).map(m => (
+                    {(members || []).filter(m => m?.name && m.name.toLowerCase().replace(/\s+/g, '').includes(mentionQuery)).map(m => (
                       <div 
                         key={m.id} 
                         onClick={() => {
@@ -496,7 +496,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
                         <span style={{ fontSize: '0.85rem' }}>{m.name}</span>
                       </div>
                     ))}
-                    {(members || []).filter(m => m?.name?.toLowerCase().replace(/\s+/g, '').includes(mentionQuery)).length === 0 && (
+                    {(members || []).filter(m => m?.name && m.name.toLowerCase().replace(/\s+/g, '').includes(mentionQuery)).length === 0 && (
                       <div style={{ padding: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Nessun utente trovato</div>
                     )}
                   </div>
