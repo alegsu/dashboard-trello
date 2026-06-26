@@ -244,7 +244,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
                 >
                   <option value="">Tutti i Clienti</option>
                   {(initialClients || [])
-                    .filter(c => initialBoards.some(b => b.name.toLowerCase().includes(c.name.toLowerCase())))
+                    .sort((a, b) => a.name.localeCompare(b.name))
                     .map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                   ))}

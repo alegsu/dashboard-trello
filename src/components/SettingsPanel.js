@@ -420,7 +420,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           </p>
           <div className={styles.formGroup}>
             <label>Template (Dal file .md)</label>
-            <select className={styles.input} value={selectedTemplateTitle} onChange={e => setSelectedTemplateTitle(e.target.value)}>
+            <select className={styles.input} style={{ padding: '0.4rem 0.5rem' }} value={selectedTemplateTitle} onChange={e => setSelectedTemplateTitle(e.target.value)}>
               <option value="">-- Seleziona Template --</option>
               {templates.map((t, idx) => (
                 <option key={idx} value={t.title}>{t.title} ({t.checklists.length} checklist)</option>
@@ -430,7 +430,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           
           <div className={styles.formGroup}>
             <label>Cliente</label>
-            <select className={styles.input} value={selectedClient} onChange={e => setSelectedClient(e.target.value)}>
+            <select className={styles.input} style={{ padding: '0.4rem 0.5rem' }} value={selectedClient} onChange={e => setSelectedClient(e.target.value)}>
               <option value="none">-- Nessun Cliente --</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -438,7 +438,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
 
           <div className={styles.formGroup}>
             <label>Lista di Destinazione</label>
-            <select className={styles.input} value={selectedList} onChange={e => setSelectedList(e.target.value)}>
+            <select className={styles.input} style={{ padding: '0.4rem 0.5rem' }} value={selectedList} onChange={e => setSelectedList(e.target.value)}>
               <option value="">-- Seleziona Lista --</option>
               {lists.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
             </select>
