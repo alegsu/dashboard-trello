@@ -410,7 +410,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
             )}
             
             {!newListMode && (
-              <div style={{ minWidth: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 0.5rem' }}>
+              <div style={{ width: '50px', flex: '0 0 50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <button 
                   onClick={() => setNewListMode(true)} 
                   title="Nuova Lista"
@@ -490,7 +490,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                       )
                     })}
                     {newListMode && <div className={styles.kanbanCell} style={{ background: 'transparent', border: 'none', minWidth: '180px', flex: '0 0 auto' }}></div>}
-                    <div style={{ minWidth: '40px', padding: '0 0.5rem' }}></div>
+                    <div style={{ width: '50px', flex: '0 0 50px' }}></div>
                   </div>
                 </div>
               )
