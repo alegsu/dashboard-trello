@@ -178,8 +178,40 @@ export default function ProjectsView({ clients = [], members = [], currentUser, 
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', margin: '1.5rem 0' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-color)' }}>
-                  <div title="Task Collegati" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                    <Layers size={14} /> <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{project.cards.length} Cards</span>
+                  <div style={{ position: 'relative' }}>
+                    <div 
+                      title="Task Collegati" 
+                      onClick={(e) => { e.stopPropagation(); toggleProjectCards(project.id); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.2rem 0.5rem', borderRadius: '4px', background: 'rgba(255,255,255,0.05)' }}
+                    >
+                      <Layers size={14} /> <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{project.cards.length} Cards</span>
+                    </div>
+                    {expandedProjects[project.id] && project.cards.length > 0 && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '0.5rem', background: 'var(--bg-glass)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem', zIndex: 10, minWidth: '200px', boxShadow: 'var(--shadow-md)' }} onClick={(e) => e.stopPropagation()}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Bacheche coinvolte:</div>
+                        {(() => {
+                          const boardMap = {};
+                          project.cards.forEach(c => {
+                            if (c.board) {
+                              if (!boardMap[c.board.id]) boardMap[c.board.id] = { name: c.board.name, lists: new Set() };
+                              if (c.list) boardMap[c.board.id].lists.add(c.list.name);
+                            }
+                          });
+                          return Object.entries(boardMap).map(([bId, bData]) => (
+                            <div 
+                              key={bId} 
+                              onClick={(e) => { e.stopPropagation(); if(onNavigateToBoard) onNavigateToBoard(bId); }}
+                              style={{ padding: '0.5rem', borderRadius: '4px', cursor: 'pointer', transition: 'background 0.2s', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'rgba(161, 189, 207, 0.1)'}
+                              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                            >
+                              <span style={{ fontWeight: '600', color: 'var(--accent-primary)', fontSize: '0.85rem' }}>📁 {bData.name}</span>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Liste: {Array.from(bData.lists).join(', ')}</span>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    )}
                   </div>
                   {project.category && (
                     <div title="Categoria Progetto" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>

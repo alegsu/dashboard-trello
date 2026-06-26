@@ -413,6 +413,10 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               members={initialMembers || []}
               currentUser={currentUser}
               onRefresh={handleRefresh} 
+              onNavigateToBoard={(boardId) => {
+                setView('kanban');
+                setSelectedBoardId(boardId);
+              }}
             />
           )}
           {view === 'clients' && (

@@ -29,6 +29,48 @@ export default function ProjectModal({ project, clients, members, currentUser, o
   
   const [mentionQuery, setMentionQuery] = useState(null);
   const [mentionTarget, setMentionTarget] = useState(null);
+  
+  const [aiSummary, setAiSummary] = useState('');
+  const [loadingSummary, setLoadingSummary] = useState(false);
+
+  const generateSummary = async () => {
+    setLoadingSummary(true);
+    setAiSummary('Generazione riassunto in corso...');
+    try {
+      const res = await fetch('/api/ai/summary-project', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: project.id })
+      });
+      const data = await res.json();
+      if (data.summary) {
+        setAiSummary(data.summary);
+      } else {
+        setAiSummary('Errore nella generazione del riassunto.');
+      }
+    } catch (e) {
+      setAiSummary('Errore di rete durante la generazione.');
+    }
+    setLoadingSummary(false);
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm("Eliminare definitivamente questo progetto? L'operazione è irreversibile.")) return;
+    await fetch(`/api/projects/${project.id}`, { method: 'DELETE' });
+    if (onRefresh) onRefresh();
+    onClose();
+  };
+
+  const handleArchive = async () => {
+    if (!window.confirm("Archiviare questo progetto? Scomparirà dalla vista principale.")) return;
+    await fetch(`/api/projects/${project.id}`, { 
+      method: 'PUT', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isArchived: true })
+    });
+    if (onRefresh) onRefresh();
+    onClose();
+  };
 
   const handleMentionChange = (val, target, setter) => {
     setter(val);
@@ -177,6 +219,22 @@ export default function ProjectModal({ project, clients, members, currentUser, o
             </div>
           </div>
 
+          <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginTop: '0.5rem' }}>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--accent-primary)' }}>✨ Riassunto Progetto (AI)</h4>
+            <button 
+              onClick={generateSummary} 
+              disabled={loadingSummary}
+              style={{ background: 'var(--accent-primary)', color: '#000', padding: '0.4rem 0.8rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem', marginBottom: '0.5rem' }}
+            >
+              {loadingSummary ? 'Generazione in corso...' : 'Genera Riassunto'}
+            </button>
+            {aiSummary && (
+              <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'var(--bg-glass)', padding: '0.75rem', borderRadius: '6px' }}>
+                {aiSummary.split('\n').map((line, i) => <p key={i} style={{ margin: '0 0 0.5rem 0' }}>{line}</p>)}
+              </div>
+            )}
+          </div>
+
           {/* Comments Section */}
           <div style={{ marginTop: '1rem' }}>
             <h4>Commenti del Progetto</h4>
@@ -315,14 +373,11 @@ export default function ProjectModal({ project, clients, members, currentUser, o
             <button onClick={handleSave} disabled={saving} style={{ width: '100%', background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.6rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
               <Save size={16} /> {saving ? 'Salvataggio...' : 'Salva Modifiche'}
             </button>
-            <button onClick={async () => {
-              if(window.confirm('Vuoi archiviare questo progetto?')) {
-                await fetch(`/api/projects/${project.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isArchived: true }) });
-                if (onRefresh) onRefresh();
-                onClose();
-              }
-            }} style={{ width: '100%', background: 'transparent', color: 'var(--status-warning)', border: '1px solid var(--status-warning)', borderRadius: '4px', padding: '0.6rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+            <button onClick={handleArchive} style={{ width: '100%', background: 'transparent', color: 'var(--status-warning)', border: '1px solid var(--status-warning)', borderRadius: '4px', padding: '0.6rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
               Archivia Progetto
+            </button>
+            <button onClick={handleDelete} style={{ width: '100%', background: 'transparent', color: 'var(--status-danger)', border: '1px solid var(--status-danger)', borderRadius: '4px', padding: '0.6rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+              Elimina Progetto
             </button>
             <button onClick={onClose} style={{ width: '100%', background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.6rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
               <X size={16} /> Chiudi
