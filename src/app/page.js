@@ -2,6 +2,8 @@ import { prisma } from '@/utils/prisma';
 import DashboardClient from '@/components/DashboardClient';
 import styles from './page.module.css';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const users = await prisma.user.findMany({ orderBy: { name: 'asc' } });
   const boards = await prisma.board.findMany({ orderBy: { name: 'asc' } });
