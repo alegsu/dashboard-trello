@@ -26,15 +26,9 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
   const unassignedId = 'unassigned';
   const allClientIds = [unassignedId, ...(clients || []).map(c => c.id)];
 
-  // Optimistic UI state per evitare glitch durante il trascinamento
-  const [localCards, setLocalCards] = useState(cards);
-  useEffect(() => {
-    setLocalCards(cards);
-  }, [cards]);
-
   const cardsByCell = {};
 
-  localCards.forEach(card => {
+  cards.forEach(card => {
     const listId = card.listId;
     const clientId = card.clientId || unassignedId;
     const key = `${clientId}-${listId}`;
@@ -87,13 +81,11 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     }
     
     // Aggiornamento ottimistico dell'interfaccia (elimina i glitch/scatti)
-    const updatedCards = [...localCards];
+    const updatedCards = [...cards];
     const targetCardIdx = updatedCards.findIndex(c => c.id === cardId);
     let optimisticCard = null;
     if (targetCardIdx !== -1) {
       optimisticCard = { ...updatedCards[targetCardIdx], listId: destListId, order: newOrder };
-      updatedCards[targetCardIdx] = optimisticCard;
-      setLocalCards(updatedCards);
     }
 
     if (optimisticCard && onCardUpdate) {

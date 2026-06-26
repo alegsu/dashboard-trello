@@ -105,7 +105,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
     }
     
     return cards;
-  }, [initialCards, selectedBoardId, searchQuery, filterUserId, filterClientId, filterProjectId, filterLabelId]);
+  }, [liveCards, selectedBoardId, searchQuery, filterUserId, filterClientId, filterProjectId, filterLabelId]);
 
   const handleRefresh = () => {
     router.refresh(); 
