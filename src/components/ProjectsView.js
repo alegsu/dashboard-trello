@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Briefcase, Plus, TrendingUp, CheckSquare, Layers, Clock, DollarSign, Calendar, Tag, AlertCircle } from 'lucide-react';
+import { Briefcase, Plus, TrendingUp, CheckSquare, Layers, Clock, DollarSign, Calendar, Tag, AlertCircle, Activity } from 'lucide-react';
 import styles from './ProjectsView.module.css';
 import ProjectModal from './ProjectModal';
 
@@ -193,6 +193,11 @@ export default function ProjectsView({ clients = [], onRefresh }) {
                 {project.estimatedHours && (
                   <div className={styles.statBox}>
                     <Clock size={14} /> {project.actualHours || 0}/{project.estimatedHours}h
+                  </div>
+                )}
+                {project.effort && (
+                  <div className={styles.statBox} style={{ color: Number(project.effort) >= 8 ? 'var(--status-danger)' : Number(project.effort) >= 5 ? 'var(--status-warning, #f59e0b)' : 'var(--status-success)' }}>
+                    <Activity size={14} /> Effort: {project.effort}/10
                   </div>
                 )}
                 {project.sellingPrice && (
