@@ -569,28 +569,17 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
             <div className={styles.widget}>
               <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>🏢 Cliente</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div className={styles.labelsList}>
-                  <label className={styles.assigneeLabel}>
-                    <input 
-                      type="radio" 
-                      name="client"
-                      checked={!card.clientId} 
-                      onChange={() => updateCard({ clientId: null, projectId: null })} 
-                    />
-                    Nessuno
-                  </label>
+                <select 
+                  className={styles.input} 
+                  value={card.clientId || ''} 
+                  onChange={(e) => updateCard({ clientId: e.target.value || null, projectId: null })}
+                  style={{ padding: '0.4rem', borderRadius: '6px' }}
+                >
+                  <option value="">Nessuno</option>
                   {allClients.map(c => (
-                    <label key={c.id} className={styles.assigneeLabel}>
-                      <input 
-                        type="radio" 
-                        name="client"
-                        checked={card.clientId === c.id} 
-                        onChange={() => updateCard({ clientId: c.id, projectId: null })} 
-                      />
-                      {c.name}
-                    </label>
+                    <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
-                </div>
+                </select>
                 <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                   <input type="text" placeholder="Nuovo Cliente..." value={newClientName} onChange={e => setNewClientName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createClient()} className={styles.input} style={{ flex: 1, minWidth: 0 }} />
                   <button onClick={createClient} className={styles.btnSecondary} style={{ padding: '0.25rem 0.5rem', flexShrink: 0 }}>Crea</button>
@@ -602,28 +591,17 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
             <div className={styles.widget}>
               <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>📁 Progetto {card.clientId ? '(del Cliente)' : ''}</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div className={styles.labelsList}>
-                  <label className={styles.assigneeLabel}>
-                    <input 
-                      type="radio" 
-                      name="project"
-                      checked={!card.projectId} 
-                      onChange={() => updateCard({ projectId: null })} 
-                    />
-                    Nessuno
-                  </label>
+                <select 
+                  className={styles.input} 
+                  value={card.projectId || ''} 
+                  onChange={(e) => updateCard({ projectId: e.target.value || null })}
+                  style={{ padding: '0.4rem', borderRadius: '6px' }}
+                >
+                  <option value="">Nessuno</option>
                   {allProjects.filter(p => !card.clientId || p.clientId === card.clientId).map(p => (
-                    <label key={p.id} className={styles.assigneeLabel}>
-                      <input 
-                        type="radio" 
-                        name="project"
-                        checked={card.projectId === p.id} 
-                        onChange={() => updateCard({ projectId: p.id })} 
-                      />
-                      {p.name}
-                    </label>
+                    <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
-                </div>
+                </select>
                 <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                   <input type="text" placeholder="Nuovo Progetto..." value={newProjectName} onChange={e => setNewProjectName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createProject()} className={styles.input} style={{ flex: 1, minWidth: 0 }} />
                   <button onClick={createProject} className={styles.btnSecondary} style={{ padding: '0.25rem 0.5rem', flexShrink: 0 }}>Crea</button>
