@@ -502,16 +502,18 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
                         )}
                         {openNotes[item.id] && (
                           <div style={{ width: '100%', marginTop: '0.5rem', position: 'relative', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <textarea
-                              id={`textarea-item-notes-${item.id}`}
-                              value={itemNotes[item.id] !== undefined ? itemNotes[item.id] : (item.notes || '')}
-                              onChange={e => handleMentionChange(e.target.value, `item-notes-${item.id}`, val => setItemNotes(prev => ({ ...prev, [item.id]: val })))}
-                              className={styles.textarea}
-                              placeholder="Aggiungi istruzioni o note per questa voce... (usa @ per menzionare)"
-                              rows={2}
-                              style={{ fontSize: '0.85rem' }}
-                            />
-                            {renderMentionDropdown(`item-notes-${item.id}`, itemNotes[item.id] !== undefined ? itemNotes[item.id] : (item.notes || ''), val => setItemNotes(prev => ({ ...prev, [item.id]: val })))}
+                            <div style={{ position: 'relative' }}>
+                              <textarea
+                                id={`textarea-item-notes-${item.id}`}
+                                value={itemNotes[item.id] !== undefined ? itemNotes[item.id] : (item.notes || '')}
+                                onChange={e => handleMentionChange(e.target.value, `item-notes-${item.id}`, val => setItemNotes(prev => ({ ...prev, [item.id]: val })))}
+                                className={styles.textarea}
+                                placeholder="Aggiungi istruzioni o note per questa voce... (usa @ per menzionare)"
+                                rows={2}
+                                style={{ fontSize: '0.85rem' }}
+                              />
+                              {renderMentionDropdown(`item-notes-${item.id}`, itemNotes[item.id] !== undefined ? itemNotes[item.id] : (item.notes || ''), val => setItemNotes(prev => ({ ...prev, [item.id]: val })))}
+                            </div>
                             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                               <button 
                                 onClick={(e) => {
