@@ -4,6 +4,19 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import CardModal from './CardModal';
 import styles from './KanbanView.module.css';
 
+// Helper per calcolare se il testo deve essere chiaro o scuro in base al background
+function getContrastYIQ(hexcolor){
+  if (!hexcolor) return 'var(--text-primary)';
+  hexcolor = hexcolor.replace("#", "");
+  if (hexcolor.length === 3) hexcolor = hexcolor.split('').map(c => c+c).join('');
+  if (hexcolor.length !== 6) return 'var(--text-primary)';
+  var r = parseInt(hexcolor.substr(0,2),16);
+  var g = parseInt(hexcolor.substr(2,2),16);
+  var b = parseInt(hexcolor.substr(4,2),16);
+  var yiq = ((r*299)+(g*587)+(b*114))/1000;
+  return (yiq >= 128) ? '#000000' : '#ffffff';
+}
+
 export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh, onCardUpdate }) {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState(null);
@@ -297,7 +310,11 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                                       {...provided.dragHandleProps}
                                       className={`${styles.kanbanCard} ${snapshot.isDragging ? styles.dragging : ''}`}
                                       onClick={() => setSelectedCardId(card.id)}
-                                      style={{ ...provided.draggableProps.style, background: card.color || 'var(--bg-secondary)' }}
+                                      style={{ 
+                                        ...provided.draggableProps.style, 
+                                        background: card.color || 'var(--bg-secondary)',
+                                        color: getContrastYIQ(card.color)
+                                      }}
                                     >
                                       {card.labels && card.labels.length > 0 && (
                                         <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
