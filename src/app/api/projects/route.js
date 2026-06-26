@@ -57,7 +57,7 @@ export async function POST(request) {
         status: status || "In Coda",
         category,
         priority: priority || "Normale",
-        ...(body.dueDate && { dueDate: new Date(body.dueDate).toISOString() }),
+        ...(dueDate && { dueDate: new Date(dueDate).toISOString() }),
         estimatedHours: estimatedHours ? parseFloat(estimatedHours) : null,
         actualHours: actualHours ? parseFloat(actualHours) : null,
         sellingPrice: sellingPrice ? parseFloat(sellingPrice) : null,
