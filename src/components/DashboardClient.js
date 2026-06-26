@@ -120,9 +120,9 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
       <header className={`glass-panel ${styles.header}`} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem', padding: '1rem 1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <h1 className="text-gradient" style={{ margin: 0 }}>Gestionale</h1>
+            <h1 className="text-gradient" style={{ margin: 0 }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             <span style={{ background: 'var(--accent-primary)', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v0.3.0
+              v1.1.1
             </span>
           </div>
           
