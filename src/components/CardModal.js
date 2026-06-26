@@ -490,6 +490,16 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
                             </div>
                           </div>
                         </div>
+                        {item.notes && !openNotes[item.id] && (
+                          <div 
+                            style={{ width: '100%', marginTop: '0.2rem', paddingLeft: '1.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'pre-wrap' }}
+                            onClick={() => toggleNotes(item.id, item.notes)}
+                          >
+                            <div style={{ background: 'rgba(var(--accent-rgb), 0.05)', padding: '0.5rem', borderRadius: '4px', borderLeft: '2px solid var(--accent-primary)' }}>
+                              {item.notes}
+                            </div>
+                          </div>
+                        )}
                         {openNotes[item.id] && (
                           <div style={{ width: '100%', marginTop: '0.5rem', position: 'relative', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             <textarea
