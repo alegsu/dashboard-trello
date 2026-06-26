@@ -19,11 +19,20 @@ export async function POST(request) {
     const { name, listId, boardId, order, assignees } = await request.json();
     if (!name || !listId || !boardId) return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
 
+    let finalOrder = order;
+    if (finalOrder === undefined || finalOrder === null || finalOrder === 0) {
+      const lastCard = await prisma.card.findFirst({
+        where: { listId, boardId },
+        orderBy: { order: 'desc' }
+      });
+      finalOrder = lastCard ? lastCard.order + 1000 : 1000;
+    }
+
     const data = {
       name,
       listId,
       boardId,
-      order: order || 0
+      order: finalOrder
     };
 
     if (assignees && assignees.length > 0) {

@@ -43,7 +43,10 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
 
   // Sort each cell's cards by their order so optimistic UI drops them exactly where they belong
   Object.values(cardsByCell).forEach(arr => {
-    arr.sort((a, b) => a.order - b.order);
+    arr.sort((a, b) => {
+      if (a.order !== b.order) return a.order - b.order;
+      return a.id.localeCompare(b.id);
+    });
   });
 
   const handleDragEnd = async (result) => {
