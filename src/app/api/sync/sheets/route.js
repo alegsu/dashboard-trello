@@ -42,29 +42,49 @@ export async function syncGoogleSheets(csvUrl) {
     const clientName = record['CLIENTI'] || record['Clienti'];
     if (!clientName || clientName.trim() === '') continue;
 
-    // Estraiamo tutti i collaboratori da tutte le colonne (escludendo CLIENTI e la % di impegno)
+    const servicesDetails = {};
     const serviceCols = ['POST SOCIAL', 'STORIE', 'SHOOTING', 'NEWSLETTER', 'BLOG POST', 'SITO WEB ', 'SITO WEB', 'ADV'];
     const rawNames = new Set();
     const servicesSold = [];
-    const rawEffort = record[''] || record['% Impegno'] || record[Object.keys(record)[2]]; // di solito la terza colonna
+    const rawEffort = record[''] || record['% Impegno'] || record[Object.keys(record)[2]]; // usually 3rd column
 
     const effortColName = Object.keys(record)[1]; // usually 'POST SOCIAL'
     const effortColValue = record[effortColName];
-    const effortNames = [];
+    let effortNames = [];
+    let effortValues = [];
     if (effortColValue && effortColValue.toUpperCase() !== 'NO') {
-      const names = effortColValue.split(',').map(n => n.trim().replace('?', '').toUpperCase());
-      for (const n of names) {
-        if (n && n !== 'NO') effortNames.push(n);
-      }
+      effortNames = effortColValue.split(',').map(n => n.trim().replace('?', '').toUpperCase());
+    }
+    if (rawEffort) {
+      effortValues = rawEffort.split('-').map(e => e.trim());
     }
 
     for (const col of serviceCols) {
       const val = record[col];
       if (val && val.toUpperCase() !== 'NO' && val.trim() !== '') {
-        servicesSold.push(col.trim());
-        const names = val.split(',').map(n => n.trim().replace('?', ''));
+        const cleanColName = col.trim();
+        servicesSold.push(cleanColName);
+        
+        const names = val.split(',').map(n => n.trim().replace('?', '').toUpperCase());
+        const usersWithEffort = [];
+        
         for (const n of names) {
-          if (n && n !== 'NO') rawNames.add(n.toUpperCase());
+          if (!n || n === 'NO') continue;
+          rawNames.add(n);
+          
+          let userEffort = null;
+          // Apply percentage ONLY if this is the effort column
+          if (col === effortColName && effortValues.length > 0) {
+            const eIdx = effortNames.indexOf(n);
+            if (eIdx !== -1 && eIdx < effortValues.length) {
+              userEffort = effortValues[eIdx];
+            }
+          }
+          usersWithEffort.push({ name: n, effort: userEffort });
+        }
+        
+        if (!servicesDetails[cleanColName]) {
+          servicesDetails[cleanColName] = usersWithEffort;
         }
       }
     }
@@ -96,7 +116,7 @@ export async function syncGoogleSheets(csvUrl) {
     const sheetDataObj = {
       effort: rawEffort || '',
       services: servicesSold,
-      orderedNames: effortNames
+      servicesDetails
     };
 
     // Aggiorniamo o Creiamo il Cliente

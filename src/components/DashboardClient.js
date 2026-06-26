@@ -208,12 +208,22 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
                 <Building size={14} color="var(--text-secondary)" />
                 <select 
                   value={filterClientId} 
-                  onChange={e => setFilterClientId(e.target.value)}
+                  onChange={e => {
+                    const cid = e.target.value;
+                    setFilterClientId(cid);
+                    if (cid) {
+                      const client = initialClients.find(c => c.id === cid);
+                      if (client) {
+                        const board = initialBoards.find(b => b.name.toLowerCase().includes(client.name.toLowerCase()));
+                        if (board) setSelectedBoardId(board.id);
+                      }
+                    }
+                  }}
                   style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
                 >
                   <option value="">Tutti i Clienti</option>
                   {(initialClients || [])
-                    .filter(c => liveCards.some(card => card.clientId === c.id && !card.isArchived && !card.list?.isArchived))
+                    .filter(c => initialBoards.some(b => b.name.toLowerCase().includes(c.name.toLowerCase())))
                     .map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                   ))}

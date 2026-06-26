@@ -187,55 +187,35 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                 {(() => {
                   try {
                     const data = JSON.parse(selectedClient.sheetData);
-                    return (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <div>
-                          <strong>Servizi Venduti: </strong>
-                          {data.services?.length > 0 ? data.services.map((s, i) => (
-                            <span key={i} style={{ display: 'inline-block', padding: '0.2rem 0.5rem', background: 'var(--bg-elevated)', borderRadius: '4px', marginRight: '0.5rem', fontSize: '0.85rem' }}>{s}</span>
-                          )) : <span style={{ color: 'var(--text-secondary)' }}>Nessun servizio</span>}
-                        </div>
-                        {data.effort && (
-                          <div style={{ marginTop: '0.5rem' }}>
-                            <strong>Impegno Registrato: </strong> {data.effort}
-                          </div>
-                        )}
-                        <div style={{ marginTop: '0.5rem' }}>
-                          <strong>Collaboratori Assegnati: </strong>
-                          {selectedClient.collaborators && selectedClient.collaborators.length > 0 ? (
-                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
-                              {selectedClient.collaborators.map(user => {
-                                // Match effort to user
-                                let userEffort = null;
-                                if (data.effort && data.orderedNames) {
-                                  const efforts = data.effort.split('-').map(e => e.trim());
-                                  const idx = data.orderedNames.findIndex(n => n.toUpperCase() === user.name.toUpperCase());
-                                  if (idx >= 0 && idx < efforts.length) {
-                                    userEffort = efforts[idx];
-                                  }
-                                } else if (data.effort && !data.orderedNames && selectedClient.collaborators.length === 1) {
-                                  userEffort = data.effort; // Se c'è un solo collaboratore, prende tutto l'effort
-                                }
-
-                                return (
-                                  <div key={user.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-elevated)', padding: '0.25rem 0.5rem', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
-                                    {user.avatarUrl ? (
-                                      <img src={user.avatarUrl} alt={user.name} style={{ width: '20px', height: '20px', borderRadius: '50%' }} />
-                                    ) : (
-                                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontSize: '0.6rem', fontWeight: 'bold' }}>
-                                        {user.name.charAt(0).toUpperCase()}
+                        <div style={{ marginTop: '1rem' }}>
+                          <strong>Dettaglio Servizi e Collaboratori: </strong>
+                          {data.servicesDetails && Object.keys(data.servicesDetails).length > 0 ? (
+                            <table style={{ width: '100%', marginTop: '0.5rem', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                              <thead>
+                                <tr style={{ background: 'var(--bg-elevated)', textAlign: 'left' }}>
+                                  <th style={{ padding: '0.5rem', border: '1px solid var(--border-color)' }}>Servizio</th>
+                                  <th style={{ padding: '0.5rem', border: '1px solid var(--border-color)' }}>Collaboratori</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {Object.entries(data.servicesDetails).map(([service, users]) => (
+                                  <tr key={service}>
+                                    <td style={{ padding: '0.5rem', border: '1px solid var(--border-color)', fontWeight: 'bold' }}>{service}</td>
+                                    <td style={{ padding: '0.5rem', border: '1px solid var(--border-color)' }}>
+                                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                        {users.map((u, idx) => (
+                                          <span key={idx} style={{ background: 'var(--bg-secondary)', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                                            {u.name} {u.effort ? <strong style={{ color: 'var(--accent-primary)' }}>({u.effort})</strong> : ''}
+                                          </span>
+                                        ))}
                                       </div>
-                                    )}
-                                    <span style={{ fontSize: '0.85rem' }}>
-                                      {user.name}
-                                      {userEffort && <strong style={{ marginLeft: '4px', color: 'var(--accent-primary)' }}>({userEffort})</strong>}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                           ) : (
-                            <span style={{ color: 'var(--text-secondary)' }}>Nessun collaboratore</span>
+                            <div style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Nessun dettaglio servizio disponibile. Sincronizza per aggiornare.</div>
                           )}
                         </div>
                       </div>
