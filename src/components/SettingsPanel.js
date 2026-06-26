@@ -179,7 +179,28 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                 <div className={styles.avatar}>{m.name.charAt(0).toUpperCase()}</div>
                 <div style={{ flex: 1 }}>
                   <strong>{m.name}</strong>
-                  <div style={{fontSize: '0.75rem', color: 'var(--text-secondary)'}}>{m.email || 'Nessuna email'} • {m.role === 'admin' ? 'Amministratore' : 'Utente'}</div>
+                  <div style={{fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                    {m.email || 'Nessuna email'} • 
+                    {currentUser?.role === 'admin' && m.id !== currentUser.id ? (
+                      <select 
+                        value={m.role}
+                        onChange={async (e) => {
+                          await fetch(`/api/users/${m.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ role: e.target.value })
+                          });
+                          window.location.reload();
+                        }}
+                        style={{ fontSize: '0.7rem', padding: '0.1rem', background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                      >
+                        <option value="user">Utente</option>
+                        <option value="admin">Amministratore</option>
+                      </select>
+                    ) : (
+                      <span>{m.role === 'admin' ? 'Amministratore' : 'Utente'}</span>
+                    )}
+                  </div>
                 </div>
                 {currentUser?.role === 'admin' && (
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textAlign: 'right' }}>

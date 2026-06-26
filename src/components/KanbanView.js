@@ -484,7 +484,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                       )
                     })}
                     {newListMode && <div className={styles.kanbanCell} style={{ background: 'transparent', border: 'none', minWidth: '180px', flex: '0 0 auto' }}></div>}
-                    {!newListMode && <div style={{ minWidth: '40px' }}></div>}
+                    <div style={{ minWidth: '40px', padding: '0 0.5rem' }}></div>
                   </div>
                 </div>
               )
