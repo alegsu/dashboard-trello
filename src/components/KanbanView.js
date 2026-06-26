@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import CardModal from './CardModal';
 import styles from './KanbanView.module.css';
@@ -108,7 +109,9 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     if (targetCardIdx !== -1) {
       optimisticCard = { ...updatedCards[targetCardIdx], listId: destListId, order: newOrder };
       updatedCards[targetCardIdx] = optimisticCard;
-      setLocalCards(updatedCards);
+      flushSync(() => {
+        setLocalCards(updatedCards);
+      });
     }
 
     // API Call
@@ -323,8 +326,8 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                                           ))}
                                         </div>
                                       )}
-                                      <div className={styles.kanbanCardName}>{card.name}</div>
-                                      {card.due && <div className={styles.kanbanCardDue}>📅 {new Date(card.due).toLocaleDateString('it-IT')}</div>}
+                                      <div className={styles.kanbanCardName} style={{ color: getContrastYIQ(card.color) }}>{card.name}</div>
+                                      {card.due && <div className={styles.kanbanCardDue} style={{ color: getContrastYIQ(card.color) }}>📅 {new Date(card.due).toLocaleDateString('it-IT')}</div>}
                                     </div>
                                   )}
                                 </Draggable>
