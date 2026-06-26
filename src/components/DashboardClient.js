@@ -49,6 +49,12 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
       const userObj = initialMembers.find(m => m.id === storedUserId);
       setCurrentUser(userObj);
       
+      if (userObj?.theme) {
+        document.documentElement.setAttribute('data-theme', userObj.theme);
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+      
       // Tracking ping
       const trackInterval = setInterval(() => {
         fetch('/api/auth/track', { method: 'POST', body: JSON.stringify({ userId: storedUserId }) }).catch(() => {});
@@ -57,10 +63,12 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
         clearInterval(interval);
         clearInterval(trackInterval);
       };
+    } else {
+      router.push('/login');
     }
 
     return () => clearInterval(interval);
-  }, [initialMembers]);
+  }, [initialMembers, router]);
 
   const fetchNotifications = async () => {
     const res = await fetch(`/api/notifications`);

@@ -1,22 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Questrial&family=Syne:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Shinyup Dark Theme */
-  --bg-primary: #0f172a; /* Deep slate */
-  --bg-secondary: #1e293b; /* Lighter slate for cards */
+  /* Shinyup Dark Theme (Default) */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
   --bg-glass: rgba(30, 41, 59, 0.85);
   
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   
-  --accent-primary: #a1bdcf; /* Shinyup Blue */
+  --accent-primary: #a1bdcf;
   --accent-hover: #b8d1e1;
-  --accent-secondary: #3b82f6; /* Optional secondary accent */
+  --accent-secondary: #3b82f6;
   
-  --border-color: rgba(161, 189, 207, 0.2); /* Tinted border */
+  --border-color: rgba(161, 189, 207, 0.2);
   --glass-border: rgba(161, 189, 207, 0.15);
 
-  /* Status Colors */
+  /* Status Colors (Global across themes) */
   --status-success: #10b981;
   --status-warning: #f59e0b;
   --status-danger: #ef4444;
@@ -24,10 +24,29 @@
   --font-base: 'Questrial', sans-serif;
   --font-title: 'Syne', sans-serif;
   
-  /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.85);
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  
+  --accent-primary: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-secondary: #a1bdcf;
+  
+  --border-color: rgba(15, 23, 42, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 html, body {

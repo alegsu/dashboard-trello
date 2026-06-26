@@ -16,6 +16,7 @@ model User {
   avatarUrl    String?
   loginCount   Int      @default(0)
   totalUsageTime Int    @default(0) // in minuti
+  theme        String   @default("dark")
   
   // Relazioni
   cards          Card[]          @relation("CardAssignees")

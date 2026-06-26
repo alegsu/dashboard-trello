@@ -232,7 +232,33 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
             {liveMembers.length === 0 && <p className={styles.empty}>Nessun membro. Aggiungine uno!</p>}
           </ul>
 
-          <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'rgba(0,0,0,0.1)', padding: '1rem', borderRadius: '8px'}}>
+          <div style={{marginTop: '2rem'}}>
+            <h3 className={styles.subtitle}>🎨 Preferenze Visive</h3>
+            <div style={{ background: 'var(--bg-glass)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <span>Tema:</span>
+              <select 
+                value={effectiveCurrentUser?.theme || 'dark'}
+                onChange={async (e) => {
+                  const newTheme = e.target.value;
+                  await fetch(`/api/users/${effectiveCurrentUser.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ theme: newTheme })
+                  });
+                  document.documentElement.setAttribute('data-theme', newTheme);
+                  window.location.reload();
+                }}
+                className={styles.input}
+                style={{ width: 'auto' }}
+              >
+                <option value="dark">Scuro (Default)</option>
+                <option value="light">Chiaro</option>
+              </select>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Cambia l'aspetto grafico solo per te.</span>
+            </div>
+          </div>
+
+          <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'rgba(0,0,0,0.1)', padding: '1rem', borderRadius: '8px', marginTop: '2rem'}}>
             <input 
               type="text" 
               value={newUserName} 

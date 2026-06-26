@@ -322,24 +322,18 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
         <div className={styles.content}>
           <div className={styles.mainCol}>
             
-            <div className={styles.section} style={{ background: 'linear-gradient(to right, rgba(var(--accent-rgb), 0.05), transparent)', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid var(--accent-primary)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>✨ Intelligenza Artificiale</h3>
-                <button 
-                  onClick={generateAiSummary} 
-                  disabled={loadingSummary}
-                  style={{ background: 'var(--accent-primary)', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-                >
-                  {loadingSummary ? 'Generazione...' : 'Riassumi Scheda'}
-                </button>
-              </div>
-              {aiError && <div style={{ color: 'var(--status-danger)', fontSize: '0.85rem' }}>{aiError}</div>}
-              {aiSummary && (
+            {aiSummary && (
+              <div className={styles.section} style={{ background: 'linear-gradient(to right, rgba(var(--accent-rgb), 0.05), transparent)', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid var(--accent-primary)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>✨ Intelligenza Artificiale</h3>
+                  <button onClick={() => setAiSummary('')} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={16} /></button>
+                </div>
+                {aiError && <div style={{ color: 'var(--status-danger)', fontSize: '0.85rem' }}>{aiError}</div>}
                 <div style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '8px', fontSize: '0.95rem', color: 'var(--text-primary)', border: '1px solid var(--border-color)', marginTop: '0.5rem', whiteSpace: 'pre-wrap' }}>
                   {aiSummary}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             <div className={styles.section}>
               <h3>Descrizione</h3>
@@ -480,6 +474,19 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
           </div>
 
           <div className={styles.sideCol}>
+            {/* AI Action */}
+            <div className={styles.widget} style={{ border: '1px solid var(--accent-primary)', background: 'rgba(161, 189, 207, 0.05)' }}>
+              <button 
+                onClick={generateAiSummary} 
+                disabled={loadingSummary}
+                className={styles.btnSecondary}
+                style={{ width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-elevated)', border: '1px solid var(--border-color)' }}
+              >
+                ✨ {loadingSummary ? 'Generazione...' : 'Riassumi con AI'}
+              </button>
+              {aiError && !aiSummary && <div style={{ color: 'var(--status-danger)', fontSize: '0.75rem', marginTop: '0.5rem', textAlign: 'center' }}>{aiError}</div>}
+            </div>
+
             {/* Due Date */}
             <div className={styles.widget}>
               <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Calendar size={14}/> Scadenza</h4>
@@ -537,9 +544,9 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
                     </label>
                   ))}
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input type="text" placeholder="Nuovo Cliente..." value={newClientName} onChange={e => setNewClientName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createClient()} className={styles.input} />
-                  <button onClick={createClient} className={styles.btnSecondary} style={{ padding: '0.25rem 0.5rem' }}>Crea</button>
+                <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                  <input type="text" placeholder="Nuovo Cliente..." value={newClientName} onChange={e => setNewClientName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createClient()} className={styles.input} style={{ flex: 1, minWidth: 0 }} />
+                  <button onClick={createClient} className={styles.btnSecondary} style={{ padding: '0.25rem 0.5rem', flexShrink: 0 }}>Crea</button>
                 </div>
               </div>
             </div>
@@ -570,9 +577,9 @@ export default function CardModal({ cardId, members, onClose, onRefresh }) {
                     </label>
                   ))}
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input type="text" placeholder="Nuovo Progetto..." value={newProjectName} onChange={e => setNewProjectName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createProject()} className={styles.input} />
-                  <button onClick={createProject} className={styles.btnSecondary} style={{ padding: '0.25rem 0.5rem' }}>Crea</button>
+                <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                  <input type="text" placeholder="Nuovo Progetto..." value={newProjectName} onChange={e => setNewProjectName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createProject()} className={styles.input} style={{ flex: 1, minWidth: 0 }} />
+                  <button onClick={createProject} className={styles.btnSecondary} style={{ padding: '0.25rem 0.5rem', flexShrink: 0 }}>Crea</button>
                 </div>
               </div>
             </div>
