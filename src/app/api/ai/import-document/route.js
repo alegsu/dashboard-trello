@@ -39,9 +39,10 @@ export async function POST(request) {
     const fileName = file.name.toLowerCase();
     
     if (fileName.endsWith('.pdf')) {
-      const pdfParse = require('pdf-parse');
-      const data = await pdfParse(buffer);
-      extractedText = data.text;
+      const { extractText } = await import('unpdf');
+      const dataArr = new Uint8Array(buffer);
+      const { text } = await extractText(dataArr);
+      extractedText = Array.isArray(text) ? text.join('\n') : text;
     } else if (fileName.endsWith('.docx')) {
       const result = await mammoth.extractRawText({ buffer });
       extractedText = result.value;
