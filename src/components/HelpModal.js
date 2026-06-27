@@ -57,6 +57,14 @@ export default function HelpModal({ onClose }) {
           </section>
 
           <section>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.4)</h3>
+            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <li>🗜️ <strong>Ricerca a Scomparsa e Riga Singola:</strong> Abbiamo ulteriormente affinato la riga dei filtri: ora la barra di ricerca è una piccola lente d'ingrandimento cliccabile che si espande solo quando ti serve. In questo modo tutte le tue opzioni stanno SEMPRE comodamente su una sola riga, senza mai andare a capo!</li>
+              <li>🐛 <strong>Bug Fix Altezza Celle Safari:</strong> Risolto una volta per tutte il problema del disallineamento dei background e delle intestazioni su Safari (il bug per cui in alcune colonne con molte schede il background orizzontale non veniva "allungato" correttamente fino in fondo, generando due fastidiosi "gradienti").</li>
+            </ul>
+          </section>
+
+          <section>
             <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.3)</h3>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <li>🔍 <strong>Zoom Kanban:</strong> Aggiunta l'impostazione "Zoom Vista Kanban" nel pannello Impostazioni & Gestione. Ora puoi regolare lo zoom globale del Kanban per visualizzare più o meno elementi contemporaneamente!</li>

@@ -197,7 +197,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.8.3
+              v2.8.4
             </span>
           </div>
           
@@ -283,17 +283,19 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
         </div>
 
         {view !== 'settings' && !zenMode && (
-          <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-glass)', padding: '0.4rem', borderRadius: '8px', flexWrap: 'wrap', alignItems: 'center', border: '1px solid var(--border-color)', backdropFilter: 'blur(12px)' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-glass)', padding: '0.4rem', borderRadius: '8px', flexWrap: 'nowrap', overflowX: 'auto', alignItems: 'center', border: '1px solid var(--border-color)', backdropFilter: 'blur(12px)' }}>
             
             {/* Search */}
-            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-primary)', padding: '0 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', width: '150px' }}>
-              <Search size={14} color="var(--text-secondary)" />
+            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-primary)', padding: '0 0.4rem', borderRadius: '20px', border: '1px solid var(--border-color)', transition: 'width 0.3s ease', width: searchQuery ? '150px' : '32px', overflow: 'hidden' }}>
+              <Search size={14} color="var(--text-secondary)" style={{ minWidth: '14px', cursor: 'pointer' }} onClick={(e) => { e.target.nextSibling?.focus(); }} />
               <input 
                 type="text" 
                 placeholder="Cerca..." 
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                style={{ border: 'none', background: 'transparent', padding: '0.3rem', width: '100%', outline: 'none', color: 'var(--text-primary)', fontSize: '0.8rem' }}
+                onFocus={(e) => e.target.parentElement.style.width = '150px'}
+                onBlur={(e) => { if (!searchQuery) e.target.parentElement.style.width = '32px' }}
+                style={{ border: 'none', background: 'transparent', padding: '0.3rem', width: '100%', outline: 'none', color: 'var(--text-primary)', fontSize: '0.8rem', marginLeft: '0.3rem' }}
               />
             </div>
             
