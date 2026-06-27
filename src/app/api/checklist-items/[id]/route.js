@@ -83,3 +83,16 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ error: 'Error updating item' }, { status: 500 });
   }
 }
+
+export async function DELETE(request, { params }) {
+  try {
+    const { id } = await params;
+    await prisma.checklistItem.delete({
+      where: { id }
+    });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting checklist item:", error);
+    return NextResponse.json({ error: "Failed to delete checklist item" }, { status: 500 });
+  }
+}

@@ -57,6 +57,16 @@ export default function HelpModal({ onClose }) {
           </section>
 
           <section>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.6.0)</h3>
+            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <li>✨ <strong>Checklist Avanzate (2 Livelli):</strong> Ora puoi organizzare i tuoi task in modo molto più strutturato. Sotto a ogni voce della checklist puoi creare illimitati "sotto-task" rientrati!</li>
+              <li>✏️ <strong>Rinomina Rapida:</strong> Clicca sul titolo di una checklist o sul testo di una voce per rinominarla all'istante, senza doverla cancellare.</li>
+              <li>⬆️⬇️ <strong>Riordinamento:</strong> Usa le nuove freccette accanto alle voci per spostarle su o giù e cambiare l'ordine delle tue checklist o dei tuoi task con un solo clic.</li>
+              <li>🗑️ <strong>Eliminazione Precisa:</strong> Aggiunti pulsanti dedicati (cestino) per eliminare intere checklist o singole voci in modo pulito.</li>
+            </ul>
+          </section>
+
+          <section>
             <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.5.0)</h3>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <li>✨ <strong>Lettore di Documenti Migliorato:</strong> L'intelligenza artificiale ora si comporta come un puro "estrattore di dati" fedele al testo, senza inventare o allucinare task standard.</li>

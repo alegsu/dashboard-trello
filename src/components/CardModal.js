@@ -23,6 +23,13 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
   // AI Summary
   const [aiSummary, setAiSummary] = useState('');
   const [loadingSummary, setLoadingSummary] = useState(false);
+
+  // Edit states for checklists and items
+  const [editingChecklistId, setEditingChecklistId] = useState(null);
+  const [editingChecklistTitle, setEditingChecklistTitle] = useState('');
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [editingItemText, setEditingItemText] = useState('');
+
   
   const [mentionQuery, setMentionQuery] = useState(null);
   const [mentionTarget, setMentionTarget] = useState(null);
@@ -307,6 +314,77 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
     fetchCard();
   };
 
+  const addChecklistSubItem = async (checklistId, parentId) => {
+    const text = newItemTexts[parentId];
+    if (!text || !text.trim()) return;
+    await fetch('/api/checklist-items', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, checklistId, parentId })
+    });
+    setNewItemTexts({ ...newItemTexts, [parentId]: '' });
+    fetchCard();
+  };
+
+  const updateChecklist = async (id, data) => {
+    await fetch(`/api/checklists/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    fetchCard();
+  };
+
+  const deleteChecklist = async (id) => {
+    if (!confirm('Eliminare intera checklist?')) return;
+    await fetch(`/api/checklists/${id}`, { method: 'DELETE' });
+    fetchCard();
+  };
+
+  const updateChecklistItem = async (id, data) => {
+    await fetch(`/api/checklist-items/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    fetchCard();
+  };
+
+  const deleteChecklistItem = async (id) => {
+    if (!confirm('Eliminare questa voce?')) return;
+    await fetch(`/api/checklist-items/${id}`, { method: 'DELETE' });
+    fetchCard();
+  };
+
+  const swapChecklistOrder = async (index, direction) => {
+    const arr = [...card.checklists];
+    if (direction === 'up' && index > 0) {
+      [arr[index - 1], arr[index]] = [arr[index], arr[index - 1]];
+    } else if (direction === 'down' && index < arr.length - 1) {
+      [arr[index + 1], arr[index]] = [arr[index], arr[index + 1]];
+    } else return;
+    
+    // Update all
+    await Promise.all(arr.map((c, i) => fetch(`/api/checklists/${c.id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ order: i })
+    })));
+    fetchCard();
+  };
+
+  const swapItemOrder = async (itemsList, index, direction) => {
+    const arr = [...itemsList];
+    if (direction === 'up' && index > 0) {
+      [arr[index - 1], arr[index]] = [arr[index], arr[index - 1]];
+    } else if (direction === 'down' && index < arr.length - 1) {
+      [arr[index + 1], arr[index]] = [arr[index], arr[index + 1]];
+    } else return;
+    
+    await Promise.all(arr.map((item, i) => fetch(`/api/checklist-items/${item.id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ order: i })
+    })));
+    fetchCard();
+  };
+
   const toggleChecklistItem = async (itemId, isCompleted) => {
     await fetch(`/api/checklist-items/${itemId}`, {
       method: 'PUT',
@@ -442,105 +520,183 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
               </div>
             </div>
 
-            {card.checklists.map(checklist => {
-              const completed = checklist.items.filter(i => i.isCompleted).length;
-              const total = checklist.items.length;
+            {card.checklists.map((checklist, cIdx) => {
+              const allItems = checklist.items || [];
+              const topLevelItems = allItems.filter(i => !i.parentId).sort((a,b) => a.order - b.order);
+              const completed = allItems.filter(i => i.isCompleted).length;
+              const total = allItems.length;
               const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
               
+              const renderItem = (item, isSubItem = false, index, listArr) => {
+                const subItems = allItems.filter(i => i.parentId === item.id).sort((a,b) => a.order - b.order);
+                const isEditing = editingItemId === item.id;
+
+                return (
+                  <React.Fragment key={item.id}>
+                    <li className={styles.checklistItem} style={{ flexDirection: 'column', alignItems: 'flex-start', marginLeft: isSubItem ? '2rem' : '0', borderLeft: isSubItem ? '2px solid var(--border-color)' : 'none', paddingLeft: isSubItem ? '1rem' : '0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+                          <input type="checkbox" checked={item.isCompleted} onChange={() => toggleChecklistItem(item.id, item.isCompleted)} />
+                          {isEditing ? (
+                            <input 
+                              type="text" 
+                              className={styles.input} 
+                              value={editingItemText} 
+                              onChange={e => setEditingItemText(e.target.value)}
+                              style={{ flex: 1, padding: '0.2rem' }}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                  updateChecklistItem(item.id, { text: editingItemText });
+                                  setEditingItemId(null);
+                                } else if (e.key === 'Escape') setEditingItemId(null);
+                              }}
+                              autoFocus
+                              onBlur={() => {
+                                updateChecklistItem(item.id, { text: editingItemText });
+                                setEditingItemId(null);
+                              }}
+                            />
+                          ) : (
+                            <span style={{ textDecoration: item.isCompleted ? 'line-through' : 'none', flex: 1, cursor: 'text' }} onClick={() => { setEditingItemId(item.id); setEditingItemText(item.text); }}>{item.text}</span>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                          <button onClick={() => swapItemOrder(listArr, index, 'up')} style={{ background:'transparent', border:'none', cursor:'pointer', color:'var(--text-secondary)' }} disabled={index === 0}>↑</button>
+                          <button onClick={() => swapItemOrder(listArr, index, 'down')} style={{ background:'transparent', border:'none', cursor:'pointer', color:'var(--text-secondary)' }} disabled={index === listArr.length - 1}>↓</button>
+                          <button onClick={() => deleteChecklistItem(item.id)} style={{ background:'transparent', border:'none', cursor:'pointer', color:'var(--status-danger)' }} title="Elimina voce"><Trash2 size={14}/></button>
+                          
+                          <button 
+                            title="Note / Commenti"
+                            onClick={() => toggleNotes(item.id, item.notes)}
+                            style={{ background: 'transparent', border: 'none', color: item.notes ? 'var(--accent-primary)' : 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}
+                          >
+                            <MessageSquare size={14} />
+                          </button>
+                          <div className={styles.itemAssignees}>
+                            {item.assignees && item.assignees.map(a => (
+                              <div key={a.id} className={styles.itemAssigneeAvatar} onClick={() => toggleChecklistItemAssignee(item, a.id)} title={`Rimuovi ${a.name}`}>
+                                {a.name.substring(0, 2).toUpperCase()}
+                              </div>
+                            ))}
+                            <select 
+                              className={styles.itemAssignSelect} 
+                              value="" 
+                              onChange={(e) => {
+                                if (e.target.value) toggleChecklistItemAssignee(item, e.target.value);
+                              }}
+                            >
+                              <option value="">+ Assegna</option>
+                              {members.map(m => (
+                                <option key={m.id} value={m.id}>{m.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {item.notes && !openNotes[item.id] && (
+                        <div 
+                          style={{ width: '100%', marginTop: '0.2rem', paddingLeft: '1.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'pre-wrap' }}
+                          onClick={() => toggleNotes(item.id, item.notes)}
+                        >
+                          <div style={{ background: 'rgba(var(--accent-rgb), 0.05)', padding: '0.5rem', borderRadius: '4px', borderLeft: '2px solid var(--accent-primary)' }}>
+                            {item.notes}
+                          </div>
+                        </div>
+                      )}
+                      {openNotes[item.id] && (
+                        <div style={{ width: '100%', marginTop: '0.5rem', position: 'relative', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <div style={{ position: 'relative' }}>
+                            <textarea
+                              id={`textarea-item-notes-${item.id}`}
+                              value={itemNotes[item.id] !== undefined ? itemNotes[item.id] : (item.notes || '')}
+                              onChange={e => handleMentionChange(e.target.value, `item-notes-${item.id}`, val => setItemNotes(prev => ({ ...prev, [item.id]: val })))}
+                              className={styles.textarea}
+                              placeholder="Aggiungi istruzioni o note per questa voce... (usa @ per menzionare)"
+                              rows={2}
+                              style={{ fontSize: '0.85rem' }}
+                            />
+                            {renderMentionDropdown(`item-notes-${item.id}`, itemNotes[item.id] !== undefined ? itemNotes[item.id] : (item.notes || ''), val => setItemNotes(prev => ({ ...prev, [item.id]: val })))}
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <button 
+                              onClick={(e) => {
+                                const btn = e.target;
+                                const originalText = btn.innerText;
+                                btn.innerText = "Salvato ✓";
+                                btn.style.background = "var(--status-success)";
+                                saveChecklistItemNotes(item.id, itemNotes[item.id] !== undefined ? itemNotes[item.id] : item.notes);
+                                setTimeout(() => {
+                                  btn.innerText = originalText;
+                                  btn.style.background = "var(--bg-elevated)";
+                                }, 2000);
+                              }}
+                              className={styles.btnSecondary}
+                              style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', transition: 'all 0.3s ease' }}
+                            >
+                              Salva Nota
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </li>
+
+                    {/* SubItems */}
+                    {!isSubItem && subItems.map((sub, sIdx) => renderItem(sub, true, sIdx, subItems))}
+                    
+                    {/* Add SubItem Input */}
+                    {!isSubItem && (
+                      <div className={styles.addItemRow} style={{ marginLeft: '2rem', paddingLeft: '1rem', borderLeft: '2px solid var(--border-color)', marginTop: '0.5rem' }}>
+                        <input className={styles.input} style={{ fontSize: '0.8rem', padding: '0.4rem' }} placeholder="Aggiungi sotto-task..." value={newItemTexts[item.id] || ''} onChange={e => setNewItemTexts({...newItemTexts, [item.id]: e.target.value})} onKeyDown={e => e.key === 'Enter' && addChecklistSubItem(checklist.id, item.id)} />
+                        <button onClick={() => addChecklistSubItem(checklist.id, item.id)} className={styles.btnSecondary} style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>Aggiungi</button>
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              };
+
               return (
-                <div key={checklist.id} className={styles.section}>
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckSquare size={16}/> {checklist.title}</h3>
+                <div key={checklist.id} className={styles.section} style={{ position: 'relative' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+                      <CheckSquare size={16}/> 
+                      {editingChecklistId === checklist.id ? (
+                        <input 
+                          type="text" 
+                          className={styles.input} 
+                          value={editingChecklistTitle} 
+                          onChange={e => setEditingChecklistTitle(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              updateChecklist(checklist.id, { title: editingChecklistTitle });
+                              setEditingChecklistId(null);
+                            } else if (e.key === 'Escape') setEditingChecklistId(null);
+                          }}
+                          onBlur={() => {
+                            updateChecklist(checklist.id, { title: editingChecklistTitle });
+                            setEditingChecklistId(null);
+                          }}
+                          autoFocus
+                        />
+                      ) : (
+                        <h3 style={{ margin: 0, cursor: 'pointer' }} onClick={() => { setEditingChecklistId(checklist.id); setEditingChecklistTitle(checklist.title); }}>{checklist.title}</h3>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                      <button onClick={() => swapChecklistOrder(cIdx, 'up')} style={{ background:'transparent', border:'none', cursor:'pointer', color:'var(--text-secondary)' }} disabled={cIdx === 0}>↑</button>
+                      <button onClick={() => swapChecklistOrder(cIdx, 'down')} style={{ background:'transparent', border:'none', cursor:'pointer', color:'var(--text-secondary)' }} disabled={cIdx === card.checklists.length - 1}>↓</button>
+                      <button onClick={() => deleteChecklist(checklist.id)} style={{ background:'transparent', border:'none', cursor:'pointer', color:'var(--status-danger)' }} title="Elimina Checklist"><Trash2 size={16}/></button>
+                    </div>
+                  </div>
                   <div className={styles.progressBarBg}>
                     <div className={styles.progressBarFill} style={{ width: `${percent}%`, background: percent === 100 ? 'var(--status-success)' : 'var(--accent-primary)' }}></div>
                   </div>
                   <ul className={styles.checklistItems}>
-                    {checklist.items.map(item => (
-                      <li key={item.id} className={styles.checklistItem} style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
-                            <input type="checkbox" checked={item.isCompleted} onChange={() => toggleChecklistItem(item.id, item.isCompleted)} />
-                            <span style={{ textDecoration: item.isCompleted ? 'line-through' : 'none', flex: 1 }}>{item.text}</span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <button 
-                              title="Note / Commenti"
-                              onClick={() => toggleNotes(item.id, item.notes)}
-                              style={{ background: 'transparent', border: 'none', color: item.notes ? 'var(--accent-primary)' : 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                            >
-                              <MessageSquare size={14} />
-                            </button>
-                            <div className={styles.itemAssignees}>
-                              {item.assignees && item.assignees.map(a => (
-                                <div key={a.id} className={styles.itemAssigneeAvatar} onClick={() => toggleChecklistItemAssignee(item, a.id)} title={`Rimuovi ${a.name}`}>
-                                  {a.name.substring(0, 2).toUpperCase()}
-                                </div>
-                              ))}
-                              <select 
-                                className={styles.itemAssignSelect} 
-                                value="" 
-                                onChange={(e) => {
-                                  if (e.target.value) toggleChecklistItemAssignee(item, e.target.value);
-                                }}
-                              >
-                                <option value="">+ Assegna</option>
-                                {members.map(m => (
-                                  <option key={m.id} value={m.id}>{m.name}</option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                        {item.notes && !openNotes[item.id] && (
-                          <div 
-                            style={{ width: '100%', marginTop: '0.2rem', paddingLeft: '1.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'pre-wrap' }}
-                            onClick={() => toggleNotes(item.id, item.notes)}
-                          >
-                            <div style={{ background: 'rgba(var(--accent-rgb), 0.05)', padding: '0.5rem', borderRadius: '4px', borderLeft: '2px solid var(--accent-primary)' }}>
-                              {item.notes}
-                            </div>
-                          </div>
-                        )}
-                        {openNotes[item.id] && (
-                          <div style={{ width: '100%', marginTop: '0.5rem', position: 'relative', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <div style={{ position: 'relative' }}>
-                              <textarea
-                                id={`textarea-item-notes-${item.id}`}
-                                value={itemNotes[item.id] !== undefined ? itemNotes[item.id] : (item.notes || '')}
-                                onChange={e => handleMentionChange(e.target.value, `item-notes-${item.id}`, val => setItemNotes(prev => ({ ...prev, [item.id]: val })))}
-                                className={styles.textarea}
-                                placeholder="Aggiungi istruzioni o note per questa voce... (usa @ per menzionare)"
-                                rows={2}
-                                style={{ fontSize: '0.85rem' }}
-                              />
-                              {renderMentionDropdown(`item-notes-${item.id}`, itemNotes[item.id] !== undefined ? itemNotes[item.id] : (item.notes || ''), val => setItemNotes(prev => ({ ...prev, [item.id]: val })))}
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                              <button 
-                                onClick={(e) => {
-                                  const btn = e.target;
-                                  const originalText = btn.innerText;
-                                  btn.innerText = "Salvato ✓";
-                                  btn.style.background = "var(--status-success)";
-                                  saveChecklistItemNotes(item.id, itemNotes[item.id] !== undefined ? itemNotes[item.id] : item.notes);
-                                  setTimeout(() => {
-                                    btn.innerText = originalText;
-                                    btn.style.background = "var(--bg-elevated)";
-                                  }, 2000);
-                                }}
-                                className={styles.btnSecondary}
-                                style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', transition: 'all 0.3s ease' }}
-                              >
-                                Salva Nota
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </li>
-                    ))}
+                    {topLevelItems.map((item, idx) => renderItem(item, false, idx, topLevelItems))}
                   </ul>
-                  <div className={styles.addItemRow}>
-                    <input className={styles.input} placeholder="Nuova voce..." value={newItemTexts[checklist.id] || ''} onChange={e => setNewItemTexts({...newItemTexts, [checklist.id]: e.target.value})} onKeyDown={e => e.key === 'Enter' && addChecklistItem(checklist.id)} />
-                    <button onClick={() => addChecklistItem(checklist.id)} className={styles.btnSecondary}>Aggiungi</button>
+                  <div className={styles.addItemRow} style={{ marginTop: '1rem' }}>
+                    <input className={styles.input} placeholder="Nuova voce principale..." value={newItemTexts[checklist.id] || ''} onChange={e => setNewItemTexts({...newItemTexts, [checklist.id]: e.target.value})} onKeyDown={e => e.key === 'Enter' && addChecklistItem(checklist.id)} />
+                    <button onClick={() => addChecklistItem(checklist.id)} className={styles.btnSecondary}>Aggiungi Voce</button>
                   </div>
                 </div>
               );

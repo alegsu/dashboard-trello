@@ -137,13 +137,18 @@ model ChecklistItem {
   id          String    @id @default(cuid())
   text        String
   isCompleted Boolean   @default(false)
-  order       Float     @default(0)
-  notes       String?   @db.Text
-  
   checklistId String
   checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  order       Float     @default(0)
   
+  parentId    String?
+  parent      ChecklistItem?   @relation("SubItems", fields: [parentId], references: [id], onDelete: Cascade)
+  subItems    ChecklistItem[]  @relation("SubItems")
+
+  // Assignees per singolo item (Opzionale, ma Trello lo fa coi membri Advanced)
   assignees   User[]    @relation("ChecklistItemAssignees")
+  dueDate     DateTime?
+  notes       String?   // Aggiunto per le note espandibili
 }
 
 model Client {
