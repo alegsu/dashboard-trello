@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
-import { sendNotificationEmail } from '@/utils/mailer';
+import { sendNotificationEmail, getEmailTemplate } from '@/utils/mailer';
 
 export async function GET(request) {
   try {
@@ -46,27 +46,25 @@ export async function GET(request) {
       if (!user.email) continue;
 
       let listItems = notifications.map(n => {
-        const linkHtml = n.link ? ` <a href="${n.link}" style="color: #007bff; text-decoration: none;">[Vedi]</a>` : '';
-        return `<li style="margin-bottom: 10px; font-size: 14px;"><strong>${n.type}:</strong> ${n.message}${linkHtml}</li>`;
+        const linkHtml = n.link ? ` <a href="${n.link}" style="color: #3b82f6; text-decoration: none; font-weight: 500;">[Vedi]</a>` : '';
+        return `<li style="margin-bottom: 12px; font-size: 15px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; list-style-type: none;">
+                  <span style="display: inline-block; width: 8px; height: 8px; background-color: #a1bdcf; border-radius: 50%; margin-right: 8px;"></span>
+                  <strong>${n.type}:</strong> ${n.message}${linkHtml}
+                </li>`;
       }).join('');
 
-      const htmlEmail = `
-        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-          <div style="background-color: #f8f9fa; padding: 20px; border-bottom: 1px solid #ddd;">
-            <h2 style="margin: 0; color: #007bff;">Hai nuovi aggiornamenti!</h2>
-          </div>
-          <div style="padding: 20px;">
-            <p style="font-size: 16px;">Ciao <strong>${user.name}</strong>,</p>
-            <p style="font-size: 15px;">Ecco cosa è successo mentre non c'eri:</p>
-            <ul style="background: #f1f3f5; padding: 15px 15px 15px 35px; margin: 20px 0; border-radius: 4px;">
-              ${listItems}
-            </ul>
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}" style="background-color: #007bff; color: white; text-decoration: none; padding: 12px 24px; border-radius: 5px; font-weight: bold; font-size: 16px; display: inline-block;">Vai al GestionAle</a>
-            </div>
-          </div>
-        </div>
-      `;
+      const htmlEmail = getEmailTemplate({
+        title: "Hai nuovi aggiornamenti",
+        bodyHtml: `
+          <p>Ciao <strong>${user.name}</strong>,</p>
+          <p>Ecco cosa è successo mentre non c'eri:</p>
+          <ul style="padding: 0; margin: 24px 0;">
+            ${listItems}
+          </ul>
+        `,
+        ctaLink: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+        ctaText: "Apri la Dashboard"
+      });
 
       const textEmail = `Ciao ${user.name},\n\nHai ${notifications.length} nuovi aggiornamenti nel gestionale.\n\nVai su ${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'} per vederli.`;
 

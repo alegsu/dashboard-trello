@@ -25,14 +25,16 @@ export async function POST(request) {
       text.toLowerCase().includes(`@${u.name.split(' ')[0].toLowerCase()}`)
     );
 
-    const { sendNotificationEmail } = await import('@/utils/mailer');
     for (const u of mentionedUsers) {
       if (u.id !== session.id && u.notifyMentions !== false && u.email) {
-        await sendNotificationEmail(
-          u.email,
-          `Nuova menzione in ${newComment.card.name}`,
-          `Ciao ${u.name}, sei stato menzionato in un commento da ${newComment.author.name}:\n\n"${text}"\n\nAccedi alla dashboard per rispondere.`
-        );
+        await prisma.pendingNotification.create({
+          data: {
+            userId: u.id,
+            type: "MENTION",
+            message: `${newComment.author.name} ti ha menzionato in un commento: "${text}"`,
+            link: `/?card=${cardId}`
+          }
+        });
       }
     }
 
