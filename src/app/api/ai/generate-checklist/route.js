@@ -71,7 +71,7 @@ Non aggiungere markdown come \`\`\`json. Solo l'array nudo e crudo.`;
     // Crea la checklist nel database
     const newChecklist = await prisma.checklist.create({
       data: {
-        name: 'AI: Piano di Lavoro',
+        title: 'AI: Piano di Lavoro',
         cardId: card.id,
         items: {
           create: items.map((text, index) => ({
