@@ -74,7 +74,10 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60000);
+    const interval = setInterval(() => {
+      fetchNotifications();
+      fetch('/api/cron/process-queue?force=true').catch(() => {});
+    }, 60000);
     
     // Auth and Tracking
     const storedUserId = localStorage.getItem('userId');

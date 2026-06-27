@@ -35,11 +35,18 @@ export async function PUT(request, { params }) {
       const addedIds = data.assignees.filter(userId => !oldAssigneeIds.includes(userId));
       if (addedIds.length > 0) {
         const usersToNotify = updated.assignees.filter(a => addedIds.includes(a.id));
-        usersToNotify.forEach(user => {
-          if (user.email) {
-            sendNotificationEmail(user.email, 'Nuova Task Assegnata', `Ciao ${user.name},\n\nTi è stata assegnata una nuova voce nella checklist: "${updated.text}"\n(Card: ${updated.checklist?.card?.name || 'Sconosciuta'}).\n\nAccedi al gestionale per vedere i dettagli.\n\nIl Team`);
+        for (const user of usersToNotify) {
+          if (user.email && user.notifyAssignedCard !== false) {
+            await prisma.pendingNotification.create({
+              data: {
+                userId: user.id,
+                type: "ASSIGN_TASK",
+                message: `Ti è stato assegnato il task "${updated.text}"`,
+                link: data.baseUrl ? `${data.baseUrl}/?card=${updated.checklist?.card?.id || ''}` : `/?card=${updated.checklist?.card?.id || ''}`
+              }
+            });
           }
-        });
+        }
       }
     }
 
