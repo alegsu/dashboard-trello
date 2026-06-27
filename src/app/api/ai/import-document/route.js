@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
 import OpenAI from 'openai';
-import pdfParse from 'pdf-parse';
+
 import mammoth from 'mammoth';
 import * as xlsx from 'xlsx';
 import { parse as csvParse } from 'csv-parse/sync';
@@ -34,6 +34,7 @@ export async function POST(request) {
     const fileName = file.name.toLowerCase();
     
     if (fileName.endsWith('.pdf')) {
+      const pdfParse = require('pdf-parse');
       const data = await pdfParse(buffer);
       extractedText = data.text;
     } else if (fileName.endsWith('.docx')) {
