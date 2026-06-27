@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, User, CheckSquare, Clock, Tag, MessageSquare, Paperclip, ExternalLink, Copy, Archive, Trash2 } from 'lucide-react';
+import { X, Calendar, User, CheckSquare, Clock, Tag, MessageSquare, Paperclip, ExternalLink, Copy, Archive, Trash2, Plus } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import styles from './CardModal.module.css';
 
@@ -569,6 +569,16 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
                           <button onClick={() => swapItemOrder(listArr, index, 'down')} style={{ background:'transparent', border:'none', cursor:'pointer', color:'var(--text-secondary)' }} disabled={index === listArr.length - 1}>↓</button>
                           <button onClick={() => deleteChecklistItem(item.id)} style={{ background:'transparent', border:'none', cursor:'pointer', color:'var(--status-danger)' }} title="Elimina voce"><Trash2 size={14}/></button>
                           
+                          {!isSubItem && (
+                            <button 
+                              title="Aggiungi sotto-task"
+                              onClick={() => setShowSubItemInput(prev => ({ ...prev, [item.id]: true }))}
+                              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                            >
+                              <Plus size={14} />
+                            </button>
+                          )}
+
                           <button 
                             title="Note / Commenti"
                             onClick={() => toggleNotes(item.id, item.notes)}
@@ -649,35 +659,26 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
                     {!isSubItem && subItems.map((sub, sIdx) => renderItem(sub, true, sIdx, subItems))}
                     
                     {/* Add SubItem Input */}
-                    {!isSubItem && (
+                    {!isSubItem && showSubItemInput[item.id] && (
                       <div style={{ marginLeft: '2rem', marginTop: '0.2rem' }}>
-                        {!showSubItemInput[item.id] ? (
-                          <button 
-                            onClick={() => setShowSubItemInput(prev => ({ ...prev, [item.id]: true }))}
-                            style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem', padding: '0.2rem' }}
-                          >
-                            + Aggiungi sotto-task
-                          </button>
-                        ) : (
-                          <div className={styles.addItemRow} style={{ paddingLeft: '1rem', borderLeft: '2px solid var(--border-color)', marginTop: '0.5rem' }}>
-                            <input 
-                              className={styles.input} 
-                              style={{ fontSize: '0.8rem', padding: '0.4rem' }} 
-                              placeholder="Aggiungi sotto-task..." 
-                              value={newItemTexts[item.id] || ''} 
-                              onChange={e => setNewItemTexts({...newItemTexts, [item.id]: e.target.value})} 
-                              onKeyDown={e => {
-                                if (e.key === 'Enter') addChecklistSubItem(checklist.id, item.id);
-                                else if (e.key === 'Escape') setShowSubItemInput(prev => ({ ...prev, [item.id]: false }));
-                              }}
-                              autoFocus
-                              onBlur={() => {
-                                if (!newItemTexts[item.id]) setShowSubItemInput(prev => ({ ...prev, [item.id]: false }));
-                              }}
-                            />
-                            <button onClick={() => addChecklistSubItem(checklist.id, item.id)} className={styles.btnSecondary} style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>Aggiungi</button>
-                          </div>
-                        )}
+                        <div className={styles.addItemRow} style={{ paddingLeft: '1rem', borderLeft: '2px solid var(--border-color)', marginTop: '0.5rem' }}>
+                          <input 
+                            className={styles.input} 
+                            style={{ fontSize: '0.8rem', padding: '0.4rem' }} 
+                            placeholder="Aggiungi sotto-task..." 
+                            value={newItemTexts[item.id] || ''} 
+                            onChange={e => setNewItemTexts({...newItemTexts, [item.id]: e.target.value})} 
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') addChecklistSubItem(checklist.id, item.id);
+                              else if (e.key === 'Escape') setShowSubItemInput(prev => ({ ...prev, [item.id]: false }));
+                            }}
+                            autoFocus
+                            onBlur={() => {
+                              if (!newItemTexts[item.id]) setShowSubItemInput(prev => ({ ...prev, [item.id]: false }));
+                            }}
+                          />
+                          <button onClick={() => addChecklistSubItem(checklist.id, item.id)} className={styles.btnSecondary} style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>Aggiungi</button>
+                        </div>
                       </div>
                     )}
                   </React.Fragment>
