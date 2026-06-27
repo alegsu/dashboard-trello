@@ -10,8 +10,13 @@ export async function GET() {
           include: {
             list: true,
             board: true,
+            assignees: true,
             checklists: {
-              include: { items: true }
+              include: { 
+                items: {
+                  include: { assignees: true }
+                } 
+              }
             }
           }
         }

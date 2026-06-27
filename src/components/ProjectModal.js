@@ -29,8 +29,6 @@ export default function ProjectModal({ project, clients, members, currentUser, o
   const completedCards = allCards.filter(c => c.list?.name?.toLowerCase().includes('fatt') || c.list?.name?.toLowerCase().includes('completat') || c.isArchived || c.list?.type === 'done');
   const activeCards = allCards.filter(c => !completedCards.includes(c));
   
-  const progressPercent = allCards.length > 0 ? Math.round((completedCards.length / allCards.length) * 100) : 0;
-  
   const allTasks = [];
   allCards.forEach(c => {
     if (c.checklists) {
@@ -40,6 +38,8 @@ export default function ProjectModal({ project, clients, members, currentUser, o
     }
   });
   const completedTasks = allTasks.filter(t => t.isCompleted);
+  
+  const progressPercent = allTasks.length > 0 ? Math.round((completedTasks.length / allTasks.length) * 100) : 0;
 
   // Extract Assignees
   const assigneeMap = {};
@@ -47,74 +47,105 @@ export default function ProjectModal({ project, clients, members, currentUser, o
     (c.assignees || []).forEach(a => {
       if (!assigneeMap[a.id]) assigneeMap[a.id] = a;
     });
+    if (c.checklists) {
+      c.checklists.forEach(cl => {
+        if (cl.items) {
+          cl.items.forEach(item => {
+            (item.assignees || []).forEach(a => {
+              if (!assigneeMap[a.id]) assigneeMap[a.id] = a;
+            });
+          });
+        }
+      });
+    }
   });
   const projectAssignees = Object.values(assigneeMap);
 
   // Timeline Charts Data (Burn-up)
-  const startD = new Date(project.createdAt || Date.now());
-  startD.setHours(0,0,0,0);
-  const todayD = new Date();
-  todayD.setHours(0,0,0,0);
-  const endD = project.dueDate ? new Date(project.dueDate) : new Date(startD.getTime() + 30 * 24 * 60 * 60 * 1000);
-  endD.setHours(0,0,0,0);
+  const getMidnight = (dateVal) => {
+    const d = new Date(dateVal);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()); // Local midnight
+  };
+
+  let startD = getMidnight(project.createdAt || Date.now());
+  const todayD = getMidnight(Date.now());
   
-  const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
-  const endStr = endD.toLocaleDateString('en-CA');
-  
-  const timelineDays = [];
-  let currentD = new Date(startD);
-  const lastD = endD > todayD ? endD : todayD;
-  while (currentD <= lastD) {
-    timelineDays.push(new Date(currentD).toLocaleDateString('en-CA'));
-    currentD.setDate(currentD.getDate() + 1);
+  if (startD.getTime() === todayD.getTime()) {
+    // If project was created today, artificially start graph yesterday so we see the line progression
+    startD.setDate(startD.getDate() - 1);
   }
 
-  const totalDaysToDue = Math.max(1, Math.ceil((endD - startD) / (1000 * 60 * 60 * 24)));
-  const totalDaysToToday = Math.max(1, Math.ceil((todayD - startD) / (1000 * 60 * 60 * 24)));
+  let endD = project.dueDate ? getMidnight(project.dueDate) : null;
+  if (!endD) {
+    endD = new Date(startD);
+    endD.setDate(endD.getDate() + 30);
+  }
 
-  const cardsTimelineData = timelineDays.map(dayStr => {
-    const d = new Date(dayStr);
-    const daysFromStart = Math.ceil((d - startD) / (1000 * 60 * 60 * 24));
+  // Ensure endD is at least today
+  const lastD = endD > todayD ? endD : todayD;
+
+  const totalDaysToDue = Math.max(1, Math.round((endD - startD) / 86400000));
+  const totalDaysToToday = Math.max(0, Math.round((todayD - startD) / 86400000));
+
+  const timelineData = [];
+  let currentD = new Date(startD);
+  let dayIndex = 0;
+
+  while (currentD <= lastD) {
+    let idealCards = Math.round((dayIndex / totalDaysToDue) * allCards.length);
+    if (dayIndex > totalDaysToDue) idealCards = allCards.length;
     
-    let ideal = Math.round((daysFromStart / totalDaysToDue) * allCards.length);
-    if (daysFromStart < 0) ideal = 0;
-    if (dayStr > endStr) ideal = allCards.length;
-
-    let actual = null;
-    if (dayStr <= todayStr) {
-      actual = Math.round((daysFromStart / totalDaysToToday) * completedCards.length);
-      if (daysFromStart < 0) actual = 0;
+    let actualCards = null;
+    if (currentD <= todayD) {
+      if (currentD.getTime() === todayD.getTime()) {
+        actualCards = completedCards.length;
+      } else {
+        actualCards = totalDaysToToday === 0 ? 0 : Math.round((dayIndex / totalDaysToToday) * completedCards.length);
+      }
     }
 
-    return { 
-      name: dayStr.substring(5).replace('-', '/'),
-      Totale: allCards.length, 
-      Ideale: ideal,
-      Completati: actual 
-    };
-  });
-
-  const tasksTimelineData = timelineDays.map(dayStr => {
-    const d = new Date(dayStr);
-    const daysFromStart = Math.ceil((d - startD) / (1000 * 60 * 60 * 24));
+    let idealTasks = Math.round((dayIndex / totalDaysToDue) * allTasks.length);
+    if (dayIndex > totalDaysToDue) idealTasks = allTasks.length;
     
-    let ideal = Math.round((daysFromStart / totalDaysToDue) * allTasks.length);
-    if (daysFromStart < 0) ideal = 0;
-    if (dayStr > endStr) ideal = allTasks.length;
-
-    let actual = null;
-    if (dayStr <= todayStr) {
-      actual = Math.round((daysFromStart / totalDaysToToday) * completedTasks.length);
-      if (daysFromStart < 0) actual = 0;
+    let actualTasks = null;
+    if (currentD <= todayD) {
+      if (currentD.getTime() === todayD.getTime()) {
+        actualTasks = completedTasks.length;
+      } else {
+        actualTasks = totalDaysToToday === 0 ? 0 : Math.round((dayIndex / totalDaysToToday) * completedTasks.length);
+      }
     }
 
-    return { 
-      name: dayStr.substring(5).replace('-', '/'),
-      Totale: allTasks.length, 
-      Ideale: ideal,
-      Completati: actual 
-    };
-  });
+    const month = String(currentD.getMonth() + 1).padStart(2, '0');
+    const day = String(currentD.getDate()).padStart(2, '0');
+
+    timelineData.push({
+      name: `${month}/${day}`,
+      cardsTotale: allCards.length,
+      cardsIdeale: idealCards,
+      cardsCompletati: actualCards,
+      tasksTotale: allTasks.length,
+      tasksIdeale: idealTasks,
+      tasksCompletati: actualTasks
+    });
+
+    currentD.setDate(currentD.getDate() + 1);
+    dayIndex++;
+  }
+
+  const cardsTimelineData = timelineData.map(d => ({
+    name: d.name,
+    Totale: d.cardsTotale,
+    Ideale: d.cardsIdeale,
+    Completati: d.cardsCompletati
+  }));
+
+  const tasksTimelineData = timelineData.map(d => ({
+    name: d.name,
+    Totale: d.tasksTotale,
+    Ideale: d.tasksIdeale,
+    Completati: d.tasksCompletati
+  }));
 
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
