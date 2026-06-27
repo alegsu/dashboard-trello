@@ -41,9 +41,9 @@ export default function ProjectModal({ project, clients, members, currentUser, o
   });
   const projectAssignees = Object.values(assigneeMap);
 
-  // Chart Data: tasks with due date
-  const chartData = activeCards.filter(c => c.dueDate).map(c => {
-    const diffTime = new Date(c.dueDate) - new Date();
+  // Chart Data: Cards (Schede) with due date
+  const cardsChartData = activeCards.filter(c => c.due).map(c => {
+    const diffTime = new Date(c.due) - new Date();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return {
       name: c.name.length > 15 ? c.name.substring(0, 15) + '...' : c.name,
@@ -52,6 +52,36 @@ export default function ProjectModal({ project, clients, members, currentUser, o
       fill: diffDays < 0 ? 'var(--status-danger)' : diffDays <= 3 ? 'var(--status-warning)' : 'var(--accent-primary)'
     };
   }).sort((a, b) => a['Giorni Rimanenti'] - b['Giorni Rimanenti']);
+
+  // Chart Data: Tasks (Sotto-task) with due date, grouped by Card
+  const tasksChartDataByCard = [];
+  activeCards.forEach(c => {
+    let taskItems = [];
+    if (c.checklists) {
+      c.checklists.forEach(cl => {
+        if (cl.items) {
+          cl.items.filter(item => item.dueDate && !item.isCompleted).forEach(item => {
+            const diffTime = new Date(item.dueDate) - new Date();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            taskItems.push({
+              name: item.text.length > 15 ? item.text.substring(0, 15) + '...' : item.text,
+              fullName: item.text,
+              'Giorni Rimanenti': diffDays,
+              fill: diffDays < 0 ? 'var(--status-danger)' : diffDays <= 3 ? 'var(--status-warning)' : 'var(--accent-primary)'
+            });
+          });
+        }
+      });
+    }
+    if (taskItems.length > 0) {
+      taskItems.sort((a, b) => a['Giorni Rimanenti'] - b['Giorni Rimanenti']);
+      tasksChartDataByCard.push({
+        cardId: c.id,
+        cardName: c.name,
+        data: taskItems
+      });
+    }
+  });
 
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
@@ -271,11 +301,11 @@ export default function ProjectModal({ project, clients, members, currentUser, o
                 </div>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Task Totali</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Schede Totali</span>
                   <span style={{ fontWeight: 'bold' }}>{allCards.length}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Task da Completare</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Schede da Completare</span>
                   <span style={{ fontWeight: 'bold' }}>{activeCards.length}</span>
                 </div>
                 
@@ -301,49 +331,84 @@ export default function ProjectModal({ project, clients, members, currentUser, o
                 <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--accent-primary)' }}>
                   <Calendar size={16}/> Roadmap Obiettivi
                 </h4>
-                {chartData.length > 0 ? (
-                  <div style={{ height: '200px', width: '100%' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                        <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
-                        <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
-                        <Tooltip 
-                          contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '12px' }}
-                          formatter={(value, name, props) => [`${value} giorni`, 'Obiettivo']}
-                          labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
-                        />
-                        <ReferenceLine y={0} stroke="var(--border-color)" />
-                        <Bar dataKey="Giorni Rimanenti" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                ) : (
+                
+                {cardsChartData.length === 0 && tasksChartDataByCard.length === 0 && (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '150px', color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic', textAlign: 'center' }}>
-                    Nessun task con scadenza assegnata per tracciare la roadmap.
+                    Nessun obiettivo con scadenza assegnata per tracciare la roadmap.
                   </div>
                 )}
+
+                {cardsChartData.length > 0 && (
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Scadenza Schede</div>
+                    <div style={{ height: '150px', width: '100%' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={cardsChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                          <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
+                          <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
+                          <Tooltip 
+                            contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '12px' }}
+                            formatter={(value, name, props) => [`${value} giorni`, 'Obiettivo']}
+                            labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
+                          />
+                          <ReferenceLine y={0} stroke="var(--border-color)" />
+                          <Bar dataKey="Giorni Rimanenti" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+
+                {tasksChartDataByCard.map((cardData, idx) => (
+                  <div key={cardData.cardId} style={{ marginTop: idx > 0 || cardsChartData.length > 0 ? '1.5rem' : 0 }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Task in: {cardData.cardName}</div>
+                    <div style={{ height: '120px', width: '100%' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={cardData.data} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                          <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
+                          <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
+                          <Tooltip 
+                            contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '12px' }}
+                            formatter={(value, name, props) => [`${value} giorni`, 'Obiettivo']}
+                            labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
+                          />
+                          <ReferenceLine y={0} stroke="var(--border-color)" />
+                          <Bar dataKey="Giorni Rimanenti" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
           <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--accent-primary)' }}><CheckCircle size={16}/> Lista Task Attivi</h4>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--accent-primary)' }}><CheckCircle size={16}/> Lista Schede Attive</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto' }}>
               {activeCards.length === 0 ? (
                 <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic', padding: '1rem', textAlign: 'center' }}>
-                  Nessun task attivo. Ottimo lavoro!
+                  Nessuna scheda attiva. Ottimo lavoro!
                 </div>
               ) : (
                 activeCards.map(c => (
-                  <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-glass)', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                  <div 
+                    key={c.id} 
+                    onClick={() => { window.location.href = `/?card=${c.id}`; }}
+                    title="Clicca per aprire la scheda"
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-glass)', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', cursor: 'pointer', transition: 'background 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(161, 189, 207, 0.1)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-glass)'}
+                  >
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontWeight: '500', fontSize: '0.95rem' }}>{c.name}</span>
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>in {c.list?.name || 'Sconosciuta'}</span>
                     </div>
-                    {c.dueDate && (
-                      <div style={{ fontSize: '0.8rem', color: new Date(c.dueDate) < new Date() ? 'var(--status-danger)' : 'var(--text-secondary)', background: 'var(--bg-primary)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
-                        {new Date(c.dueDate).toLocaleDateString()}
+                    {c.due && (
+                      <div style={{ fontSize: '0.8rem', color: new Date(c.due) < new Date() ? 'var(--status-danger)' : 'var(--text-secondary)', background: 'var(--bg-primary)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                        {new Date(c.due).toLocaleDateString()}
                       </div>
                     )}
                   </div>
