@@ -30,6 +30,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
   const [editingItemId, setEditingItemId] = useState(null);
   const [editingItemText, setEditingItemText] = useState('');
   const [showSubItemInput, setShowSubItemInput] = useState({});
+  const [showAssigneesDropdown, setShowAssigneesDropdown] = useState(false);
 
 
   
@@ -846,20 +847,36 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
 
             <div className={styles.widget}>
               <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><User size={14}/> Assegnatari</h4>
-              <div className={styles.assigneesList}>
-                {members.map(m => {
-                  const isAssigned = card.assignees.some(a => a.id === m.id);
-                  return (
-                    <label key={m.id} className={styles.assigneeLabel}>
-                      <input 
-                        type="checkbox" 
-                        checked={isAssigned} 
-                        onChange={() => toggleAssignee(m.id)} 
-                      />
-                      {m.name}
-                    </label>
-                  );
-                })}
+              <div style={{ position: 'relative' }}>
+                <div 
+                  className={styles.input} 
+                  style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', padding: '0.4rem', cursor: 'pointer', minHeight: '34px', alignItems: 'center' }}
+                  onClick={() => setShowAssigneesDropdown(!showAssigneesDropdown)}
+                >
+                  {card.assignees.length === 0 && <span style={{ color: 'var(--text-secondary)' }}>Nessuno</span>}
+                  {card.assignees.map(a => (
+                    <div key={a.id} style={{ display: 'flex', alignItems: 'center', background: 'var(--accent-primary)', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.8rem' }}>
+                      {a.name}
+                    </div>
+                  ))}
+                </div>
+                {showAssigneesDropdown && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, background: 'var(--bg-elevated)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem', marginTop: '0.2rem', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                    {members.map(m => {
+                      const isAssigned = card.assignees.some(a => a.id === m.id);
+                      return (
+                        <label key={m.id} className={styles.assigneeLabel} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.3rem', cursor: 'pointer', borderRadius: '4px' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={isAssigned} 
+                            onChange={() => toggleAssignee(m.id)} 
+                          />
+                          {m.name}
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
 
