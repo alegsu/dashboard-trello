@@ -154,9 +154,12 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
       <header className={`glass-panel ${styles.header}`} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem', padding: '1rem 1.5rem', borderTop: '3px solid var(--accent-primary)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <img src="/logo.png" alt="ShinyUp Logo" style={{ height: '32px', objectFit: 'contain' }} />
+              <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
+            </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.1.0
+              v2.2.0
             </span>
           </div>
           

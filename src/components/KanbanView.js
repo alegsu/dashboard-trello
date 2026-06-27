@@ -436,7 +436,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
             }).map((clientId, rowIndex) => {
               const client = clientId === unassignedId ? { name: 'Nessun Cliente' } : clientMap.get(clientId);
               return (
-                <div key={clientId} className={styles.kanbanSwimlane} style={{ background: rowIndex % 2 === 0 ? 'transparent' : 'rgba(161, 189, 207, 0.05)' }}>
+                <div key={clientId} className={styles.kanbanSwimlane} style={{ background: rowIndex % 2 === 0 ? 'transparent' : 'rgba(161, 189, 207, 0.12)' }}>
                   <div className={styles.kanbanUserHeader}>
                      {client?.name}
                   </div>
