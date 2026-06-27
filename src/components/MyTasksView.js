@@ -2,17 +2,19 @@ import React from 'react';
 import { Calendar, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import CardModal from './CardModal';
 
-export default function MyTasksView({ cards, currentUser, clients, boards, allMembers, onCardUpdate }) {
+export default function MyTasksView({ cards, currentUser, clients, boards, allMembers, onCardUpdate, lists }) {
   const [selectedCard, setSelectedCard] = React.useState(null);
 
   if (!currentUser) return <div>Caricamento...</div>;
 
   // Filtra solo i task assegnati all'utente corrente e non in liste "Fatto"
-  const myCards = cards.filter(c => 
-    c.assignees?.some(a => a.id === currentUser.id) &&
-    !c.list?.name.toLowerCase().includes('fatto') &&
-    !c.list?.name.toLowerCase().includes('completat')
-  );
+  const myCards = cards.filter(c => {
+    const list = (lists || []).find(l => l.id === c.listId);
+    const listName = list ? list.name.toLowerCase() : '';
+    return c.assignees?.some(a => a.id === currentUser.id) &&
+           !listName.includes('fatto') &&
+           !listName.includes('completat');
+  });
 
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -26,11 +28,11 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
   const noDate = [];
 
   myCards.forEach(c => {
-    if (!c.dueDate) {
+    if (!c.due) {
       noDate.push(c);
       return;
     }
-    const due = new Date(c.dueDate);
+    const due = new Date(c.due);
     due.setHours(0, 0, 0, 0);
 
     if (due < now) {
@@ -43,9 +45,9 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
   });
 
   // Sort groups by due date
-  overdue.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-  todayOrTomorrow.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-  upcoming.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+  overdue.sort((a, b) => new Date(a.due) - new Date(b.due));
+  todayOrTomorrow.sort((a, b) => new Date(a.due) - new Date(b.due));
+  upcoming.sort((a, b) => new Date(a.due) - new Date(b.due));
 
   const renderCardList = (list, title, icon, color) => {
     if (list.length === 0) return null;
@@ -70,12 +72,12 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
               >
                 <div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    {clientName} • {card.list?.name}
+                    {clientName} • {(lists || []).find(l => l.id === card.listId)?.name || 'Lista'}
                   </div>
                   <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{card.name}</strong>
-                  {card.dueDate && (
+                  {card.due && (
                     <div style={{ fontSize: '0.85rem', color: color === 'var(--text-secondary)' ? 'var(--text-primary)' : color, marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                      <Calendar size={14} /> {new Date(card.dueDate).toLocaleDateString('it-IT')}
+                      <Calendar size={14} /> {new Date(card.due).toLocaleDateString('it-IT')}
                     </div>
                   )}
                 </div>

@@ -450,6 +450,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               clients={initialClients || []} 
               boards={initialBoards} 
               allMembers={initialMembers}
+              lists={initialLists || []}
               onCardUpdate={handleCardUpdate} 
             />
           )}
