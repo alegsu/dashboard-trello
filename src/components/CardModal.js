@@ -563,7 +563,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
                             <span style={{ textDecoration: item.isCompleted ? 'line-through' : 'none', flex: 1, cursor: 'text' }} onClick={() => { setEditingItemId(item.id); setEditingItemText(item.text); }}>{item.text}</span>
                           )}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                        <div className={styles.itemActions} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                           <button onClick={() => swapItemOrder(listArr, index, 'up')} style={{ background:'transparent', border:'none', cursor:'pointer', color:'var(--text-secondary)' }} disabled={index === 0}>↑</button>
                           <button onClick={() => swapItemOrder(listArr, index, 'down')} style={{ background:'transparent', border:'none', cursor:'pointer', color:'var(--text-secondary)' }} disabled={index === listArr.length - 1}>↓</button>
                           <button onClick={() => deleteChecklistItem(item.id)} style={{ background:'transparent', border:'none', cursor:'pointer', color:'var(--status-danger)' }} title="Elimina voce"><Trash2 size={14}/></button>
@@ -716,8 +716,11 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
                       <button onClick={() => deleteChecklist(checklist.id)} style={{ background:'transparent', border:'none', cursor:'pointer', color:'var(--status-danger)' }} title="Elimina Checklist"><Trash2 size={16}/></button>
                     </div>
                   </div>
-                  <div className={styles.progressBarBg}>
-                    <div className={styles.progressBarFill} style={{ width: `${percent}%`, background: percent === 100 ? 'var(--status-success)' : 'var(--accent-primary)' }}></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', marginTop: '0.5rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', minWidth: '2.5rem' }}>{percent}%</span>
+                    <div className={styles.progressBarBg} style={{ flex: 1, margin: 0 }}>
+                      <div className={styles.progressBarFill} style={{ width: `${percent}%`, background: percent === 100 ? 'var(--status-success)' : `hsl(${Math.round((percent / 100) * 120)}, 70%, 50%)`, transition: 'all 0.3s ease' }}></div>
+                    </div>
                   </div>
                   <ul className={styles.checklistItems}>
                     {topLevelItems.map((item, idx) => renderItem(item, false, idx, topLevelItems))}
