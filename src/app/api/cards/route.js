@@ -14,9 +14,11 @@ export async function GET(request) {
   return NextResponse.json(cards);
 }
 
+import OpenAI from 'openai';
+
 export async function POST(request) {
   try {
-    const { name, listId, boardId, order, assignees } = await request.json();
+    const { name, listId, boardId, order, assignees, creatorId, clientId } = await request.json();
     if (!name || !listId || !boardId) return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
 
     let finalOrder = order;
@@ -35,6 +37,13 @@ export async function POST(request) {
       order: finalOrder
     };
 
+    if (clientId) {
+      // Create an internal project for this card to associate with the client if not provided otherwise
+      // Actually KanbanView doesn't send projectId right now.
+      // Wait, let's just keep the existing behavior and map clientId if needed, but the schema says card.projectId.
+      // Skipping project assignment for now since we didn't have it before.
+    }
+
     if (assignees && assignees.length > 0) {
       data.assignees = {
         connect: assignees.map(id => ({ id }))
@@ -46,6 +55,53 @@ export async function POST(request) {
       include: { assignees: true, labels: true }
     });
 
+    // AI Feature C: Auto-Categorizer
+    let finalCard = newCard;
+    if (creatorId) {
+      const creator = await prisma.user.findUnique({ where: { id: creatorId } });
+      if (creator && creator.aiCategorizeEnabled !== false && process.env.OPENAI_API_KEY) {
+        try {
+          const boardLabels = await prisma.label.findMany({ where: { boardId } });
+          if (boardLabels.length > 0) {
+            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+            const prompt = `Analizza il nome di questo task: "${name}".
+Ecco le etichette disponibili:
+${boardLabels.map(l => `- ${l.name} (ID: ${l.id})`).join('\n')}
+
+Se una o più etichette sono pertinenti al task, restituisci un JSON array contenente gli ID di quelle etichette.
+Se nessuna è pertinente, restituisci un array vuoto [].
+Non inventare nuovi ID. Restituisci SOLO l'array JSON (es. ["id1", "id2"]).`;
+
+            const aiRes = await openai.chat.completions.create({
+              model: 'gpt-4o-mini',
+              messages: [{ role: 'user', content: prompt }],
+              temperature: 0.1,
+            });
+
+            let rawText = aiRes.choices[0].message.content.trim();
+            if (rawText.startsWith('```json')) rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+            else if (rawText.startsWith('```')) rawText = rawText.replace(/```/g, '').trim();
+
+            const parsedIds = JSON.parse(rawText);
+            if (Array.isArray(parsedIds) && parsedIds.length > 0) {
+              const validIds = parsedIds.filter(id => boardLabels.find(l => l.id === id));
+              if (validIds.length > 0) {
+                finalCard = await prisma.card.update({
+                  where: { id: newCard.id },
+                  data: {
+                    labels: { connect: validIds.map(id => ({ id })) }
+                  },
+                  include: { assignees: true, labels: true }
+                });
+              }
+            }
+          }
+        } catch (aiErr) {
+          console.error("AI Categorizer error:", aiErr);
+        }
+      }
+    }
+
     // Notifica tutti i collaboratori della bacheca che è stata aggiunta una nuova scheda
     const boardMembers = await prisma.user.findMany({
       where: {
@@ -56,8 +112,6 @@ export async function POST(request) {
       }
     });
 
-    const authorId = request.headers.get('x-user-id'); // assuming client sets this or we grab from localstorage somehow, ma non ce l'abbiamo nel payload
-    // Se non abbiamo authorId, semplicemente mettiamo la notifica.
     for (const member of boardMembers) {
       if (member.email) {
         await prisma.pendingNotification.create({
@@ -71,8 +125,9 @@ export async function POST(request) {
       }
     }
 
-    return NextResponse.json(newCard, { status: 201 });
+    return NextResponse.json(finalCard, { status: 201 });
   } catch (err) {
+    console.error(err);
     return NextResponse.json({ error: 'Error creating card' }, { status: 500 });
   }
 }

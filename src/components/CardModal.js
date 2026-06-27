@@ -547,11 +547,42 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
             })}
 
             <div className={styles.section}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckSquare size={16}/> Aggiungi Checklist</h3>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}><CheckSquare size={16}/> Aggiungi Checklist</h3>
+                
+                {currentUser?.aiChecklistEnabled !== false && (
+                  <button 
+                    onClick={async () => {
+                      const btn = document.getElementById('ai-checklist-btn');
+                      btn.innerText = "⏳ Generazione...";
+                      btn.disabled = true;
+                      try {
+                        await fetch('/api/ai/generate-checklist', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ cardId })
+                        });
+                        fetchCard(); // ricarica le checklist dal DB
+                      } catch (e) {
+                        alert("Errore AI");
+                      } finally {
+                        btn.innerText = "✨ Genera Sotto-Task AI";
+                        btn.disabled = false;
+                      }
+                    }}
+                    id="ai-checklist-btn"
+                    className={styles.btnSecondary}
+                    style={{ background: 'var(--status-success)', color: 'white', border: 'none', display: 'flex', gap: '0.4rem', alignItems: 'center' }}
+                  >
+                    ✨ Genera Sotto-Task AI
+                  </button>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
                 <input 
                   className={styles.input} 
-                  placeholder="Titolo checklist..." 
+                  placeholder="Titolo checklist manuale..." 
                   value={newChecklistTitle} 
                   onChange={e => setNewChecklistTitle(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addChecklist()}

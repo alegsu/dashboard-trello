@@ -9,6 +9,7 @@ import ProjectsView from './ProjectsView';
 import ClientsView from './ClientsView';
 import PomodoroTimer from './PomodoroTimer';
 import HelpModal from './HelpModal';
+import MyTasksView from './MyTasksView';
 import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle } from 'lucide-react';
 
 export default function DashboardClient({ initialBoards, initialLists, initialCards, initialMembers, initialClients }) {
@@ -170,6 +171,12 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               title="Guida e Automazioni"
             >
               <HelpCircle size={20} />
+            </button>
+            <button 
+              onClick={() => setView(view === 'my-tasks' ? 'kanban' : 'my-tasks')}
+              style={{ background: view === 'my-tasks' ? 'var(--status-success)' : 'rgba(161, 189, 207, 0.05)', color: view === 'my-tasks' ? 'white' : 'var(--text-primary)', border: view === 'my-tasks' ? '1px solid var(--status-success)' : '1px solid var(--border-color)', borderRadius: '20px', padding: '0.4rem 1rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.3s' }}
+            >
+              🎯 La Mia Giornata
             </button>
             <button 
               onClick={() => setZenMode(!zenMode)}
@@ -435,6 +442,16 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
           )}
           {view === 'clients' && (
             <ClientsView clients={initialClients} cards={liveCards} onRefresh={handleRefresh} />
+          )}
+          {view === 'my-tasks' && (
+            <MyTasksView 
+              cards={liveCards} 
+              currentUser={currentUser} 
+              clients={initialClients || []} 
+              boards={initialBoards} 
+              allMembers={initialMembers}
+              onCardUpdate={handleCardUpdate} 
+            />
           )}
           {view === 'settings' && (
             <SettingsPanel 

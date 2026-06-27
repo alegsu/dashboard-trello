@@ -314,6 +314,9 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     if (clientId !== unassignedId) {
       bodyData.clientId = clientId;
     }
+    if (currentUser) {
+      bodyData.creatorId = currentUser.id;
+    }
 
     await fetch('/api/cards', {
       method: 'POST',

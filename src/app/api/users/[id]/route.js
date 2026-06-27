@@ -23,6 +23,9 @@ export async function PUT(request, { params }) {
         ...(body.notifyAssignedList !== undefined && { notifyAssignedList: body.notifyAssignedList }),
         ...(body.notifyCardDue !== undefined && { notifyCardDue: body.notifyCardDue }),
         ...(body.notifyDailyRecap !== undefined && { notifyDailyRecap: body.notifyDailyRecap }),
+        ...(body.aiChecklistEnabled !== undefined && { aiChecklistEnabled: body.aiChecklistEnabled }),
+        ...(body.aiReportEnabled !== undefined && { aiReportEnabled: body.aiReportEnabled }),
+        ...(body.aiCategorizeEnabled !== undefined && { aiCategorizeEnabled: body.aiCategorizeEnabled }),
       }
     });
 

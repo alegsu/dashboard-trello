@@ -34,6 +34,11 @@ model User {
   notifyAssignedList   Boolean @default(true)
   notifyCardDue        Boolean @default(true)
   notifyDailyRecap     Boolean @default(true)
+
+  // Impostazioni AI
+  aiChecklistEnabled   Boolean @default(true)
+  aiReportEnabled      Boolean @default(true)
+  aiCategorizeEnabled  Boolean @default(true)
 }
 
 model Board {

@@ -329,6 +329,23 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
               Recap quotidiano delle mie attività (Mattina)
             </label>
           </div>
+
+          <h3 style={{ marginTop: '2rem' }}>✨ Intelligenza Artificiale</h3>
+          <p className={styles.subtitle}>Scegli quali assistenti AI attivare sul tuo account.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'var(--bg-glass)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginTop: '1rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.aiChecklistEnabled !== false} onChange={() => toggleUserPreference('aiChecklistEnabled', effectiveCurrentUser?.aiChecklistEnabled !== false)} />
+              <strong>Generatore Checklist:</strong> Crea sotto-task in automatico dentro le schede
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.aiReportEnabled !== false} onChange={() => toggleUserPreference('aiReportEnabled', effectiveCurrentUser?.aiReportEnabled !== false)} />
+              <strong>Status Report:</strong> Genera riassunti sui progetti pronti da inviare ai clienti
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.aiCategorizeEnabled !== false} onChange={() => toggleUserPreference('aiCategorizeEnabled', effectiveCurrentUser?.aiCategorizeEnabled !== false)} />
+              <strong>Auto-Categorizzatore:</strong> Etichetta in automatico le nuove schede (solo con etichette esistenti)
+            </label>
+          </div>
         </div>
 
         {/* Gestione Bacheche */}

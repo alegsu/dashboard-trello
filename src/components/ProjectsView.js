@@ -302,12 +302,48 @@ export default function ProjectsView({ clients = [], members = [], currentUser, 
                   )}
                   {project.cards && project.cards.length > 0 && (
                     <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); toggleProjectCards(project.id); }}
-                        style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.2rem 0', fontWeight: 'bold' }}
-                      >
-                        {expandedProjects[project.id] ? '🔼 Nascondi Task' : `🔽 Vedi Task (${project.cards.length})`}
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); toggleProjectCards(project.id); }}
+                          style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.2rem 0', fontWeight: 'bold' }}
+                        >
+                          {expandedProjects[project.id] ? '🔼 Nascondi Task' : `🔽 Vedi Task (${project.cards.length})`}
+                        </button>
+                        
+                        {currentUser?.aiReportEnabled !== false && (
+                          <button 
+                            onClick={async (e) => { 
+                              e.stopPropagation();
+                              const btn = e.target;
+                              const originalText = btn.innerText;
+                              btn.innerText = "⏳ Generazione...";
+                              btn.disabled = true;
+                              try {
+                                const res = await fetch('/api/ai/generate-report', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ projectId: project.id })
+                                });
+                                const data = await res.json();
+                                if (data.report) {
+                                  alert("REPORT PER IL CLIENTE:\n\n" + data.report + "\n\n(Premendo OK, il testo verrà copiato negli appunti)");
+                                  navigator.clipboard.writeText(data.report).catch(()=>{});
+                                } else {
+                                  alert("Errore AI: " + data.error);
+                                }
+                              } catch (err) {
+                                alert("Errore connessione");
+                              } finally {
+                                btn.innerText = originalText;
+                                btn.disabled = false;
+                              }
+                            }}
+                            style={{ background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', padding: '0.3rem 0.6rem', fontWeight: 'bold' }}
+                          >
+                            ✨ Genera Report
+                          </button>
+                        )}
+                      </div>
                       
                       {expandedProjects[project.id] && (
                         <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: '200px', overflowY: 'auto', paddingRight: '0.2rem' }}>
