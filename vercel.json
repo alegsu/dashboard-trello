@@ -11,10 +11,6 @@
     {
       "path": "/api/cron/auto-archive",
       "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/cron/process-queue",
-      "schedule": "*/5 * * * *"
     }
   ]
 }
