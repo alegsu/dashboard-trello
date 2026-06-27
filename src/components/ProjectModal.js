@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { X, Save, Folder, Clock, DollarSign, Tag, Calendar, AlertCircle, Copy as CopyIcon, Sparkles } from 'lucide-react';
+import { X, Save, Folder, Clock, DollarSign, Tag, Calendar, AlertCircle, Copy as CopyIcon, Sparkles, CheckCircle, Users, Activity } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
 import styles from './CardModal.module.css'; // Possiamo riusare alcuni stili del CardModal
 
 export default function ProjectModal({ project, clients, members, currentUser, onClose, onRefresh }) {
@@ -21,8 +22,39 @@ export default function ProjectModal({ project, clients, members, currentUser, o
     driveFolderId: project.driveFolderId || ''
   });
 
-  const [showAdvanced, setShowAdvanced] = useState(false);
+    driveFolderId: project.driveFolderId || ''
+  });
+
   const hasAdvancedData = !!(project.sellingPrice || project.budget || project.estimatedHours || project.actualHours || project.effort);
+  const [showAdvanced, setShowAdvanced] = useState(hasAdvancedData);
+
+  // Stats Data
+  const allCards = project.cards || [];
+  const completedCards = allCards.filter(c => c.list?.name?.toLowerCase().includes('fatt') || c.list?.name?.toLowerCase().includes('completat') || c.isArchived || c.list?.type === 'done');
+  const activeCards = allCards.filter(c => !completedCards.includes(c));
+  
+  const progressPercent = allCards.length > 0 ? Math.round((completedCards.length / allCards.length) * 100) : 0;
+  
+  // Extract Assignees
+  const assigneeMap = {};
+  allCards.forEach(c => {
+    (c.assignees || []).forEach(a => {
+      if (!assigneeMap[a.id]) assigneeMap[a.id] = a;
+    });
+  });
+  const projectAssignees = Object.values(assigneeMap);
+
+  // Chart Data: tasks with due date
+  const chartData = activeCards.filter(c => c.dueDate).map(c => {
+    const diffTime = new Date(c.dueDate) - new Date();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return {
+      name: c.name.length > 15 ? c.name.substring(0, 15) + '...' : c.name,
+      fullName: c.name,
+      'Giorni Rimanenti': diffDays,
+      fill: diffDays < 0 ? 'var(--status-danger)' : diffDays <= 3 ? 'var(--status-warning)' : 'var(--accent-primary)'
+    };
+  }).sort((a, b) => a['Giorni Rimanenti'] - b['Giorni Rimanenti']);
 
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
@@ -226,14 +258,102 @@ export default function ProjectModal({ project, clients, members, currentUser, o
             </div>
           </div>
 
-          {aiSummary && (
-            <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--accent-primary)' }}><Sparkles size={16}/> Riassunto Progetto (AI)</h4>
-              <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'var(--bg-glass)', padding: '0.75rem', borderRadius: '6px' }}>
-                {aiSummary.split('\n').map((line, i) => <p key={i} style={{ margin: '0 0 0.5rem 0' }}>{line}</p>)}
+          {/* Main Content Sections */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--accent-primary)' }}>
+                  <Activity size={16}/> Statistiche Progetto
+                </h4>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Avanzamento</span>
+                  <span style={{ fontWeight: 'bold' }}>{progressPercent}%</span>
+                </div>
+                <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '1rem' }}>
+                  <div style={{ width: `${progressPercent}%`, height: '100%', background: 'var(--status-success)', transition: 'width 0.3s ease' }}></div>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Task Totali</span>
+                  <span style={{ fontWeight: 'bold' }}>{allCards.length}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Task da Completare</span>
+                  <span style={{ fontWeight: 'bold' }}>{activeCards.length}</span>
+                </div>
+                
+                {projectAssignees.length > 0 && (
+                  <div style={{ marginTop: '1rem' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.5rem' }}>
+                      <Users size={14}/> Team Coinvolto
+                    </span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                      {projectAssignees.map(a => (
+                        <div key={a.id} title={a.name} style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--accent-primary)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 'bold' }}>
+                          {a.name.substring(0, 2).toUpperCase()}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', height: '100%' }}>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--accent-primary)' }}>
+                  <Calendar size={16}/> Roadmap Obiettivi
+                </h4>
+                {chartData.length > 0 ? (
+                  <div style={{ height: '200px', width: '100%' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
+                        <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
+                        <Tooltip 
+                          contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '12px' }}
+                          formatter={(value, name, props) => [`${value} giorni`, 'Obiettivo']}
+                          labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
+                        />
+                        <ReferenceLine y={0} stroke="var(--border-color)" />
+                        <Bar dataKey="Giorni Rimanenti" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '150px', color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic', textAlign: 'center' }}>
+                    Nessun task con scadenza assegnata per tracciare la roadmap.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--accent-primary)' }}><CheckCircle size={16}/> Lista Task Attivi</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto' }}>
+              {activeCards.length === 0 ? (
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic', padding: '1rem', textAlign: 'center' }}>
+                  Nessun task attivo. Ottimo lavoro!
+                </div>
+              ) : (
+                activeCards.map(c => (
+                  <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-glass)', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontWeight: '500', fontSize: '0.95rem' }}>{c.name}</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>in {c.list?.name || 'Sconosciuta'}</span>
+                    </div>
+                    {c.dueDate && (
+                      <div style={{ fontSize: '0.8rem', color: new Date(c.dueDate) < new Date() ? 'var(--status-danger)' : 'var(--text-secondary)', background: 'var(--bg-primary)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                        {new Date(c.dueDate).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
 
           {/* Comments Section */}
           <div style={{ marginTop: '1rem' }}>
@@ -267,28 +387,36 @@ export default function ProjectModal({ project, clients, members, currentUser, o
 
         {/* Sidebar Data Area */}
         <div style={{ flex: 1, paddingLeft: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-            <button onClick={handleSave} disabled={saving} className={styles.btnSecondary} style={{ background: 'var(--status-success)', color: 'white', border: 'none', padding: '0.4rem 0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <Save size={14} /> Salva
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.4rem', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+            <button onClick={handleSave} disabled={saving} title="Salva Modifiche" style={{ background: 'transparent', color: 'var(--status-success)', border: '1px solid var(--status-success)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Save size={14} />
             </button>
-            <button onClick={generateSummary} disabled={loadingSummary} className={styles.btnSecondary} style={{ background: 'var(--accent-primary)', color: '#000', border: 'none', padding: '0.4rem 0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <Sparkles size={14} /> AI
+            <button onClick={generateSummary} disabled={loadingSummary} title="Genera Riassunto AI" style={{ background: 'transparent', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Sparkles size={14} />
             </button>
-            <button onClick={handleClone} className={styles.btnSecondary} style={{ background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '0.4rem 0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <CopyIcon size={14} /> Clona
+            <button onClick={handleClone} title="Clona Progetto" style={{ background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <CopyIcon size={14} />
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginLeft: 'auto' }}>
-              <button onClick={handleArchive} title="Archivia" style={{ background: 'transparent', border: '1px solid var(--status-warning)', color: 'var(--status-warning)', cursor: 'pointer', padding: '0.4rem', borderRadius: '4px' }}>
-                <Folder size={14} />
-              </button>
-              <button onClick={handleDelete} title="Elimina" style={{ background: 'transparent', border: '1px solid var(--status-danger)', color: 'var(--status-danger)', cursor: 'pointer', padding: '0.4rem', borderRadius: '4px' }}>
-                <X size={14} />
-              </button>
-              <button onClick={onClose} title="Chiudi" style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.4rem' }}>
-                <X size={20} />
-              </button>
-            </div>
+            <button onClick={handleArchive} title="Archivia" style={{ background: 'transparent', color: 'var(--status-warning)', border: '1px solid var(--status-warning)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Folder size={14} />
+            </button>
+            <button onClick={handleDelete} title="Elimina" style={{ background: 'transparent', color: 'var(--status-danger)', border: '1px solid var(--status-danger)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <X size={14} />
+            </button>
+            <div style={{ width: '1px', height: '24px', background: 'var(--border-color)', margin: '0 0.2rem' }}></div>
+            <button onClick={onClose} title="Chiudi" style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.4rem' }}>
+              <X size={20} />
+            </button>
           </div>
+
+          {aiSummary && (
+            <div style={{ background: 'var(--bg-elevated)', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.1)' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--accent-primary)', fontSize: '0.85rem' }}><Sparkles size={14}/> AI Insight</h4>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)', lineHeight: '1.4' }}>
+                {aiSummary.split('\n').map((line, i) => <p key={i} style={{ margin: '0 0 0.3rem 0' }}>{line}</p>)}
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.8rem' }}>
             <div>
@@ -343,11 +471,11 @@ export default function ProjectModal({ project, clients, members, currentUser, o
                 className={styles.btnSecondary}
                 style={{ fontSize: '0.8rem', padding: '0.3rem 0.8rem', background: 'transparent', border: '1px dashed var(--border-color)' }}
               >
-                {showAdvanced || hasAdvancedData ? 'Nascondi campi avanzati' : 'Aggiungi dettagli (Costi, Ore, Effort...)'}
+                {showAdvanced ? 'Nascondi campi avanzati' : 'Aggiungi dettagli (Costi, Ore, Effort...)'}
               </button>
             </div>
 
-            {(showAdvanced || hasAdvancedData) && (
+            {showAdvanced && (
               <>
                 <div>
                   <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><DollarSign size={12}/> Prezzo Vendita (€)</label>
