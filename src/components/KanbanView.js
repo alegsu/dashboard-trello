@@ -444,12 +444,12 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                 const r = parseInt(hex.substring(0,2), 16) || 30;
                 const g = parseInt(hex.substring(2,4), 16) || 41;
                 const b = parseInt(hex.substring(4,6), 16) || 59;
-                bgColor = `rgba(${r}, ${g}, ${b}, 0.25)`;
+                bgColor = `rgba(${r}, ${g}, ${b}, 0.15)`;
               }
 
               return (
                 <div key={clientId} className={styles.kanbanSwimlane} style={{ background: bgColor }}>
-                  <div className={styles.kanbanUserHeader}>
+                  <div className={styles.kanbanUserHeader} style={{ background: bgColor === 'transparent' ? 'var(--bg-primary)' : bgColor }}>
                      {client?.name}
                   </div>
                   <div className={styles.kanbanSwimlaneCells}>
@@ -524,7 +524,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                               </div>
                             </div>
                           ) : (
-                            <div className={styles.addCardBtn} onClick={() => setNewCardCell(cellKey)} title="Aggiungi Task">+</div>
+                            <div className={styles.addCardBtn} onClick={() => setNewCardCell({ clientId, listId: list.id })} title="Aggiungi Task">+</div>
                           )}
                         </div>
                       )

@@ -199,12 +199,6 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
               v2.8.0
             </span>
-            {currentTime && (
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginLeft: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', textTransform: 'capitalize' }}>
-                <Clock size={14} /> 
-                {currentTime.toLocaleString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-              </div>
-            )}
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -275,9 +269,10 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
                 </button>
               </div>
             )}
-            {!zenMode && (
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                Liste: {boardLists.length} | Task: {boardCards.length}
+            {currentTime && (
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginLeft: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', textTransform: 'capitalize' }}>
+                <Clock size={14} /> 
+                {currentTime.toLocaleString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </div>
             )}
           </div>

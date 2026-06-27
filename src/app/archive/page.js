@@ -74,7 +74,7 @@ export default async function ArchivePage() {
                     </form>
                     <form action={deleteCard}>
                       <input type="hidden" name="id" value={card.id} />
-                      <button type="submit" className={styles.deleteButton} style={{ background: '#b91c1c', color: 'white', padding: '0.4rem 0.8rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={(e) => { if(!window.confirm('Eliminare definitivamente?')) e.preventDefault(); }}>Elimina</button>
+                      <button type="submit" className={styles.deleteButton} style={{ background: '#b91c1c', color: 'white', padding: '0.4rem 0.8rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }} title="Attenzione: questa azione è irreversibile">Elimina Definitivamente</button>
                     </form>
                   </td>
                 </tr>
