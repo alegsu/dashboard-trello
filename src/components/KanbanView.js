@@ -478,8 +478,9 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                                 className={styles.kanbanCard}
                                 onClick={() => setSelectedCardId(card.id)}
                                 style={{ 
-                                  background: card.color || 'var(--bg-secondary)',
-                                  color: getContrastYIQ(card.color)
+                                  background: card.color ? card.color : (bgColor === 'transparent' ? 'var(--bg-secondary)' : 'rgba(0, 0, 0, 0.2)'),
+                                  color: getContrastYIQ(card.color || (bgColor === 'transparent' ? '#1e293b' : '#000000')),
+                                  border: bgColor !== 'transparent' && !card.color ? '1px solid rgba(255,255,255,0.1)' : undefined
                                 }}
                               >
                                 {card.labels && card.labels.length > 0 && (
