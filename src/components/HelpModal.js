@@ -1,0 +1,62 @@
+import React from 'react';
+
+export default function HelpModal({ onClose }) {
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+    }}>
+      <div style={{
+        background: 'var(--bg-secondary)', width: '600px', maxWidth: '90%', maxHeight: '90vh',
+        borderRadius: '12px', padding: '2rem', overflowY: 'auto', border: '1px solid var(--border-color)',
+        boxShadow: 'var(--shadow-lg)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2 style={{ margin: 0, color: 'var(--accent-primary)' }}>Guida e Automazioni</h2>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', lineHeight: '1.6' }}>
+          <section>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Le Basi del Gestionale</h3>
+            <p>Benvenuto! Questo gestionale è organizzato in tre livelli principali:</p>
+            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem' }}>
+              <li><strong>Progetti:</strong> Contenitori generali (es. "Sito Web Cliente X").</li>
+              <li><strong>Bacheche:</strong> Gruppi di liste all'interno di un progetto.</li>
+              <li><strong>Liste & Schede (Kanban):</strong> Il cuore operativo. Trascina le schede per aggiornarne lo stato.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>✨ Automazioni Attive</h3>
+            <p>Abbiamo creato alcune logiche intelligenti per velocizzare il lavoro:</p>
+            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <li>
+                <strong>Sincronizzazione Checklist ↔ Liste:</strong> 
+                Se sposti una scheda in una colonna chiamata "Fatto" (o "Completato"), tutte le sue checklist verranno spuntate automaticamente. Viceversa, se spunti tutte le voci delle checklist all'interno di una scheda, essa verrà spostata da sola nella colonna "Fatto".
+              </li>
+              <li>
+                <strong>Archiviazione Automatica:</strong> 
+                Per tenere pulite le bacheche, ogni notte il sistema verifica se ci sono schede ferme nella lista "Fatto" da più di <strong>7 giorni</strong>. In caso affermativo, le archivia in automatico (non le elimina, potrai sempre ritrovarle nella pagina Progetti archiviati).
+              </li>
+              <li>
+                <strong>Allarme Scadenze (Rosso Lampeggiante):</strong> 
+                Se una scheda si avvicina alla scadenza (meno di 24 ore) o l'ha superata, e non si trova ancora nella colonna "Fatto", la data sulla scheda inizierà a <strong>lampeggiare di rosso</strong> per attirare l'attenzione.
+              </li>
+              <li>
+                <strong>Colori Alternati:</strong> 
+                Nella vista Kanban e nella Rubrica Clienti, le righe hanno sfondi alternati per capire immediatamente a quale cliente appartiene ciascuna scheda orizzontalmente.
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Menzioni e Notifiche</h3>
+            <p>Nei commenti e nelle note delle checklist puoi digitare <code>@</code> per menzionare un collaboratore. Questa persona riceverà un'email di avviso con il link diretto per aprire la scheda e leggere il tuo messaggio!</p>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
