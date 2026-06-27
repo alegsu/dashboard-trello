@@ -2,7 +2,7 @@ import React from 'react';
 import { Calendar, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import CardModal from './CardModal';
 
-export default function MyTasksView({ cards, currentUser, clients, boards, allMembers, onCardUpdate, lists }) {
+export default function MyTasksView({ cards, currentUser, clients, boards, allMembers, onCardUpdate, lists, onRefresh }) {
   const [selectedCard, setSelectedCard] = React.useState(null);
 
   if (!currentUser) return <div>Caricamento...</div>;
@@ -122,15 +122,20 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
 
       {selectedCard && (
         <CardModal
-          card={selectedCard}
-          onClose={() => setSelectedCard(null)}
-          onUpdate={(updatedCard) => {
-            onCardUpdate(updatedCard);
-            setSelectedCard(updatedCard); // Aggiorna in locale la view modale
+          cardId={selectedCard.id}
+          members={allMembers}
+          onClose={() => {
+            setSelectedCard(null);
+            // Optionally we can trigger a refresh here if we passed onRefresh,
+            // but onCardUpdate is available. Wait, CardModal expects onRefresh to trigger re-fetch.
+            // We can just call a window.location.reload() or pass a dummy function that relies on global state
+            // Actually DashboardClient.js handles handleRefresh. Let's pass a refresh mechanism if needed.
           }}
-          boards={boards}
+          onRefresh={() => {
+            if (onRefresh) onRefresh();
+            if (onCardUpdate) onCardUpdate(selectedCard);
+          }}
           currentUser={currentUser}
-          boardMembers={allMembers}
         />
       )}
     </div>

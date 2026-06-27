@@ -452,6 +452,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               allMembers={initialMembers}
               lists={initialLists || []}
               onCardUpdate={handleCardUpdate} 
+              onRefresh={handleRefresh}
             />
           )}
           {view === 'settings' && (
