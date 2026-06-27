@@ -8,7 +8,8 @@ import SettingsPanel from './SettingsPanel';
 import ProjectsView from './ProjectsView';
 import ClientsView from './ClientsView';
 import PomodoroTimer from './PomodoroTimer';
-import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell } from 'lucide-react';
+import HelpModal from './HelpModal';
+import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle } from 'lucide-react';
 
 export default function DashboardClient({ initialBoards, initialLists, initialCards, initialMembers, initialClients }) {
   const router = useRouter();
@@ -32,6 +33,9 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
   // Notifications
   const [notifications, setNotifications] = useState([]);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+
+  // Help Modal
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/projects').then(r => r.json()).then(data => { if(Array.isArray(data)) setAllProjects(data) });
@@ -157,6 +161,13 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <button 
+              onClick={() => setIsHelpOpen(true)}
+              style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.3s' }}
+              title="Guida e Automazioni"
+            >
+              <HelpCircle size={20} />
+            </button>
             <button 
               onClick={() => setZenMode(!zenMode)}
               style={{ background: zenMode ? 'var(--accent-primary)' : 'rgba(161, 189, 207, 0.05)', color: zenMode ? 'white' : 'var(--accent-primary)', border: '1px solid var(--accent-primary)', borderRadius: '20px', padding: '0.4rem 1rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.3s', boxShadow: zenMode ? '0 0 15px rgba(161, 189, 207, 0.5)' : 'none' }}
@@ -441,6 +452,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
       </div>
       
       {zenMode && <PomodoroTimer />}
+      {isHelpOpen && <HelpModal onClose={() => setIsHelpOpen(false)} />}
     </main>
   );
 }

@@ -90,6 +90,7 @@ model Card {
   labels      Label[]   @relation("CardLabels")
   attachments Attachment[]
 
+  updatedAt   DateTime @default(now()) @updatedAt
   isArchived Boolean @default(false)
 }
 

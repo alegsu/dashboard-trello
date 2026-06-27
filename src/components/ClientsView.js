@@ -123,7 +123,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
             </label>
           </div>
           <ul style={{ listStyle: 'none', padding: 0 }}>
-            {clients.filter(c => filterActive ? !!c.sheetData : true).map(c => (
+            {clients.filter(c => filterActive ? !!c.sheetData : true).map((c, index) => (
               <li 
                 key={c.id} 
                 onClick={() => handleSelectClient(c)}
@@ -131,7 +131,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                   padding: '0.75rem', 
                   borderBottom: '1px solid var(--border-color)', 
                   cursor: 'pointer',
-                  background: selectedClient?.id === c.id ? 'var(--bg-elevated)' : 'transparent',
+                  background: selectedClient?.id === c.id ? 'var(--bg-elevated)' : (index % 2 === 0 ? 'transparent' : 'rgba(161, 189, 207, 0.05)'),
                   fontWeight: selectedClient?.id === c.id ? 'bold' : 'normal'
                 }}
               >

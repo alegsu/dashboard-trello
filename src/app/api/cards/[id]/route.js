@@ -43,6 +43,19 @@ export async function PUT(request, { params }) {
       };
     }
 
+    if (data.listId) {
+      const newList = await prisma.list.findUnique({ where: { id: data.listId } });
+      if (newList && (newList.name.toLowerCase().includes('fatto') || newList.name.toLowerCase().includes('completat'))) {
+        const checklists = await prisma.checklist.findMany({ where: { cardId: id } });
+        for (const cl of checklists) {
+          await prisma.checklistItem.updateMany({
+            where: { checklistId: cl.id, isCompleted: false },
+            data: { isCompleted: true }
+          });
+        }
+      }
+    }
+
     const updated = await prisma.card.update({
       where: { id },
       data: updateData,

@@ -49,6 +49,35 @@ export async function PUT(request, { params }) {
       await processMentions(data.notes, data.authorId, link, `Checklist: ${updated.text}`);
     }
 
+    // Automazione: Se tutte le voci della scheda sono completate, spostala in "Fatto"
+    if (data.isCompleted !== undefined && updated.checklist?.cardId) {
+      const cardId = updated.checklist.cardId;
+      const incompleteCount = await prisma.checklistItem.count({
+        where: {
+          checklist: { cardId: cardId },
+          isCompleted: false
+        }
+      });
+
+      if (incompleteCount === 0) {
+        const targetList = await prisma.list.findFirst({
+          where: {
+            boardId: updated.checklist.card.boardId,
+            OR: [
+              { name: { contains: 'fatto', mode: 'insensitive' } },
+              { name: { contains: 'completat', mode: 'insensitive' } }
+            ]
+          }
+        });
+        if (targetList && updated.checklist.card.listId !== targetList.id) {
+          await prisma.card.update({
+            where: { id: cardId },
+            data: { listId: targetList.id }
+          });
+        }
+      }
+    }
+
     return NextResponse.json(updated);
   } catch (err) {
     return NextResponse.json({ error: 'Error updating item' }, { status: 500 });

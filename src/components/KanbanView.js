@@ -423,22 +423,20 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
          </div>
 
          <div className={styles.kanbanBody}>
-            {allClientIds.map(clientId => {
+            {allClientIds.filter(clientId => {
               const hasCards = lists.some(list => (cardsByCell[`${clientId}-${list.id}`] || []).length > 0);
-              
-              // Nascondi sempre se non ci sono task, a meno che non sia l'unico cliente filtrato (in modo da permettere di aggiungerne di nuove)
               if (!hasCards && clientId !== filterClientId) {
-                // Per l'unassigned, mostralo solo se nessun cliente è stato filtrato e non ha task? No, meglio nascondere anche unassigned se vuoto, tranne se filterClientId è vuoto e board è vuota
                 if (clientId === unassignedId && !filterClientId && Object.keys(cardsByCell).length === 0) {
-                  // Fallback: se la board è completamente vuota e non c'è filtro, mostra unassigned per permettere di creare task
+                  return true;
                 } else {
-                  return null;
+                  return false;
                 }
               }
-
+              return true;
+            }).map((clientId, rowIndex) => {
               const client = clientId === unassignedId ? { name: 'Nessun Cliente' } : clientMap.get(clientId);
               return (
-                <div key={clientId} className={styles.kanbanSwimlane}>
+                <div key={clientId} className={styles.kanbanSwimlane} style={{ background: rowIndex % 2 === 0 ? 'transparent' : 'rgba(161, 189, 207, 0.05)' }}>
                   <div className={styles.kanbanUserHeader}>
                      {client?.name}
                   </div>
@@ -446,6 +444,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                     {lists.map(list => {
                       const cellKey = `${clientId}-${list.id}`;
                       const cellCards = cardsByCell[cellKey] || [];
+                      const isDoneList = list.name.toLowerCase().includes('fatto') || list.name.toLowerCase().includes('completat');
                       return (
                         <div 
                           key={cellKey}
@@ -454,32 +453,48 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                           onDragLeave={(e) => handleDragLeaveCell(e, cellKey)}
                           onDrop={(e) => handleDropOnCell(e, cellKey)}
                         >
-                          {cellCards.map((card, index) => (
-                            <div 
-                              key={card.id}
-                              draggable={true}
-                              onDragStart={(e) => handleDragStart(e, card, cellKey, index)}
-                              onDragEnd={handleDragEnd}
-                              onDragOver={(e) => e.preventDefault()}
-                              onDrop={(e) => handleDropOnCard(e, cellKey, index)}
-                              className={styles.kanbanCard}
-                              onClick={() => setSelectedCardId(card.id)}
-                              style={{ 
-                                background: card.color || 'var(--bg-secondary)',
-                                color: getContrastYIQ(card.color)
-                              }}
-                            >
-                              {card.labels && card.labels.length > 0 && (
-                                <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
-                                  {card.labels.map(l => (
-                                    <span key={l.id} style={{ background: l.color, width: '24px', height: '6px', borderRadius: '3px' }} title={l.name}></span>
-                                  ))}
-                                </div>
-                              )}
-                              <div className={styles.kanbanCardName} style={{ color: getContrastYIQ(card.color) }}>{card.name}</div>
-                              {card.due && <div className={styles.kanbanCardDue} style={{ color: getContrastYIQ(card.color) }}>📅 {new Date(card.due).toLocaleDateString('it-IT')}</div>}
-                            </div>
-                          ))}
+                          {cellCards.map((card, index) => {
+                            const isDueApproaching = card.due && new Date(card.due) <= new Date(Date.now() + 24 * 60 * 60 * 1000);
+                            return (
+                              <div 
+                                key={card.id}
+                                draggable={true}
+                                onDragStart={(e) => handleDragStart(e, card, cellKey, index)}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => handleDropOnCard(e, cellKey, index)}
+                                className={styles.kanbanCard}
+                                onClick={() => setSelectedCardId(card.id)}
+                                style={{ 
+                                  background: card.color || 'var(--bg-secondary)',
+                                  color: getContrastYIQ(card.color)
+                                }}
+                              >
+                                {card.labels && card.labels.length > 0 && (
+                                  <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
+                                    {card.labels.map(l => (
+                                      <span key={l.id} style={{ background: l.color, width: '24px', height: '6px', borderRadius: '3px' }} title={l.name}></span>
+                                    ))}
+                                  </div>
+                                )}
+                                <div className={styles.kanbanCardName} style={{ color: getContrastYIQ(card.color) }}>{card.name}</div>
+                                {card.due && (
+                                  <div 
+                                    className={`${styles.kanbanCardDue} ${isDueApproaching && !isDoneList ? 'blink-red' : ''}`} 
+                                    style={{ 
+                                      color: isDueApproaching && !isDoneList ? 'white' : getContrastYIQ(card.color),
+                                      background: isDueApproaching && !isDoneList ? 'var(--status-danger)' : 'transparent',
+                                      padding: isDueApproaching && !isDoneList ? '0.1rem 0.4rem' : '0',
+                                      borderRadius: '4px'
+                                    }}
+                                    title={isDueApproaching && !isDoneList ? "Attenzione: Scadenza imminente o superata e task non completato!" : ""}
+                                  >
+                                    📅 {new Date(card.due).toLocaleDateString('it-IT')}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                           
                           {newCardCell === cellKey ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.3rem' }}>
