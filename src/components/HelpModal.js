@@ -57,6 +57,14 @@ export default function HelpModal({ onClose }) {
           </section>
 
           <section>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.9.0)</h3>
+            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <li>🗑️ <strong>Elimina dall'Archivio:</strong> I pulsanti "Elimina" nell'Archivio Storico (bacheche, liste, progetti, schede) ora funzionano correttamente! Le entità vengono cancellate definitivamente dal database con tutte le dipendenze.</li>
+              <li>🗜️ <strong>Impostazioni Compatte:</strong> L'intera pagina Impostazioni è stata ridisegnata con meno spazi, meno margini e testi più concisi. Tutto è visibile senza dover scrollare inutilmente.</li>
+            </ul>
+          </section>
+
+          <section>
             <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.5)</h3>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <li>🐛 <strong>Fix Banda Scura DEFINITIVO:</strong> Rimosso il background e il height: 100% dal kanbanContainer che causava il doppio gradiente di colore sulle righe dei clienti. Trovato grazie alla segnalazione precisa dell'utente!</li>

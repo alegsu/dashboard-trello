@@ -42,3 +42,23 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ error: 'Errore durante l\'aggiornamento della bacheca' }, { status: 500 });
   }
 }
+
+export async function DELETE(request, { params }) {
+  try {
+    const { id } = await params;
+    
+    // Delete all cards in this board first (cascades to checklists, comments, attachments)
+    await prisma.card.deleteMany({ where: { boardId: id } });
+    // Delete all lists in this board
+    await prisma.list.deleteMany({ where: { boardId: id } });
+    // Delete all labels in this board
+    await prisma.label.deleteMany({ where: { boardId: id } });
+    // Delete the board itself
+    await prisma.board.delete({ where: { id } });
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting board:', error);
+    return NextResponse.json({ error: 'Errore durante l\'eliminazione della bacheca' }, { status: 500 });
+  }
+}

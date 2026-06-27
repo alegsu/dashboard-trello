@@ -200,7 +200,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
 
       <h2 className={styles.title}>⚙️ Impostazioni & Gestione</h2>
       
-      {error && <div style={{background: '#fee2e2', color: '#b91c1c', padding: '1rem', borderRadius: '8px', marginBottom: '1rem'}}>{error}</div>}
+      {error && <div style={{background: '#fee2e2', color: '#b91c1c', padding: '0.5rem', borderRadius: '6px', marginBottom: '0.5rem', fontSize: '0.82rem'}}>{error}</div>}
 
       <div className={styles.grid}>
         {/* Gestione Team */}
@@ -210,16 +210,16 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           
           <ul className={styles.list}>
             {liveMembers.map(m => (
-              <li key={m.id} className={styles.listItem} style={{ alignItems: 'flex-start', flexWrap: 'wrap', padding: '1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '1 1 200px' }}>
+              <li key={m.id} className={styles.listItem} style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 150px' }}>
                   <div className={styles.avatar}>{m.name.charAt(0).toUpperCase()}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                     <strong>{m.name}</strong>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{m.email || 'Nessuna email'}</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{m.email || 'Nessuna email'}</span>
                   </div>
                 </div>
                 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '1 1 300px', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 250px', justifyContent: 'space-between', marginTop: '0.3rem' }}>
                   <div>
                     {effectiveCurrentUser?.role === 'admin' && m.id !== effectiveCurrentUser.id ? (
                       <select 
@@ -232,7 +232,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                           });
                           window.location.reload();
                         }}
-                        style={{ fontSize: '0.8rem', padding: '0.3rem', background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                        style={{ fontSize: '0.75rem', padding: '0.2rem', background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
                       >
                         <option value="user">Utente</option>
                         <option value="admin">Amministratore</option>
@@ -245,7 +245,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                   </div>
 
                   {effectiveCurrentUser?.role === 'admin' && (
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'var(--bg-elevated)', padding: '0.4rem 0.8rem', borderRadius: '4px', textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', background: 'var(--bg-elevated)', padding: '0.2rem 0.5rem', borderRadius: '4px', textAlign: 'right' }}>
                       <div style={{ marginBottom: '2px' }}><strong>Logins:</strong> {m.loginCount || 0}</div>
                       <div><strong>Tempo:</strong> {m.totalUsageTime ? Math.round(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m</div>
                     </div>
@@ -256,7 +256,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
             {liveMembers.length === 0 && <p className={styles.empty}>Nessun membro. Aggiungine uno!</p>}
           </ul>
 
-          <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'rgba(0,0,0,0.1)', padding: '1rem', borderRadius: '8px', marginTop: '2rem'}}>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '0.3rem', background: 'rgba(0,0,0,0.1)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.5rem'}}>
             <input 
               type="text" 
               value={newUserName} 
@@ -286,7 +286,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
         <div className={styles.card}>
           <h3>🎨 Il Mio Account</h3>
           <p className={styles.subtitle}>Gestisci le tue preferenze visive e le notifiche email.</p>
-          <div style={{ background: 'var(--bg-glass)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+          <div style={{ background: 'var(--bg-glass)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span>Tema visivo:</span>
             <select 
               value={effectiveCurrentUser?.theme || 'dark'}
@@ -308,34 +308,34 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
             </select>
           </div>
 
-          <h3 style={{ marginTop: '2rem' }}>🔔 Notifiche Email</h3>
-          <p className={styles.subtitle}>Scegli quando desideri ricevere un avviso via email sulla tua casella.</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'var(--bg-glass)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginTop: '1rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+          <h3 style={{ marginTop: '0.8rem' }}>🔔 Notifiche Email</h3>
+          <p className={styles.subtitle}>Scegli quando ricevere un avviso via email.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', background: 'var(--bg-glass)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.8rem' }}>
               <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.notifyMentions !== false} onChange={() => toggleUserPreference('notifyMentions', effectiveCurrentUser?.notifyMentions !== false)} />
               Quando vengo @menzionato in un commento
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.8rem' }}>
               <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.notifyAssignedCard !== false} onChange={() => toggleUserPreference('notifyAssignedCard', effectiveCurrentUser?.notifyAssignedCard !== false)} />
               Quando vengo assegnato a una scheda
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.8rem' }}>
               <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.notifyAssignedList !== false} onChange={() => toggleUserPreference('notifyAssignedList', effectiveCurrentUser?.notifyAssignedList !== false)} />
               Quando vengo assegnato a una lista intera
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.8rem' }}>
               <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.notifyCardDue !== false} onChange={() => toggleUserPreference('notifyCardDue', effectiveCurrentUser?.notifyCardDue !== false)} />
               Quando una scheda a me assegnata è in scadenza
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.8rem' }}>
               <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.notifyDailyRecap !== false} onChange={() => toggleUserPreference('notifyDailyRecap', effectiveCurrentUser?.notifyDailyRecap !== false)} />
               Recap quotidiano delle mie attività (Mattina)
             </label>
           </div>
 
-          <h3 style={{ marginTop: '2rem' }}>✨ Intelligenza Artificiale</h3>
-          <p className={styles.subtitle}>Scegli quali assistenti AI attivare sul tuo account.</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'var(--bg-glass)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginTop: '1rem' }}>
+          <h3 style={{ marginTop: '0.8rem' }}>✨ AI</h3>
+          <p className={styles.subtitle}>Assistenti AI attivi sul tuo account.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', background: 'var(--bg-glass)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
               <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }} checked={effectiveCurrentUser?.aiChecklistEnabled !== false} onChange={() => toggleUserPreference('aiChecklistEnabled', effectiveCurrentUser?.aiChecklistEnabled !== false)} />
               <strong>Generatore Checklist:</strong> Crea sotto-task in automatico dentro le schede
@@ -367,7 +367,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                       if (onRefresh) onRefresh();
                     }
                   }}
-                  style={{ background: 'transparent', border: '1px solid var(--status-warning)', color: 'var(--status-warning)', borderRadius: '4px', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.8rem' }}
+                  style={{ background: 'transparent', border: '1px solid var(--status-warning)', color: 'var(--status-warning)', borderRadius: '4px', padding: '0.15rem 0.4rem', cursor: 'pointer', fontSize: '0.72rem' }}
                 >
                   Archivia
                 </button>
@@ -393,10 +393,10 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
 
         {/* Impostazioni Vista Kanban */}
         <div className={styles.card}>
-          <h3>🔍 Impostazioni Vista Kanban</h3>
-          <p className={styles.subtitle}>Regola lo zoom per visualizzare più elementi o ingrandire il testo.</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
-            <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Livello di Zoom</label>
+          <h3>🔍 Zoom Kanban</h3>
+          <p className={styles.subtitle}>Regola lo zoom della vista Kanban.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Livello di Zoom</label>
             <input 
               type="range" 
               min="50" 
@@ -413,18 +413,15 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
             <div id="zoomLevelLabel" style={{ textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
               {typeof window !== 'undefined' ? (localStorage.getItem('kanbanZoom') || '100') : '100'}%
             </div>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-              Le modifiche avranno effetto immediato la prossima volta che apri la vista Kanban.
-            </p>
+            <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', margin: '0' }}>Effetto immediato al prossimo caricamento Kanban.</p>
           </div>
         </div>
 
         {/* Impostazioni Email */}
         <div className={styles.card}>
-          <h3>📧 Server di Posta (SMTP)</h3>
-          <p className={styles.subtitle}>Configura l'email da cui il gestionale invierà le notifiche (es. quando assegni un task).</p>
-          
-          <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem'}}>
+          <h3>📧 SMTP</h3>
+          <p className={styles.subtitle}>Email per le notifiche automatiche.</p>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '0.3rem'}}>
             <input 
               type="text" 
               value={smtpHost} 
@@ -454,8 +451,8 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
               className={styles.input}
             />
             
-            <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }} />
-            <h4 style={{ margin: 0, fontSize: '0.9rem' }}>URL di Produzione (Per le Email)</h4>
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.3rem 0' }} />
+            <h4 style={{ margin: 0, fontSize: '0.8rem' }}>URL di Produzione</h4>
             <input 
               type="url" 
               value={baseUrl} 
@@ -473,10 +470,8 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
 
         {/* Generatore di Template Operativi */}
         <div className={styles.card}>
-          <h3>Generatore di Template Operativi</h3>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-            Seleziona un template dal file Markdown e assegnalo a un cliente e a una lista per generare automaticamente la scheda con tutte le checklist.
-          </p>
+          <h3>📄 Template Operativi</h3>
+          <p className={styles.subtitle}>Genera schede da template Markdown con checklist.</p>
           <div className={styles.formGroup}>
             <label>Template (Dal file .md)</label>
             <select className={styles.input} style={{ padding: '0.4rem 0.5rem' }} value={selectedTemplateTitle} onChange={e => setSelectedTemplateTitle(e.target.value)}>
@@ -518,9 +513,9 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           <h3>🗑️ Archivio Storico</h3>
           <p className={styles.subtitle}>Gli elementi archiviati vengono nascosti dal gestionale. Da qui puoi ripristinarli o eliminarli definitivamente.</p>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', marginTop: '0.5rem' }}>
             
-            <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '8px' }}>
+            <div style={{ background: 'var(--bg-secondary)', padding: '0.5rem', borderRadius: '6px' }}>
               <h4>Bacheche Archiviate</h4>
               <ul className={styles.list}>
                 {archive.boards.map(item => (
@@ -536,7 +531,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
               </ul>
             </div>
 
-            <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '8px' }}>
+            <div style={{ background: 'var(--bg-secondary)', padding: '0.5rem', borderRadius: '6px' }}>
               <h4>Progetti Archiviati</h4>
               <ul className={styles.list}>
                 {archive.projects.map(item => (
@@ -552,7 +547,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
               </ul>
             </div>
 
-            <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '8px' }}>
+            <div style={{ background: 'var(--bg-secondary)', padding: '0.5rem', borderRadius: '6px' }}>
               <h4>Liste Archiviate</h4>
               <ul className={styles.list}>
                 {archive.lists.map(item => (
@@ -568,7 +563,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
               </ul>
             </div>
 
-            <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '8px' }}>
+            <div style={{ background: 'var(--bg-secondary)', padding: '0.5rem', borderRadius: '6px' }}>
               <h4>Schede Archiviate</h4>
               <ul className={styles.list}>
                 {archive.cards.map(item => (
