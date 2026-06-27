@@ -477,7 +477,23 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <header className={styles.header}>
-          <h2>{card.name}</h2>
+          <input 
+            value={card.name || ''}
+            onChange={(e) => setCard({ ...card, name: e.target.value })}
+            onBlur={() => {
+              if (card.name && card.name.trim() !== '') {
+                updateCard({ name: card.name });
+              }
+            }}
+            onKeyDown={(e) => { if(e.key === 'Enter') e.target.blur() }}
+            style={{ 
+              fontSize: '1.5rem', fontWeight: 'bold', background: 'transparent', 
+              border: '1px solid transparent', color: 'var(--text-primary)', 
+              width: '100%', outline: 'none', borderRadius: '4px', 
+              padding: '0.2rem 0.5rem', margin: '0 -0.5rem' 
+            }}
+            title="Clicca per modificare il titolo"
+          />
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <button title="Copia Scheda" onClick={copyCard} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.5rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}>
               <Copy size={16} />
