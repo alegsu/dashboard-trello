@@ -22,9 +22,6 @@ export default function ProjectModal({ project, clients, members, currentUser, o
     driveFolderId: project.driveFolderId || ''
   });
 
-    driveFolderId: project.driveFolderId || ''
-  });
-
   const hasAdvancedData = !!(project.sellingPrice || project.budget || project.estimatedHours || project.actualHours || project.effort);
   const [showAdvanced, setShowAdvanced] = useState(hasAdvancedData);
 
