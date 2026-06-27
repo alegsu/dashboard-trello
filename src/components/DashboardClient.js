@@ -19,6 +19,31 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
   const [view, setView] = useState(initialBoards.length > 0 ? 'kanban' : 'settings'); 
   const [selectedBoardId, setSelectedBoardId] = useState(initialBoards.length > 0 ? initialBoards[0].id : '');
   
+  useEffect(() => {
+    if (typeof window !== 'undefined' && initialBoards.length > 0) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlBoardId = urlParams.get('boardId');
+      const saved = localStorage.getItem('lastSelectedBoardId');
+      
+      if (urlBoardId && initialBoards.find(b => b.id === urlBoardId)) {
+        setSelectedBoardId(urlBoardId);
+        localStorage.setItem('lastSelectedBoardId', urlBoardId);
+        // Ripulisci URL per pulizia (opzionale, ma evitiamo refresh strani)
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (saved && initialBoards.find(b => b.id === saved)) {
+        setSelectedBoardId(saved);
+      } else {
+        setSelectedBoardId(initialBoards[0].id);
+      }
+    }
+  }, [initialBoards]);
+
+  useEffect(() => {
+    if (selectedBoardId && typeof window !== 'undefined') {
+      localStorage.setItem('lastSelectedBoardId', selectedBoardId);
+    }
+  }, [selectedBoardId]);
+  
   const [showImportModal, setShowImportModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [zenMode, setZenMode] = useState(false);

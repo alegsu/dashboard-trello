@@ -54,8 +54,7 @@ export default function DocumentImportModal({ onClose, onRefresh, clients }) {
       if (res.ok) {
         setSuccess("Bacheca creata con successo!");
         setTimeout(() => {
-          onRefresh();
-          onClose();
+          window.location.href = '/?boardId=' + data.boardId;
         }, 1500);
       } else {
         setError(data.error || "Errore durante l'importazione.");
