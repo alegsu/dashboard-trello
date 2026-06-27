@@ -862,7 +862,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
                   ))}
                 </div>
                 {showAssigneesDropdown && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, background: 'var(--bg-elevated)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem', marginTop: '0.2rem', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem', marginTop: '0.2rem', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 6px rgba(0,0,0,0.5)' }}>
                     {members.map(m => {
                       const isAssigned = card.assignees.some(a => a.id === m.id);
                       return (
