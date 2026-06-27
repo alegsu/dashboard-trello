@@ -88,7 +88,7 @@
   flex: 1;
   padding: 0.5rem;
   border-right: 1px solid var(--border-color);
-  background: rgba(30, 41, 59, 0.3);
+  background: transparent;
   min-height: 100px;
   display: flex;
   flex-direction: column;
@@ -98,7 +98,7 @@
 }
 
 .kanbanCell:hover {
-  background: rgba(30, 41, 59, 0.6);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .kanbanCard {

@@ -444,7 +444,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                 const r = parseInt(hex.substring(0,2), 16) || 30;
                 const g = parseInt(hex.substring(2,4), 16) || 41;
                 const b = parseInt(hex.substring(4,6), 16) || 59;
-                bgColor = `rgba(${r}, ${g}, ${b}, 0.15)`;
+                bgColor = `rgba(${r}, ${g}, ${b}, 0.25)`;
               }
 
               return (

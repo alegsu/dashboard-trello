@@ -57,6 +57,13 @@ export default function HelpModal({ onClose }) {
           </section>
 
           <section>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.1)</h3>
+            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <li>🎨 <strong>Miglioramento Colori Kanban:</strong> Rimossa l'ombreggiatura scura delle singole celle Kanban per consentire al colore di sfondo del Cliente di risaltare maggiormente e in modo completamente omogeneo su tutta la riga.</li>
+            </ul>
+          </section>
+
+          <section>
             <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.0)</h3>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <li>✨ <strong>Gestione Clienti Avanzata:</strong> Ora nella Rubrica Clienti puoi rinominare i clienti, eliminarli definitivamente (spostando schede e progetti su "Senza Cliente") o unirli (spostando tutto su un altro cliente per eliminare i duplicati).</li>
