@@ -136,8 +136,7 @@ Nota: "labels", "labelNames" e "checklists" sono opzionali, inseriscili solo se 
     // Inserimento su Database
     const newBoard = await prisma.board.create({
       data: {
-        name: boardData.boardName,
-        clientId: clientId && clientId !== 'none' ? clientId : null,
+        name: boardData.boardName
       }
     });
 
