@@ -57,6 +57,18 @@ export default function HelpModal({ onClose }) {
           </section>
 
           <section>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.7.0)</h3>
+            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <li>✨ <strong>Migliorie Finestra Progetto:</strong> Ridisegnato completamente il layout del riepilogo Progetto. Ora la finestra è molto più ampia e professionale, i grafici sono visibili chiaramente al centro, e i dettagli accessori (costi, ore, effort) sono in una colonna destra laterale, richiamabili tramite pulsante apposito.</li>
+              <li>📊 <strong>Nuovo Grafico Avanzamento (Burn-up):</strong> Il grafico "Roadmap Temporale" ora disegna l'effettiva progressione lineare del lavoro giorno per giorno, partendo dall'inizio del progetto fino alla sua scadenza.</li>
+              <li>📈 <strong>Calcolo Percentuale Reale:</strong> La percentuale di completamento del progetto è ora calcolata sul numero di singoli <em>Task</em> e sottotask conclusi (micro-avanzamento), anziché sulle sole schede intere.</li>
+              <li>👥 <strong>Team Coinvolto:</strong> Aggiunto nella scheda Progetto un riepilogo visivo (bollini) di tutti i collaboratori impegnati, calcolato in base agli assegnatari di qualsiasi scheda o checklist del progetto.</li>
+              <li>⏱️ <strong>Orologio Integrato:</strong> Aggiunta l'indicazione di data e ora correnti nella barra principale in alto, sempre visibile in qualsiasi sezione del gestionale.</li>
+              <li>✏️ <strong>Rinomina Titolo Schede:</strong> Aggiunta la possibilità di rinominare in modo rapido il titolo di qualsiasi scheda cliccandoci direttamente sopra all'interno della finestra della scheda.</li>
+            </ul>
+          </section>
+
+          <section>
             <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.6.0)</h3>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <li>✨ <strong>Checklist Avanzate (2 Livelli):</strong> Ora puoi organizzare i tuoi task in modo molto più strutturato. Sotto a ogni voce della checklist puoi creare illimitati "sotto-task" rientrati!</li>

@@ -11,7 +11,7 @@ import PomodoroTimer from './PomodoroTimer';
 import HelpModal from './HelpModal';
 import MyTasksView from './MyTasksView';
 import DocumentImportModal from './DocumentImportModal';
-import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle } from 'lucide-react';
+import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock } from 'lucide-react';
 
 export default function DashboardClient({ initialBoards, initialLists, initialCards, initialMembers, initialClients }) {
   const router = useRouter();
@@ -47,6 +47,13 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
   const [showImportModal, setShowImportModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [zenMode, setZenMode] = useState(false);
+  const [currentTime, setCurrentTime] = useState(null);
+
+  useEffect(() => {
+    setCurrentTime(new Date());
+    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
   
   // Filtri
   const [searchQuery, setSearchQuery] = useState('');
@@ -190,8 +197,14 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.6.0
+              v2.7.0
             </span>
+            {currentTime && (
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginLeft: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', textTransform: 'capitalize' }}>
+                <Clock size={14} /> 
+                {currentTime.toLocaleString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </div>
+            )}
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
