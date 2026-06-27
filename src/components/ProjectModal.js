@@ -22,9 +22,6 @@ export default function ProjectModal({ project, clients, members, currentUser, o
     driveFolderId: project.driveFolderId || ''
   });
 
-  const hasAdvancedData = !!(project.sellingPrice || project.budget || project.estimatedHours || project.actualHours || project.effort);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-
   // Stats Data
   const allCards = project.cards || [];
   const completedCards = allCards.filter(c => c.list?.name?.toLowerCase().includes('fatt') || c.list?.name?.toLowerCase().includes('completat') || c.isArchived || c.list?.type === 'done');
@@ -51,27 +48,67 @@ export default function ProjectModal({ project, clients, members, currentUser, o
   });
   const projectAssignees = Object.values(assigneeMap);
 
-  // Timeline Charts Data
+  // Timeline Charts Data (Burn-up)
   const startD = new Date(project.createdAt || Date.now());
+  startD.setHours(0,0,0,0);
+  const todayD = new Date();
+  todayD.setHours(0,0,0,0);
   const endD = project.dueDate ? new Date(project.dueDate) : new Date(startD.getTime() + 30 * 24 * 60 * 60 * 1000);
+  endD.setHours(0,0,0,0);
   
   const timelineDays = [];
   let currentD = new Date(startD);
-  while (currentD <= endD) {
+  const lastD = endD > todayD ? endD : todayD;
+  while (currentD <= lastD) {
     timelineDays.push(new Date(currentD).toISOString().split('T')[0]);
     currentD.setDate(currentD.getDate() + 1);
   }
 
+  const totalDaysToDue = Math.max(1, Math.ceil((endD - startD) / (1000 * 60 * 60 * 24)));
+  const totalDaysToToday = Math.max(1, Math.ceil((todayD - startD) / (1000 * 60 * 60 * 24)));
+
   const cardsTimelineData = timelineDays.map(dayStr => {
-    const expected = allCards.filter(c => c.due && c.due.substring(0,10) <= dayStr).length;
-    const completed = completedCards.filter(c => c.updatedAt && c.updatedAt.substring(0,10) <= dayStr).length;
-    return { name: dayStr.substring(5), Totale: expected, Completati: completed };
+    const d = new Date(dayStr);
+    const daysFromStart = Math.ceil((d - startD) / (1000 * 60 * 60 * 24));
+    
+    let ideal = Math.round((daysFromStart / totalDaysToDue) * allCards.length);
+    if (daysFromStart < 0) ideal = 0;
+    if (daysFromStart > totalDaysToDue) ideal = allCards.length;
+
+    let actual = null;
+    if (d <= todayD) {
+      actual = Math.round((daysFromStart / totalDaysToToday) * completedCards.length);
+      if (daysFromStart < 0) actual = 0;
+    }
+
+    return { 
+      name: dayStr.substring(5).replace('-', '/'),
+      Totale: allCards.length, 
+      Ideale: ideal,
+      Completati: actual 
+    };
   });
 
   const tasksTimelineData = timelineDays.map(dayStr => {
-    const expected = allTasks.filter(t => t.dueDate && new Date(t.dueDate).toISOString().split('T')[0] <= dayStr).length;
-    const completed = completedTasks.filter(t => t.dueDate && new Date(t.dueDate).toISOString().split('T')[0] <= dayStr).length;
-    return { name: dayStr.substring(5), Totale: expected, Completati: completed };
+    const d = new Date(dayStr);
+    const daysFromStart = Math.ceil((d - startD) / (1000 * 60 * 60 * 24));
+    
+    let ideal = Math.round((daysFromStart / totalDaysToDue) * allTasks.length);
+    if (daysFromStart < 0) ideal = 0;
+    if (daysFromStart > totalDaysToDue) ideal = allTasks.length;
+
+    let actual = null;
+    if (d <= todayD) {
+      actual = Math.round((daysFromStart / totalDaysToToday) * completedTasks.length);
+      if (daysFromStart < 0) actual = 0;
+    }
+
+    return { 
+      name: dayStr.substring(5).replace('-', '/'),
+      Totale: allTasks.length, 
+      Ideale: ideal,
+      Completati: actual 
+    };
   });
 
   const [comments, setComments] = useState([]);
@@ -361,7 +398,7 @@ export default function ProjectModal({ project, clients, members, currentUser, o
                 
                 <div style={{ marginBottom: '1.5rem' }}>
                   <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Avanzamento Schede</div>
-                  <div style={{ height: '150px', width: '100%' }}>
+                  <div style={{ height: '180px', width: '100%' }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={cardsTimelineData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
@@ -369,8 +406,9 @@ export default function ProjectModal({ project, clients, members, currentUser, o
                         <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
                         <Tooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '12px' }} />
                         <Legend wrapperStyle={{ fontSize: '10px' }} />
-                        <Line type="monotone" dataKey="Totale" stroke="var(--text-secondary)" strokeWidth={2} dot={false} />
-                        <Line type="monotone" dataKey="Completati" stroke="var(--status-success)" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="Totale" stroke="rgba(255,255,255,0.1)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                        <Line type="monotone" dataKey="Ideale" stroke="var(--status-warning)" strokeWidth={2} dot={false} strokeDasharray="3 3" />
+                        <Line type="monotone" dataKey="Completati" stroke="var(--status-success)" strokeWidth={3} dot={{ r: 3 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -378,7 +416,7 @@ export default function ProjectModal({ project, clients, members, currentUser, o
 
                 <div>
                   <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Avanzamento Task (Sottotask)</div>
-                  <div style={{ height: '150px', width: '100%' }}>
+                  <div style={{ height: '180px', width: '100%' }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={tasksTimelineData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
@@ -386,8 +424,9 @@ export default function ProjectModal({ project, clients, members, currentUser, o
                         <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
                         <Tooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '12px' }} />
                         <Legend wrapperStyle={{ fontSize: '10px' }} />
-                        <Line type="monotone" dataKey="Totale" stroke="var(--text-secondary)" strokeWidth={2} dot={false} />
-                        <Line type="monotone" dataKey="Completati" stroke="var(--accent-primary)" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="Totale" stroke="rgba(255,255,255,0.1)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                        <Line type="monotone" dataKey="Ideale" stroke="var(--status-warning)" strokeWidth={2} dot={false} strokeDasharray="3 3" />
+                        <Line type="monotone" dataKey="Completati" stroke="var(--accent-primary)" strokeWidth={3} dot={{ r: 3 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -517,54 +556,42 @@ export default function ProjectModal({ project, clients, members, currentUser, o
 
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
             
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <button 
-                onClick={() => setShowAdvanced(!showAdvanced)} 
-                className={styles.btnSecondary}
-                style={{ fontSize: '0.8rem', padding: '0.3rem 0.8rem', background: 'transparent', border: '1px dashed var(--border-color)' }}
-              >
-                {showAdvanced ? 'Nascondi campi avanzati' : 'Aggiungi dettagli (Costi, Ore, Effort...)'}
-              </button>
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
+
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><DollarSign size={12}/> Prezzo Vendita (€)</label>
+              <input type="number" value={formData.sellingPrice} onChange={e => setFormData({ ...formData, sellingPrice: e.target.value })} placeholder="0.00" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
             </div>
 
-            {showAdvanced && (
-              <>
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><DollarSign size={12}/> Prezzo Vendita (€)</label>
-                  <input type="number" value={formData.sellingPrice} onChange={e => setFormData({ ...formData, sellingPrice: e.target.value })} placeholder="0.00" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
-                </div>
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><DollarSign size={12}/> Budget Costi (€)</label>
+              <input type="number" value={formData.budget} onChange={e => setFormData({ ...formData, budget: e.target.value })} placeholder="0.00" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+            </div>
 
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><DollarSign size={12}/> Budget Costi (€)</label>
-                  <input type="number" value={formData.budget} onChange={e => setFormData({ ...formData, budget: e.target.value })} placeholder="0.00" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
-                </div>
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
 
-                <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Clock size={12}/> Ore Stimate</label>
+              <input type="number" value={formData.estimatedHours} onChange={e => setFormData({ ...formData, estimatedHours: e.target.value })} placeholder="0" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+            </div>
 
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Clock size={12}/> Ore Stimate</label>
-                  <input type="number" value={formData.estimatedHours} onChange={e => setFormData({ ...formData, estimatedHours: e.target.value })} placeholder="0" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
-                </div>
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Clock size={12}/> Ore Effettive</label>
+              <input type="number" value={formData.actualHours} onChange={e => setFormData({ ...formData, actualHours: e.target.value })} placeholder="0" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+            </div>
 
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Clock size={12}/> Ore Effettive</label>
-                  <input type="number" value={formData.actualHours} onChange={e => setFormData({ ...formData, actualHours: e.target.value })} placeholder="0" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                    <AlertCircle size={12}/> Effort 
-                    <span title="Livello di Effort o Complessità da 1 a 10. Indica lo sforzo richiesto per completare il progetto (1=Basso, 10=Altissimo)." style={{ cursor: 'help', background: 'var(--bg-secondary)', borderRadius: '50%', width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>?</span>
-                  </label>
-                  <select value={formData.effort} onChange={e => setFormData({ ...formData, effort: e.target.value })} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
-                    <option value="">-- Seleziona --</option>
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                      <option key={n} value={n}>{n}</option>
-                    ))}
-                  </select>
-                </div>
-              </>
-            )}
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <AlertCircle size={12}/> Effort 
+                <span title="Livello di Effort o Complessità da 1 a 10. Indica lo sforzo richiesto per completare il progetto (1=Basso, 10=Altissimo)." style={{ cursor: 'help', background: 'var(--bg-secondary)', borderRadius: '50%', width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>?</span>
+              </label>
+              <select value={formData.effort} onChange={e => setFormData({ ...formData, effort: e.target.value })} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
+                <option value="">-- Seleziona --</option>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
             
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
             
