@@ -29,6 +29,8 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
   const [editingChecklistTitle, setEditingChecklistTitle] = useState('');
   const [editingItemId, setEditingItemId] = useState(null);
   const [editingItemText, setEditingItemText] = useState('');
+  const [showSubItemInput, setShowSubItemInput] = useState({});
+
 
   
   const [mentionQuery, setMentionQuery] = useState(null);
@@ -323,6 +325,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
       body: JSON.stringify({ text, checklistId, parentId })
     });
     setNewItemTexts({ ...newItemTexts, [parentId]: '' });
+    setShowSubItemInput(prev => ({ ...prev, [parentId]: false }));
     fetchCard();
   };
 
@@ -646,9 +649,34 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
                     
                     {/* Add SubItem Input */}
                     {!isSubItem && (
-                      <div className={styles.addItemRow} style={{ marginLeft: '2rem', paddingLeft: '1rem', borderLeft: '2px solid var(--border-color)', marginTop: '0.5rem' }}>
-                        <input className={styles.input} style={{ fontSize: '0.8rem', padding: '0.4rem' }} placeholder="Aggiungi sotto-task..." value={newItemTexts[item.id] || ''} onChange={e => setNewItemTexts({...newItemTexts, [item.id]: e.target.value})} onKeyDown={e => e.key === 'Enter' && addChecklistSubItem(checklist.id, item.id)} />
-                        <button onClick={() => addChecklistSubItem(checklist.id, item.id)} className={styles.btnSecondary} style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>Aggiungi</button>
+                      <div style={{ marginLeft: '2rem', marginTop: '0.2rem' }}>
+                        {!showSubItemInput[item.id] ? (
+                          <button 
+                            onClick={() => setShowSubItemInput(prev => ({ ...prev, [item.id]: true }))}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem', padding: '0.2rem' }}
+                          >
+                            + Aggiungi sotto-task
+                          </button>
+                        ) : (
+                          <div className={styles.addItemRow} style={{ paddingLeft: '1rem', borderLeft: '2px solid var(--border-color)', marginTop: '0.5rem' }}>
+                            <input 
+                              className={styles.input} 
+                              style={{ fontSize: '0.8rem', padding: '0.4rem' }} 
+                              placeholder="Aggiungi sotto-task..." 
+                              value={newItemTexts[item.id] || ''} 
+                              onChange={e => setNewItemTexts({...newItemTexts, [item.id]: e.target.value})} 
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') addChecklistSubItem(checklist.id, item.id);
+                                else if (e.key === 'Escape') setShowSubItemInput(prev => ({ ...prev, [item.id]: false }));
+                              }}
+                              autoFocus
+                              onBlur={() => {
+                                if (!newItemTexts[item.id]) setShowSubItemInput(prev => ({ ...prev, [item.id]: false }));
+                              }}
+                            />
+                            <button onClick={() => addChecklistSubItem(checklist.id, item.id)} className={styles.btnSecondary} style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>Aggiungi</button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </React.Fragment>
