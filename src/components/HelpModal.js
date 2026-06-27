@@ -57,6 +57,15 @@ export default function HelpModal({ onClose }) {
           </section>
 
           <section>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.5)</h3>
+            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <li>🐛 <strong>Fix Banda Scura DEFINITIVO:</strong> Rimosso il background e il height: 100% dal kanbanContainer che causava il doppio gradiente di colore sulle righe dei clienti. Trovato grazie alla segnalazione precisa dell'utente!</li>
+              <li>🔧 <strong>Fix Navigazione Impostazioni:</strong> Ora i tab di navigazione (Kanban, Timeline, Progetti, etc.) sono sempre visibili anche nella vista Impostazioni, permettendo di tornare alle altre sezioni.</li>
+              <li>📐 <strong>Fix Larghezza Colonne:</strong> Ripristinate le proporzioni corrette delle colonne del Kanban.</li>
+            </ul>
+          </section>
+
+          <section>
             <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.4)</h3>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <li>🗜️ <strong>Ricerca a Scomparsa e Riga Singola:</strong> Abbiamo ulteriormente affinato la riga dei filtri: ora la barra di ricerca è una piccola lente d'ingrandimento cliccabile che si espande solo quando ti serve. In questo modo tutte le tue opzioni stanno SEMPRE comodamente su una sola riga, senza mai andare a capo!</li>

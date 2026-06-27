@@ -197,7 +197,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.8.4
+              v2.8.5
             </span>
           </div>
           
@@ -282,9 +282,10 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
           </div>
         </div>
 
-        {view !== 'settings' && !zenMode && (
+        {!zenMode && (
           <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-glass)', padding: '0.4rem', borderRadius: '8px', flexWrap: 'nowrap', overflowX: 'auto', alignItems: 'center', border: '1px solid var(--border-color)', backdropFilter: 'blur(12px)' }}>
             
+            {view !== 'settings' && (<>
             {/* Search */}
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-primary)', padding: '0 0.4rem', borderRadius: '20px', border: '1px solid var(--border-color)', transition: 'width 0.3s ease', width: searchQuery ? '150px' : '32px', overflow: 'hidden' }}>
               <Search size={14} color="var(--text-secondary)" style={{ minWidth: '14px', cursor: 'pointer' }} onClick={(e) => { e.target.nextSibling?.focus(); }} />
@@ -356,6 +357,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
                 })}
               </select>
             </div>
+            </>)}
 
             <div style={{ flex: 1 }}></div>
 
