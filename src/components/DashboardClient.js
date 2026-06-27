@@ -10,6 +10,7 @@ import ClientsView from './ClientsView';
 import PomodoroTimer from './PomodoroTimer';
 import HelpModal from './HelpModal';
 import MyTasksView from './MyTasksView';
+import DocumentImportModal from './DocumentImportModal';
 import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle } from 'lucide-react';
 
 export default function DashboardClient({ initialBoards, initialLists, initialCards, initialMembers, initialClients }) {
@@ -18,6 +19,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
   const [view, setView] = useState(initialBoards.length > 0 ? 'kanban' : 'settings'); 
   const [selectedBoardId, setSelectedBoardId] = useState(initialBoards.length > 0 ? initialBoards[0].id : '');
   
+  const [showImportModal, setShowImportModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [zenMode, setZenMode] = useState(false);
   
@@ -160,7 +162,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.3.1
+              v2.4.0
             </span>
           </div>
           
@@ -184,6 +186,16 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
             >
               {zenMode ? '🧘‍♂️ Esci da Zen' : '🧘‍♂️ Zen Mode'}
             </button>
+            
+            {!zenMode && view === 'kanban' && (
+              <button 
+                onClick={() => setShowImportModal(true)}
+                style={{ background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '20px', padding: '0.4rem 1rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.3s' }}
+                title="Crea Bacheca da Documento AI"
+              >
+                ✨ Importa Documento
+              </button>
+            )}
             {zenMode && (
                <div style={{ background: 'rgba(0,0,0,0.1)', padding: '0.3rem 0.8rem', borderRadius: '12px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                  ⏱️ Focus
@@ -475,6 +487,13 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
       
       {zenMode && <PomodoroTimer />}
       {isHelpOpen && <HelpModal onClose={() => setIsHelpOpen(false)} />}
+      {showImportModal && (
+        <DocumentImportModal 
+          onClose={() => setShowImportModal(false)} 
+          onRefresh={() => window.location.reload()}
+          clients={initialClients || []}
+        />
+      )}
     </main>
   );
 }
