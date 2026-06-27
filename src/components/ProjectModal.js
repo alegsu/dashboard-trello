@@ -22,6 +22,8 @@ export default function ProjectModal({ project, clients, members, currentUser, o
     driveFolderId: project.driveFolderId || ''
   });
 
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   // Stats Data
   const allCards = project.cards || [];
   const completedCards = allCards.filter(c => c.list?.name?.toLowerCase().includes('fatt') || c.list?.name?.toLowerCase().includes('completat') || c.isArchived || c.list?.type === 'done');
@@ -56,11 +58,14 @@ export default function ProjectModal({ project, clients, members, currentUser, o
   const endD = project.dueDate ? new Date(project.dueDate) : new Date(startD.getTime() + 30 * 24 * 60 * 60 * 1000);
   endD.setHours(0,0,0,0);
   
+  const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
+  const endStr = endD.toLocaleDateString('en-CA');
+  
   const timelineDays = [];
   let currentD = new Date(startD);
   const lastD = endD > todayD ? endD : todayD;
   while (currentD <= lastD) {
-    timelineDays.push(new Date(currentD).toISOString().split('T')[0]);
+    timelineDays.push(new Date(currentD).toLocaleDateString('en-CA'));
     currentD.setDate(currentD.getDate() + 1);
   }
 
@@ -73,10 +78,10 @@ export default function ProjectModal({ project, clients, members, currentUser, o
     
     let ideal = Math.round((daysFromStart / totalDaysToDue) * allCards.length);
     if (daysFromStart < 0) ideal = 0;
-    if (daysFromStart > totalDaysToDue) ideal = allCards.length;
+    if (dayStr > endStr) ideal = allCards.length;
 
     let actual = null;
-    if (d <= todayD) {
+    if (dayStr <= todayStr) {
       actual = Math.round((daysFromStart / totalDaysToToday) * completedCards.length);
       if (daysFromStart < 0) actual = 0;
     }
@@ -95,10 +100,10 @@ export default function ProjectModal({ project, clients, members, currentUser, o
     
     let ideal = Math.round((daysFromStart / totalDaysToDue) * allTasks.length);
     if (daysFromStart < 0) ideal = 0;
-    if (daysFromStart > totalDaysToDue) ideal = allTasks.length;
+    if (dayStr > endStr) ideal = allTasks.length;
 
     let actual = null;
-    if (d <= todayD) {
+    if (dayStr <= todayStr) {
       actual = Math.round((daysFromStart / totalDaysToToday) * completedTasks.length);
       if (daysFromStart < 0) actual = 0;
     }
@@ -496,10 +501,9 @@ export default function ProjectModal({ project, clients, members, currentUser, o
             </div>
           </div>
           </div>
-          </div>
 
           {/* Sidebar Area (Right) */}
-          <div style={{ flex: 1, padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
+          <div style={{ width: '320px', minWidth: '320px', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
             {aiSummary && (
               <div style={{ background: 'var(--bg-elevated)', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.1)' }}>
                 <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--accent-primary)', fontSize: '0.85rem' }}><Sparkles size={14}/> AI Insight</h4>
@@ -556,41 +560,54 @@ export default function ProjectModal({ project, clients, members, currentUser, o
 
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
             
-            <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
-
-            <div>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><DollarSign size={12}/> Prezzo Vendita (€)</label>
-              <input type="number" value={formData.sellingPrice} onChange={e => setFormData({ ...formData, sellingPrice: e.target.value })} placeholder="0.00" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <button 
+                onClick={() => setShowAdvanced(!showAdvanced)} 
+                className={styles.btnSecondary}
+                style={{ fontSize: '0.8rem', padding: '0.3rem 0.8rem', background: 'transparent', border: '1px dashed var(--border-color)', width: '100%' }}
+              >
+                {showAdvanced ? 'Nascondi campi avanzati' : 'Aggiungi dettagli (Costi, Ore...)'}
+              </button>
             </div>
 
-            <div>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><DollarSign size={12}/> Budget Costi (€)</label>
-              <input type="number" value={formData.budget} onChange={e => setFormData({ ...formData, budget: e.target.value })} placeholder="0.00" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
-            </div>
+            {showAdvanced && (
+              <>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><DollarSign size={12}/> Prezzo Vendita (€)</label>
+                  <input type="number" value={formData.sellingPrice} onChange={e => setFormData({ ...formData, sellingPrice: e.target.value })} placeholder="0.00" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+                </div>
 
-            <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><DollarSign size={12}/> Budget Costi (€)</label>
+                  <input type="number" value={formData.budget} onChange={e => setFormData({ ...formData, budget: e.target.value })} placeholder="0.00" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+                </div>
 
-            <div>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Clock size={12}/> Ore Stimate</label>
-              <input type="number" value={formData.estimatedHours} onChange={e => setFormData({ ...formData, estimatedHours: e.target.value })} placeholder="0" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
-            </div>
+                <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
 
-            <div>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Clock size={12}/> Ore Effettive</label>
-              <input type="number" value={formData.actualHours} onChange={e => setFormData({ ...formData, actualHours: e.target.value })} placeholder="0" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
-            </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Clock size={12}/> Ore Stimate</label>
+                  <input type="number" value={formData.estimatedHours} onChange={e => setFormData({ ...formData, estimatedHours: e.target.value })} placeholder="0" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+                </div>
 
-            <div>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <AlertCircle size={12}/> Effort 
-                <span title="Livello di Effort o Complessità da 1 a 10. Indica lo sforzo richiesto per completare il progetto (1=Basso, 10=Altissimo)." style={{ cursor: 'help', background: 'var(--bg-secondary)', borderRadius: '50%', width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>?</span>
-              </label>
-              <select value={formData.effort} onChange={e => setFormData({ ...formData, effort: e.target.value })} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
-                <option value="">-- Seleziona --</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                  <option key={n} value={n}>{n}</option>
-                ))}
-              </select>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Clock size={12}/> Ore Effettive</label>
+                  <input type="number" value={formData.actualHours} onChange={e => setFormData({ ...formData, actualHours: e.target.value })} placeholder="0" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <AlertCircle size={12}/> Effort 
+                    <span title="Livello di Effort o Complessità da 1 a 10. Indica lo sforzo richiesto per completare il progetto (1=Basso, 10=Altissimo)." style={{ cursor: 'help', background: 'var(--bg-secondary)', borderRadius: '50%', width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>?</span>
+                  </label>
+                  <select value={formData.effort} onChange={e => setFormData({ ...formData, effort: e.target.value })} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
+                    <option value="">-- Seleziona --</option>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
             </div>
             
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
