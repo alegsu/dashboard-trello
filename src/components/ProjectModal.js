@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { X, Save, Folder, Clock, DollarSign, Tag, Calendar, AlertCircle, Copy as CopyIcon, Sparkles, CheckCircle, Users, Activity } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import styles from './CardModal.module.css'; // Possiamo riusare alcuni stili del CardModal
 
 export default function ProjectModal({ project, clients, members, currentUser, onClose, onRefresh }) {
@@ -23,7 +23,7 @@ export default function ProjectModal({ project, clients, members, currentUser, o
   });
 
   const hasAdvancedData = !!(project.sellingPrice || project.budget || project.estimatedHours || project.actualHours || project.effort);
-  const [showAdvanced, setShowAdvanced] = useState(hasAdvancedData);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Stats Data
   const allCards = project.cards || [];
@@ -32,6 +32,16 @@ export default function ProjectModal({ project, clients, members, currentUser, o
   
   const progressPercent = allCards.length > 0 ? Math.round((completedCards.length / allCards.length) * 100) : 0;
   
+  const allTasks = [];
+  allCards.forEach(c => {
+    if (c.checklists) {
+      c.checklists.forEach(cl => {
+        if (cl.items) allTasks.push(...cl.items);
+      });
+    }
+  });
+  const completedTasks = allTasks.filter(t => t.isCompleted);
+
   // Extract Assignees
   const assigneeMap = {};
   allCards.forEach(c => {
@@ -41,46 +51,27 @@ export default function ProjectModal({ project, clients, members, currentUser, o
   });
   const projectAssignees = Object.values(assigneeMap);
 
-  // Chart Data: Cards (Schede) with due date
-  const cardsChartData = activeCards.filter(c => c.due).map(c => {
-    const diffTime = new Date(c.due) - new Date();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return {
-      name: c.name.length > 15 ? c.name.substring(0, 15) + '...' : c.name,
-      fullName: c.name,
-      'Giorni Rimanenti': diffDays,
-      fill: diffDays < 0 ? 'var(--status-danger)' : diffDays <= 3 ? 'var(--status-warning)' : 'var(--accent-primary)'
-    };
-  }).sort((a, b) => a['Giorni Rimanenti'] - b['Giorni Rimanenti']);
+  // Timeline Charts Data
+  const startD = new Date(project.createdAt || Date.now());
+  const endD = project.dueDate ? new Date(project.dueDate) : new Date(startD.getTime() + 30 * 24 * 60 * 60 * 1000);
+  
+  const timelineDays = [];
+  let currentD = new Date(startD);
+  while (currentD <= endD) {
+    timelineDays.push(new Date(currentD).toISOString().split('T')[0]);
+    currentD.setDate(currentD.getDate() + 1);
+  }
 
-  // Chart Data: Tasks (Sotto-task) with due date, grouped by Card
-  const tasksChartDataByCard = [];
-  activeCards.forEach(c => {
-    let taskItems = [];
-    if (c.checklists) {
-      c.checklists.forEach(cl => {
-        if (cl.items) {
-          cl.items.filter(item => item.dueDate && !item.isCompleted).forEach(item => {
-            const diffTime = new Date(item.dueDate) - new Date();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            taskItems.push({
-              name: item.text.length > 15 ? item.text.substring(0, 15) + '...' : item.text,
-              fullName: item.text,
-              'Giorni Rimanenti': diffDays,
-              fill: diffDays < 0 ? 'var(--status-danger)' : diffDays <= 3 ? 'var(--status-warning)' : 'var(--accent-primary)'
-            });
-          });
-        }
-      });
-    }
-    if (taskItems.length > 0) {
-      taskItems.sort((a, b) => a['Giorni Rimanenti'] - b['Giorni Rimanenti']);
-      tasksChartDataByCard.push({
-        cardId: c.id,
-        cardName: c.name,
-        data: taskItems
-      });
-    }
+  const cardsTimelineData = timelineDays.map(dayStr => {
+    const expected = allCards.filter(c => c.due && c.due.substring(0,10) <= dayStr).length;
+    const completed = completedCards.filter(c => c.updatedAt && c.updatedAt.substring(0,10) <= dayStr).length;
+    return { name: dayStr.substring(5), Totale: expected, Completati: completed };
+  });
+
+  const tasksTimelineData = timelineDays.map(dayStr => {
+    const expected = allTasks.filter(t => t.dueDate && new Date(t.dueDate).toISOString().split('T')[0] <= dayStr).length;
+    const completed = completedTasks.filter(t => t.dueDate && new Date(t.dueDate).toISOString().split('T')[0] <= dayStr).length;
+    return { name: dayStr.substring(5), Totale: expected, Completati: completed };
   });
 
   const [comments, setComments] = useState([]);
@@ -257,18 +248,45 @@ export default function ProjectModal({ project, clients, members, currentUser, o
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ maxWidth: '900px', display: 'flex', flexDirection: 'row', padding: '2rem' }}>
+      <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ width: '80vw', maxWidth: '1200px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', padding: '0', overflow: 'hidden' }}>
         
-        {/* Main Content Area */}
-        <div style={{ flex: 2, paddingRight: '1.5rem', marginRight: '0.5rem', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1.5rem', overflowY: 'auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <input 
-              value={formData.name} 
-              onChange={e => setFormData({ ...formData, name: e.target.value })}
-              style={{ fontSize: '1.5rem', fontWeight: 'bold', background: 'transparent', border: 'none', color: 'var(--text-primary)', width: '100%', outline: 'none' }}
-              placeholder="Nome Progetto"
-            />
+        {/* Full Width Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-elevated)', borderTopLeftRadius: '8px', borderTopRightRadius: '8px' }}>
+          <input 
+            value={formData.name} 
+            onChange={e => setFormData({ ...formData, name: e.target.value })}
+            style={{ fontSize: '1.5rem', fontWeight: 'bold', background: 'transparent', border: 'none', color: 'var(--text-primary)', width: '60%', outline: 'none' }}
+            placeholder="Nome Progetto"
+          />
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+            <button onClick={handleSave} disabled={saving} title="Salva Modifiche" style={{ background: 'transparent', color: 'var(--status-success)', border: '1px solid var(--status-success)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Save size={14} />
+            </button>
+            <button onClick={generateSummary} disabled={loadingSummary} title="Genera Riassunto AI" style={{ background: 'transparent', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Sparkles size={14} />
+            </button>
+            <button onClick={handleClone} title="Clona Progetto" style={{ background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <CopyIcon size={14} />
+            </button>
+            <button onClick={handleArchive} title="Archivia" style={{ background: 'transparent', color: 'var(--status-warning)', border: '1px solid var(--status-warning)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Folder size={14} />
+            </button>
+            <button onClick={handleDelete} title="Elimina" style={{ background: 'transparent', color: 'var(--status-danger)', border: '1px solid var(--status-danger)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <X size={14} />
+            </button>
+            <div style={{ width: '1px', height: '24px', background: 'var(--border-color)', margin: '0 0.5rem' }}></div>
+            <button onClick={onClose} title="Chiudi" style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.4rem' }}>
+              <X size={20} />
+            </button>
           </div>
+        </div>
+
+        {/* Modal Body */}
+        <div style={{ display: 'flex', flexDirection: 'row', flex: 1, overflow: 'hidden' }}>
+          
+          {/* Main Content Area (Left) */}
+          <div style={{ flex: 2, padding: '2rem', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1.5rem', overflowY: 'auto' }}>
+
 
           <div>
             <h4 style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Tag size={16}/> Descrizione Pubblica</h4>
@@ -309,6 +327,15 @@ export default function ProjectModal({ project, clients, members, currentUser, o
                   <span style={{ fontWeight: 'bold' }}>{activeCards.length}</span>
                 </div>
                 
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Task (Sottotask) Totali</span>
+                  <span style={{ fontWeight: 'bold' }}>{allTasks.length}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Task da Completare</span>
+                  <span style={{ fontWeight: 'bold' }}>{allTasks.length - completedTasks.length}</span>
+                </div>
+                
                 {projectAssignees.length > 0 && (
                   <div style={{ marginTop: '1rem' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.5rem' }}>
@@ -329,58 +356,42 @@ export default function ProjectModal({ project, clients, members, currentUser, o
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', height: '100%' }}>
                 <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--accent-primary)' }}>
-                  <Calendar size={16}/> Roadmap Obiettivi
+                  <Calendar size={16}/> Roadmap Temporale
                 </h4>
                 
-                {cardsChartData.length === 0 && tasksChartDataByCard.length === 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '150px', color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic', textAlign: 'center' }}>
-                    Nessun obiettivo con scadenza assegnata per tracciare la roadmap.
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Avanzamento Schede</div>
+                  <div style={{ height: '150px', width: '100%' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={cardsTimelineData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
+                        <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
+                        <Tooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '12px' }} />
+                        <Legend wrapperStyle={{ fontSize: '10px' }} />
+                        <Line type="monotone" dataKey="Totale" stroke="var(--text-secondary)" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="Completati" stroke="var(--status-success)" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
-                )}
+                </div>
 
-                {cardsChartData.length > 0 && (
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Scadenza Schede</div>
-                    <div style={{ height: '150px', width: '100%' }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={cardsChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                          <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
-                          <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
-                          <Tooltip 
-                            contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '12px' }}
-                            formatter={(value, name, props) => [`${value} giorni`, 'Obiettivo']}
-                            labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
-                          />
-                          <ReferenceLine y={0} stroke="var(--border-color)" />
-                          <Bar dataKey="Giorni Rimanenti" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
+                <div>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Avanzamento Task (Sottotask)</div>
+                  <div style={{ height: '150px', width: '100%' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={tasksTimelineData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
+                        <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
+                        <Tooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '12px' }} />
+                        <Legend wrapperStyle={{ fontSize: '10px' }} />
+                        <Line type="monotone" dataKey="Totale" stroke="var(--text-secondary)" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="Completati" stroke="var(--accent-primary)" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
-                )}
-
-                {tasksChartDataByCard.map((cardData, idx) => (
-                  <div key={cardData.cardId} style={{ marginTop: idx > 0 || cardsChartData.length > 0 ? '1.5rem' : 0 }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Task in: {cardData.cardName}</div>
-                    <div style={{ height: '120px', width: '100%' }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={cardData.data} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                          <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
-                          <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
-                          <Tooltip 
-                            contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '12px' }}
-                            formatter={(value, name, props) => [`${value} giorni`, 'Obiettivo']}
-                            labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
-                          />
-                          <ReferenceLine y={0} stroke="var(--border-color)" />
-                          <Bar dataKey="Giorni Rimanenti" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                ))}
+                </div>
               </div>
             </div>
           </div>
@@ -445,40 +456,19 @@ export default function ProjectModal({ project, clients, members, currentUser, o
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Sidebar Data Area */}
-        <div style={{ flex: 1, paddingLeft: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.4rem', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-            <button onClick={handleSave} disabled={saving} title="Salva Modifiche" style={{ background: 'transparent', color: 'var(--status-success)', border: '1px solid var(--status-success)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <Save size={14} />
-            </button>
-            <button onClick={generateSummary} disabled={loadingSummary} title="Genera Riassunto AI" style={{ background: 'transparent', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <Sparkles size={14} />
-            </button>
-            <button onClick={handleClone} title="Clona Progetto" style={{ background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <CopyIcon size={14} />
-            </button>
-            <button onClick={handleArchive} title="Archivia" style={{ background: 'transparent', color: 'var(--status-warning)', border: '1px solid var(--status-warning)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <Folder size={14} />
-            </button>
-            <button onClick={handleDelete} title="Elimina" style={{ background: 'transparent', color: 'var(--status-danger)', border: '1px solid var(--status-danger)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <X size={14} />
-            </button>
-            <div style={{ width: '1px', height: '24px', background: 'var(--border-color)', margin: '0 0.2rem' }}></div>
-            <button onClick={onClose} title="Chiudi" style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.4rem' }}>
-              <X size={20} />
-            </button>
+          </div>
           </div>
 
-          {aiSummary && (
-            <div style={{ background: 'var(--bg-elevated)', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.1)' }}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--accent-primary)', fontSize: '0.85rem' }}><Sparkles size={14}/> AI Insight</h4>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)', lineHeight: '1.4' }}>
-                {aiSummary.split('\n').map((line, i) => <p key={i} style={{ margin: '0 0 0.3rem 0' }}>{line}</p>)}
+          {/* Sidebar Area (Right) */}
+          <div style={{ flex: 1, padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
+            {aiSummary && (
+              <div style={{ background: 'var(--bg-elevated)', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.1)' }}>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--accent-primary)', fontSize: '0.85rem' }}><Sparkles size={14}/> AI Insight</h4>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)', lineHeight: '1.4' }}>
+                  {aiSummary.split('\n').map((line, i) => <p key={i} style={{ margin: '0 0 0.3rem 0' }}>{line}</p>)}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.8rem' }}>
             <div>
