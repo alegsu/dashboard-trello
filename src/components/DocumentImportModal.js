@@ -3,10 +3,10 @@ import React, { useState, useRef } from 'react';
 import { X, UploadCloud, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 import styles from './CardModal.module.css';
 
-export default function DocumentImportModal({ onClose, onRefresh, clients }) {
+export default function DocumentImportModal({ onClose, onRefresh, boardLists, selectedBoardId }) {
   const [file, setFile] = useState(null);
-  const [prompt, setPrompt] = useState("Analizza questo documento e crea una bacheca strutturata. Dividi il contenuto in liste logiche e per ogni elemento crea un task con eventuale checklist.");
-  const [clientId, setClientId] = useState('');
+  const [prompt, setPrompt] = useState("Estrai ESATTAMENTE i dati da questo documento per creare una singola scheda. Organizza le informazioni in checklist logiche. NON inventare nessun dato, task o informazione esterna.");
+  const [listId, setListId] = useState(boardLists && boardLists.length > 0 ? boardLists[0].id : '');
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -31,6 +31,10 @@ export default function DocumentImportModal({ onClose, onRefresh, clients }) {
       setError("Seleziona un file da importare.");
       return;
     }
+    if (!listId) {
+      setError("Seleziona una colonna di destinazione.");
+      return;
+    }
     
     setLoading(true);
     setError('');
@@ -39,9 +43,8 @@ export default function DocumentImportModal({ onClose, onRefresh, clients }) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('prompt', prompt);
-    if (clientId) {
-      formData.append('clientId', clientId);
-    }
+    formData.append('listId', listId);
+    formData.append('boardId', selectedBoardId);
 
     try {
       const res = await fetch('/api/ai/import-document', {
@@ -52,9 +55,10 @@ export default function DocumentImportModal({ onClose, onRefresh, clients }) {
       const data = await res.json();
       
       if (res.ok) {
-        setSuccess("Bacheca creata con successo!");
+        setSuccess("Scheda generata con successo!");
         setTimeout(() => {
-          window.location.href = '/?boardId=' + data.boardId;
+          onRefresh();
+          onClose();
         }, 1500);
       } else {
         setError(data.error || "Errore durante l'importazione.");
@@ -70,13 +74,13 @@ export default function DocumentImportModal({ onClose, onRefresh, clients }) {
     <div className={styles.overlay} onClick={onClose} style={{ zIndex: 10000 }}>
       <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', width: '90%' }}>
         <header className={styles.header}>
-          <h2>✨ Importa Documento AI</h2>
+          <h2>✨ Genera Scheda da Documento</h2>
           <button className={styles.closeBtn} onClick={onClose} disabled={loading}><X size={20} /></button>
         </header>
 
         <div className={styles.content} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>
-            Carica un PDF, Word, Excel o CSV (max 4 MB). L'AI lo leggerà e genererà automaticamente una Bacheca, suddividendo i contenuti in Liste, Task e Checklist in base alle tue istruzioni.
+            L'Intelligenza Artificiale leggerà il documento e creerà <strong>una singola scheda</strong> inserendo i dati estratti nella descrizione e raggruppandoli in checklist.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -108,16 +112,19 @@ export default function DocumentImportModal({ onClose, onRefresh, clients }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>Assegna a Cliente (Opzionale)</label>
+            <label style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>Colonna (Lista) di Destinazione</label>
             <select 
-              value={clientId} 
-              onChange={e => setClientId(e.target.value)} 
+              value={listId} 
+              onChange={e => setListId(e.target.value)} 
               style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', width: '100%' }}
             >
-              <option value="">-- Nessun Cliente --</option>
-              {(clients || []).map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+              {boardLists && boardLists.length > 0 ? (
+                boardLists.map(l => (
+                  <option key={l.id} value={l.id}>{l.name}</option>
+                ))
+              ) : (
+                <option value="">-- Nessuna Lista Disponibile --</option>
+              )}
             </select>
           </div>
 
@@ -128,7 +135,7 @@ export default function DocumentImportModal({ onClose, onRefresh, clients }) {
               onChange={e => setPrompt(e.target.value)} 
               rows={4}
               style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', width: '100%', resize: 'vertical' }}
-              placeholder="Es. Leggi questo capitolato, crea una lista per ogni modulo del software e un task per ogni funzionalità..."
+              placeholder="Es. Estrai i nomi delle destinazioni e raggruppali per regione all'interno di checklist."
             />
           </div>
 
@@ -152,14 +159,14 @@ export default function DocumentImportModal({ onClose, onRefresh, clients }) {
           </button>
           <button 
             onClick={handleImport} 
-            disabled={loading || !file}
+            disabled={loading || !file || !listId}
             style={{ 
               background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '6px', 
-              padding: '0.6rem 1.2rem', fontWeight: 'bold', cursor: loading || !file ? 'not-allowed' : 'pointer',
-              opacity: loading || !file ? 0.7 : 1, display: 'flex', alignItems: 'center', gap: '0.5rem'
+              padding: '0.6rem 1.2rem', fontWeight: 'bold', cursor: loading || !file || !listId ? 'not-allowed' : 'pointer',
+              opacity: loading || !file || !listId ? 0.7 : 1, display: 'flex', alignItems: 'center', gap: '0.5rem'
             }}
           >
-            {loading ? '⏳ Elaborazione in corso...' : '✨ Genera Bacheca'}
+            {loading ? '⏳ Elaborazione in corso...' : '✨ Crea Scheda'}
           </button>
         </footer>
       </div>

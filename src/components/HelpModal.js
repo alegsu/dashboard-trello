@@ -57,10 +57,11 @@ export default function HelpModal({ onClose }) {
           </section>
 
           <section>
-            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.4.0)</h3>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.5.0)</h3>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <li>✨ <strong>Creazione Bacheche da Documento (AI):</strong> Ora puoi caricare file PDF, Word, Excel, CSV o TXT. L'Intelligenza Artificiale li leggerà e genererà automaticamente un'intera bacheca, suddividendo i contenuti in Liste, Task e Checklist in base alle tue istruzioni personalizzate! Trovi il pulsante "Importa Documento" nella vista Kanban.</li>
-              <li>❌ <strong>Rimozione AI Checklist:</strong> Rimosso il generatore di checklist automatiche su richiesta, in quanto superfluo e poco utilizzato.</li>
+              <li>✨ <strong>Lettore di Documenti Migliorato:</strong> L'intelligenza artificiale ora si comporta come un puro "estrattore di dati" fedele al testo, senza inventare o allucinare task standard.</li>
+              <li>✨ <strong>Creazione Singola Scheda:</strong> Invece di generare un'intera bacheca, l'AI legge un file (PDF, Word, Excel, CSV) e crea una <strong>singola scheda</strong> altamente dettagliata nella colonna che scegli tu, convertendo i dati in comode checklist interne.</li>
+              <li>✨ <strong>Fix di Navigazione AI:</strong> Dopo l'importazione rimani sulla stessa bacheca e visualizzi istantaneamente il risultato.</li>
               <li>🐛 <strong>Bugfix Navigazione e Date:</strong> Risolti i problemi di stabilità nella vista "La Mia Giornata" che bloccavano l'app durante la visualizzazione dei task. Corretta anche l'etichettatura delle scadenze in tale vista.</li>
             </ul>
           </section>

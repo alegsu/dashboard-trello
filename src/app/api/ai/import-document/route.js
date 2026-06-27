@@ -9,9 +9,8 @@ import { parse as csvParse } from 'csv-parse/sync';
 export async function POST(request) {
   try {
     const formData = await request.formData();
-    const file = formData.get('file');
-    const prompt = formData.get('prompt');
-    const clientId = formData.get('clientId');
+    const listId = formData.get('listId');
+    const boardId = formData.get('boardId');
 
     if (!file) {
       return NextResponse.json({ error: 'Nessun file fornito.' }, { status: 400 });
@@ -19,6 +18,10 @@ export async function POST(request) {
 
     if (!prompt) {
       return NextResponse.json({ error: 'Nessun prompt fornito.' }, { status: 400 });
+    }
+    
+    if (!listId || !boardId) {
+      return NextResponse.json({ error: 'Lista o Bacheca di destinazione non fornita.' }, { status: 400 });
     }
 
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -71,155 +74,97 @@ export async function POST(request) {
     }
 
     const aiPrompt = `
-Sei un assistente AI specializzato in project management.
-Devi analizzare il seguente documento e strutturarlo in una bacheca Kanban.
-Segui attentamente queste istruzioni dell'utente:
+Sei un estrattore di dati fedele. Il tuo compito è leggere il documento fornito e strutturarne i contenuti in una SINGOLA scheda Kanban con relative checklist, in base alle istruzioni dell'utente.
+
+ATTENZIONE REGOLA FONDAMENTALE:
+NON DEVI ASSOLUTAMENTE INVENTARE NULLA. NON inserire task generici (come "fare le valigie", "prenotare", "organizzare") se non sono ESPRESSAMENTE scritti nel documento. Limitati ESCLUSIVAMENTE a estrarre, raggruppare e formattare i dati reali presenti nel testo.
+
+Istruzioni dell'utente:
 "${prompt}"
 
-Ecco il contenuto del documento:
+Documento:
 ---
 ${extractedText}
 ---
 
 Restituisci ESCLUSIVAMENTE un JSON valido, senza blocchi di codice markdown (niente \`\`\`json).
-Il JSON deve avere questa struttura esatta:
+Il JSON deve avere QUESTA struttura esatta per una singola scheda:
 {
-  "boardName": "Nome generato per la bacheca",
-  "labels": [
-    { "name": "Bug", "color": "#ef4444" },
-    { "name": "Feature", "color": "#3b82f6" }
-  ],
-  "lists": [
+  "name": "Titolo riassuntivo della scheda",
+  "description": "Una breve descrizione basata sul documento",
+  "checklists": [
     {
-      "name": "Nome Lista (es. Da Fare)",
-      "cards": [
-        {
-          "name": "Titolo Task",
-          "description": "Descrizione dettagliata...",
-          "labelNames": ["Bug"], // Nomi delle etichette da applicare (devono essere presenti in "labels")
-          "checklists": [
-            {
-              "title": "Cose da controllare",
-              "items": ["Item 1", "Item 2"]
-            }
-          ]
-        }
-      ]
+      "title": "Titolo del raggruppamento (es. Nome Regione o Categoria)",
+      "items": ["Voce 1 estratta dal testo", "Voce 2 estratta dal testo"]
     }
   ]
 }
-Nota: "labels", "labelNames" e "checklists" sono opzionali, inseriscili solo se utili e coerenti col documento e con le istruzioni dell'utente. Cerca di dedurre e categorizzare i task nel miglior modo possibile.
+Nota: "checklists" è opzionale. Se le istruzioni richiedono solo un testo, mettilo in "description" e lascia vuota la lista delle checklist. Se crei checklist, inserisci solo elementi PRESENTI nel testo.
 `;
 
     const aiRes = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: aiPrompt }],
-      temperature: 0.2,
+      temperature: 0.1, // Temperatura bassissima per evitare allucinazioni
     });
 
     let rawText = aiRes.choices[0].message.content.trim();
     if (rawText.startsWith('```json')) rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
     else if (rawText.startsWith('```')) rawText = rawText.replace(/```/g, '').trim();
 
-    let boardData;
+    let cardData;
     try {
-      boardData = JSON.parse(rawText);
+      cardData = JSON.parse(rawText);
     } catch (e) {
       console.error("Failed to parse AI JSON:", rawText);
       return NextResponse.json({ error: 'L\'AI non ha restituito un formato JSON valido.' }, { status: 500 });
     }
 
-    if (!boardData.boardName || !boardData.lists) {
-      return NextResponse.json({ error: 'La struttura generata dall\'AI non è conforme.' }, { status: 500 });
+    if (!cardData.name) {
+      return NextResponse.json({ error: 'La struttura generata dall\'AI non è conforme (manca il titolo della scheda).' }, { status: 500 });
     }
 
-    // Inserimento su Database
-    const newBoard = await prisma.board.create({
+    // Calcoliamo l'ordine della nuova card (la mettiamo in fondo alla lista)
+    const existingCards = await prisma.card.findMany({
+      where: { listId },
+      orderBy: { order: 'desc' },
+      take: 1
+    });
+    const newOrder = existingCards.length > 0 ? existingCards[0].order + 1 : 0;
+
+    // Inserimento su Database della singola Card
+    const newCard = await prisma.card.create({
       data: {
-        name: boardData.boardName
+        name: cardData.name,
+        description: cardData.description || '',
+        listId,
+        boardId,
+        order: newOrder
       }
     });
 
-    const labelMap = {}; // name -> id
-    if (boardData.labels && boardData.labels.length > 0) {
-      for (const lbl of boardData.labels) {
-        const created = await prisma.label.create({
+    // Crea le checklist
+    if (cardData.checklists && cardData.checklists.length > 0) {
+      let clOrder = 0;
+      for (const cl of cardData.checklists) {
+        await prisma.checklist.create({
           data: {
-            name: lbl.name,
-            color: lbl.color || '#3b82f6',
-            boardId: newBoard.id
+            title: cl.title,
+            cardId: newCard.id,
+            order: clOrder++,
+            items: {
+              create: (cl.items || []).map((text, idx) => ({
+                text,
+                order: idx,
+                isCompleted: false
+              }))
+            }
           }
         });
-        labelMap[lbl.name] = created.id;
       }
     }
 
-    let listOrder = 0;
-    for (const list of boardData.lists) {
-      const newList = await prisma.list.create({
-        data: {
-          name: list.name,
-          boardId: newBoard.id,
-          order: listOrder++
-        }
-      });
-
-      let cardOrder = 0;
-      for (const card of (list.cards || [])) {
-        const newCardData = {
-          name: card.name,
-          description: card.description || '',
-          listId: newList.id,
-          boardId: newBoard.id,
-          order: cardOrder++
-        };
-        
-        if (clientId && clientId !== 'none') {
-          newCardData.clientId = clientId;
-        }
-
-        const newCard = await prisma.card.create({ data: newCardData });
-
-        // Connetti le etichette
-        if (card.labelNames && card.labelNames.length > 0) {
-          const labelIds = card.labelNames
-            .map(name => labelMap[name])
-            .filter(id => id); // Rimuove eventuali undefined
-            
-          if (labelIds.length > 0) {
-            await prisma.card.update({
-              where: { id: newCard.id },
-              data: {
-                labels: { connect: labelIds.map(id => ({ id })) }
-              }
-            });
-          }
-        }
-
-        // Crea le checklist
-        if (card.checklists && card.checklists.length > 0) {
-          let clOrder = 0;
-          for (const cl of card.checklists) {
-            await prisma.checklist.create({
-              data: {
-                title: cl.title,
-                cardId: newCard.id,
-                order: clOrder++,
-                items: {
-                  create: (cl.items || []).map((text, idx) => ({
-                    text,
-                    order: idx,
-                    isCompleted: false
-                  }))
-                }
-              }
-            });
-          }
-        }
-      }
-    }
-
-    return NextResponse.json({ success: true, boardId: newBoard.id });
+    return NextResponse.json({ success: true, cardId: newCard.id });
 
   } catch (error) {
     console.error("Import Document Error:", error);
