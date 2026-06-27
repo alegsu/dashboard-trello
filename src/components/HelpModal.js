@@ -1,6 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function HelpModal({ onClose }) {
+  const [activeTab, setActiveTab] = useState('guide');
+
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -8,139 +17,267 @@ export default function HelpModal({ onClose }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
     }}>
       <div style={{
-        background: 'var(--bg-secondary)', width: '600px', maxWidth: '90%', maxHeight: '90vh',
-        borderRadius: '12px', padding: '2rem', overflowY: 'auto', border: '1px solid var(--border-color)',
-        boxShadow: 'var(--shadow-lg)'
+        background: 'var(--bg-secondary)', width: '850px', maxWidth: '95%', height: '85vh',
+        borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '1px solid var(--border-color)',
+        boxShadow: 'var(--shadow-lg)', overflow: 'hidden'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <h2 style={{ margin: 0, color: 'var(--accent-primary)' }}>Guida e Automazioni</h2>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-primary)' }}>
+          <h2 style={{ margin: 0, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>🎓</span> Centro Assistenza
+          </h2>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', lineHeight: '1.6' }}>
-          <section>
-            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Le Basi del Gestionale</h3>
-            <p>Benvenuto! Questo gestionale è organizzato in tre livelli principali:</p>
-            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem' }}>
-              <li><strong>Progetti:</strong> Contenitori generali (es. "Sito Web Cliente X").</li>
-              <li><strong>Bacheche:</strong> Gruppi di liste all'interno di un progetto.</li>
-              <li><strong>Liste & Schede (Kanban):</strong> Il cuore operativo. Trascina le schede per aggiornarne lo stato.</li>
-            </ul>
-          </section>
+        {/* Tabs */}
+        <div style={{ display: 'flex', background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-color)' }}>
+          <button 
+            onClick={() => setActiveTab('guide')}
+            style={{ 
+              flex: 1, padding: '1rem', border: 'none', background: activeTab === 'guide' ? 'var(--bg-secondary)' : 'transparent', 
+              color: activeTab === 'guide' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+              fontWeight: activeTab === 'guide' ? 'bold' : 'normal', borderBottom: activeTab === 'guide' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+              cursor: 'pointer', fontSize: '1rem'
+            }}
+          >
+            📖 Guida Dettagliata
+          </button>
+          <button 
+            onClick={() => setActiveTab('notes')}
+            style={{ 
+              flex: 1, padding: '1rem', border: 'none', background: activeTab === 'notes' ? 'var(--bg-secondary)' : 'transparent', 
+              color: activeTab === 'notes' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+              fontWeight: activeTab === 'notes' ? 'bold' : 'normal', borderBottom: activeTab === 'notes' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+              cursor: 'pointer', fontSize: '1rem'
+            }}
+          >
+            🚀 Note di Rilascio
+          </button>
+        </div>
 
-          <section>
-            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>✨ Automazioni Attive</h3>
-            <p>Abbiamo creato alcune logiche intelligenti per velocizzare il lavoro:</p>
-            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <li>
-                <strong>Sincronizzazione Checklist ↔ Liste:</strong> 
-                Se sposti una scheda in una colonna chiamata "Fatto" (o "Completato"), tutte le sue checklist verranno spuntate automaticamente. Viceversa, se spunti tutte le voci delle checklist all'interno di una scheda, essa verrà spostata da sola nella colonna "Fatto".
-              </li>
-              <li>
-                <strong>Archiviazione Automatica:</strong> 
-                Per tenere pulite le bacheche, ogni notte il sistema verifica se ci sono schede ferme nella lista "Fatto" da più di <strong>7 giorni</strong>. In caso affermativo, le archivia in automatico (non le elimina, potrai sempre ritrovarle nella pagina Progetti archiviati).
-              </li>
-              <li>
-                <strong>Allarme Scadenze (Rosso Lampeggiante):</strong> 
-                Se una scheda si avvicina alla scadenza (meno di 24 ore) o l'ha superata, e non si trova ancora nella colonna "Fatto", la data sulla scheda inizierà a <strong>lampeggiare di rosso</strong> per attirare l'attenzione.
-              </li>
-              <li>
-                <strong>Colori Alternati:</strong> 
-                Nella vista Kanban e nella Rubrica Clienti, le righe hanno sfondi alternati per capire immediatamente a quale cliente appartiene ciascuna scheda orizzontalmente.
-              </li>
-            </ul>
-          </section>
+        {/* Content Area */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', position: 'relative' }}>
+          
+          {/* TAB: GUIDA */}
+          {activeTab === 'guide' && (
+            <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+              {/* Sidebar Menu */}
+              <div style={{ flex: '0 0 200px', position: 'sticky', top: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <strong style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Indice</strong>
+                <button onClick={() => scrollToSection('g-intro')} style={anchorStyle}>Introduzione</button>
+                <button onClick={() => scrollToSection('g-struttura')} style={anchorStyle}>Struttura Dati</button>
+                <button onClick={() => scrollToSection('g-flusso')} style={anchorStyle}>Flusso Kanban</button>
+                <button onClick={() => scrollToSection('g-clienti')} style={anchorStyle}>Clienti & Colori</button>
+                <button onClick={() => scrollToSection('g-automazioni')} style={anchorStyle}>Automazioni</button>
+                <button onClick={() => scrollToSection('g-scadenze')} style={anchorStyle}>Scadenze & Notifiche</button>
+                <button onClick={() => scrollToSection('g-ai')} style={anchorStyle}>Intelligenza Artificiale</button>
+              </div>
 
-          <section>
-            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Menzioni e Notifiche</h3>
-            <p>Nei commenti e nelle note delle checklist puoi digitare <code>@</code> per menzionare un collaboratore. Questa persona riceverà un'email di avviso con il link diretto per aprire la scheda e leggere il tuo messaggio!</p>
-          </section>
+              {/* Guide Content */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2rem', paddingBottom: '3rem' }}>
+                
+                <section id="g-intro" style={sectionStyle}>
+                  <h3>Benvenuto su GestionAle</h3>
+                  <p>Questo gestionale è progettato per centralizzare il lavoro del tuo team, monitorare l'avanzamento dei progetti e gestire i clienti in un unico posto. L'obiettivo è farti risparmiare tempo tramite automazioni intelligenti e un'interfaccia visiva chiara.</p>
+                </section>
 
-          <section>
-            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.9.0)</h3>
-            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <li>🗑️ <strong>Elimina dall'Archivio:</strong> I pulsanti "Elimina" nell'Archivio Storico (bacheche, liste, progetti, schede) ora funzionano correttamente! Le entità vengono cancellate definitivamente dal database con tutte le dipendenze.</li>
-              <li>🗜️ <strong>Impostazioni Compatte:</strong> L'intera pagina Impostazioni è stata ridisegnata con meno spazi, meno margini e testi più concisi. Tutto è visibile senza dover scrollare inutilmente.</li>
-            </ul>
-          </section>
+                <section id="g-struttura" style={sectionStyle}>
+                  <h3>1. Struttura dei Dati</h3>
+                  <p>Il sistema è organizzato a "scatole cinesi", dalla più grande alla più piccola:</p>
+                  <ul style={ulStyle}>
+                    <li><strong>Clienti:</strong> I destinatari finali del lavoro. Li gestisci nella rubrica "Clienti".</li>
+                    <li><strong>Progetti:</strong> Contenitori grandi legati a un Cliente (es. "Sito Web", "Campagna Marketing"). Hanno un budget e una data di scadenza.</li>
+                    <li><strong>Bacheche:</strong> Spazi di lavoro indipendenti (es. "Sviluppo Tecnico", "Creazione Contenuti").</li>
+                    <li><strong>Liste (Colonne):</strong> Rappresentano gli stadi del processo (es. "Da Fare", "In Corso", "Completato").</li>
+                    <li><strong>Schede (Task):</strong> Il singolo lavoro da fare. Si trovano dentro le liste e contengono checklist, commenti, allegati e assegnatari.</li>
+                  </ul>
+                </section>
 
-          <section>
-            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.5)</h3>
-            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <li>🐛 <strong>Fix Banda Scura DEFINITIVO:</strong> Rimosso il background e il height: 100% dal kanbanContainer che causava il doppio gradiente di colore sulle righe dei clienti. Trovato grazie alla segnalazione precisa dell'utente!</li>
-              <li>🔧 <strong>Fix Navigazione Impostazioni:</strong> Ora i tab di navigazione (Kanban, Timeline, Progetti, etc.) sono sempre visibili anche nella vista Impostazioni, permettendo di tornare alle altre sezioni.</li>
-              <li>📐 <strong>Fix Larghezza Colonne:</strong> Ripristinate le proporzioni corrette delle colonne del Kanban.</li>
-            </ul>
-          </section>
+                <section id="g-flusso" style={sectionStyle}>
+                  <h3>2. Il Flusso di Lavoro (Kanban)</h3>
+                  <p>La vista principale ("Kanban") ti mostra tutte le bacheche contemporaneamente sotto forma di righe orizzontali divise per cliente.</p>
+                  <ul style={ulStyle}>
+                    <li><strong>Spostare le schede:</strong> Clicca e tieni premuto su una scheda per trascinarla da una colonna all'altra (es. da "Da Fare" a "In Corso").</li>
+                    <li><strong>Dettagli Scheda:</strong> Clicca su una scheda per aprirla. Qui potrai aggiungere descrizioni, assegnare collaboratori, inserire la data di scadenza e creare <em>Checklist</em> a due livelli (task e sotto-task).</li>
+                    <li><strong>Rinomina Rapida:</strong> All'interno della scheda, puoi cliccare direttamente sul titolo in alto per rinominarla senza dover usare pulsanti "Modifica".</li>
+                  </ul>
+                </section>
 
-          <section>
-            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.4)</h3>
-            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <li>🗜️ <strong>Ricerca a Scomparsa e Riga Singola:</strong> Abbiamo ulteriormente affinato la riga dei filtri: ora la barra di ricerca è una piccola lente d'ingrandimento cliccabile che si espande solo quando ti serve. In questo modo tutte le tue opzioni stanno SEMPRE comodamente su una sola riga, senza mai andare a capo!</li>
-              <li>🐛 <strong>Bug Fix Altezza Celle Safari:</strong> Risolto una volta per tutte il problema del disallineamento dei background e delle intestazioni su Safari (il bug per cui in alcune colonne con molte schede il background orizzontale non veniva "allungato" correttamente fino in fondo, generando due fastidiosi "gradienti").</li>
-            </ul>
-          </section>
+                <section id="g-clienti" style={sectionStyle}>
+                  <h3>3. Clienti & Colori Orizzontali</h3>
+                  <p>Nella scheda "Clienti" puoi gestire l'anagrafica. Una funzionalità chiave è l'assegnazione di un <strong>Colore Univoco</strong> al cliente.</p>
+                  <ul style={ulStyle}>
+                    <li>Quando assegni una scheda a un Cliente, l'intera "riga" orizzontale in cui si trova quella scheda nella vista Kanban prenderà il colore di quel cliente in modo semi-trasparente.</li>
+                    <li>Questo ti permette di avere una percezione visiva immediata di <em>chi</em> è il committente di ciascun task guardando il tabellone.</li>
+                  </ul>
+                </section>
 
-          <section>
-            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.3)</h3>
-            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <li>🔍 <strong>Zoom Kanban:</strong> Aggiunta l'impostazione "Zoom Vista Kanban" nel pannello Impostazioni & Gestione. Ora puoi regolare lo zoom globale del Kanban per visualizzare più o meno elementi contemporaneamente!</li>
-              <li>🗜️ <strong>Interfaccia Super-Compatta:</strong> Le opzioni di vista (Kanban, Timeline, Progetti, etc.) e i filtri di ricerca sono stati tutti compattati in una singola barra superiore per massimizzare lo spazio verticale per il tuo lavoro.</li>
-              <li>🐛 <strong>Bug Fix Banda Scura:</strong> Risolto in modo definitivo e assoluto il bug visivo della banda scura/sovrapposizione causato dal rendering dei colori in sovrapposizione in Safari.</li>
-              <li>✏️ <strong>Testi Intestazione:</strong> Sostituito "Utente \ Stato" con "Cliente | Stato" come richiesto.</li>
-            </ul>
-          </section>
+                <section id="g-automazioni" style={sectionStyle}>
+                  <h3>4. Automazioni Attive</h3>
+                  <p>Il gestionale lavora per te in background:</p>
+                  <ul style={ulStyle}>
+                    <li><strong>Sincronizzazione Checklist:</strong> Se sposti una scheda nella colonna "Fatto" (o "Completato", "Done"), tutte le checklist al suo interno verranno spuntate automaticamente. Viceversa, se completi manualmente tutte le checklist di una scheda, essa viaggerà da sola verso la colonna "Fatto".</li>
+                    <li><strong>Archiviazione Notturna:</strong> Ogni notte, il sistema verifica le schede. Se una scheda si trova nella colonna "Fatto" da oltre 7 giorni, viene nascosta dalla bacheca principale per non fare confusione. Puoi sempre recuperarla (o eliminarla) dalla vista "Impostazioni &gt; Archivio Storico".</li>
+                  </ul>
+                </section>
 
-          <section>
-            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.1)</h3>
-            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <li>🎨 <strong>Miglioramento Colori Kanban:</strong> Rimossa l'ombreggiatura scura delle singole celle Kanban per consentire al colore di sfondo del Cliente di risaltare maggiormente e in modo completamente omogeneo su tutta la riga.</li>
-            </ul>
-          </section>
+                <section id="g-scadenze" style={sectionStyle}>
+                  <h3>5. Scadenze e Notifiche (@Menzioni)</h3>
+                  <p>Non perderti nessuna scadenza o comunicazione:</p>
+                  <ul style={ulStyle}>
+                    <li><strong>Rosso Lampeggiante:</strong> Se una scheda ha una scadenza vicina (meno di 24 ore) o è già scaduta, e NON si trova nella colonna "Fatto", la data sulla scheda lampeggerà di rosso.</li>
+                    <li><strong>@Menzioni:</strong> Quando scrivi un commento in una scheda, digita <code>@</code> seguito dal nome di un collega. Riceverà immediatamente un'email con un link per aprire la scheda e risponderti.</li>
+                    <li><strong>Notifiche Generali:</strong> Dal pannello Impostazioni, ogni utente può scegliere se ricevere email quando viene assegnato a un task, a una lista intera o per il riepilogo giornaliero (che arriva al mattino).</li>
+                  </ul>
+                </section>
 
-          <section>
-            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.0)</h3>
-            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <li>✨ <strong>Gestione Clienti Avanzata:</strong> Ora nella Rubrica Clienti puoi rinominare i clienti, eliminarli definitivamente (spostando schede e progetti su "Senza Cliente") o unirli (spostando tutto su un altro cliente per eliminare i duplicati).</li>
-              <li>🎨 <strong>Colori Personalizzati per Cliente:</strong> Puoi assegnare un colore univoco a ciascun cliente. Questo colore riempirà l'intera riga orizzontale di quel cliente nella vista Kanban (Board principale) per un riconoscimento visivo immediato!</li>
-              <li>🔗 <strong>Email con Link Corretti:</strong> Introdotta l'impostazione "URL di Produzione" nelle Impostazioni & Gestione, affinché tutte le email automatiche non puntino più a 'localhost' ma all'indirizzo web corretto del gestionale.</li>
-              <li>🗑️ <strong>Eliminazione Definitiva da Archivio:</strong> Aggiunto il pulsante "Elimina" nell'Archivio per sbarazzarsi permanentemente di una scheda, oltre all'opzione di ripristino.</li>
-            </ul>
-          </section>
+                <section id="g-ai" style={sectionStyle}>
+                  <h3>6. Intelligenza Artificiale</h3>
+                  <p>GestionAle include assistenti AI per velocizzare i processi (attivabili dalle Impostazioni):</p>
+                  <ul style={ulStyle}>
+                    <li><strong>Generatore Checklist:</strong> Chiedi all'AI di spezzare un task complesso in sotto-task semplicemente descrivendolo nella scheda.</li>
+                    <li><strong>Status Report:</strong> Nella vista Progetti, l'AI può leggere tutte le schede e generare un rapporto discorsivo professionale per il cliente.</li>
+                    <li><strong>Lettura Documenti:</strong> Puoi caricare un file PDF o Excel. L'AI leggerà il contenuto e creerà automaticamente una scheda super-dettagliata con le checklist necessarie ad evadere la richiesta del documento.</li>
+                  </ul>
+                </section>
 
-          <section>
-            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.7.0)</h3>
-            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <li>✨ <strong>Migliorie Finestra Progetto:</strong> Ridisegnato completamente il layout del riepilogo Progetto. Ora la finestra è molto più ampia e professionale, i grafici sono visibili chiaramente al centro, e i dettagli accessori (costi, ore, effort) sono in una colonna destra laterale, richiamabili tramite pulsante apposito.</li>
-              <li>📊 <strong>Nuovo Grafico Avanzamento (Burn-up):</strong> Il grafico "Roadmap Temporale" ora disegna l'effettiva progressione lineare del lavoro giorno per giorno, partendo dall'inizio del progetto fino alla sua scadenza.</li>
-              <li>📈 <strong>Calcolo Percentuale Reale:</strong> La percentuale di completamento del progetto è ora calcolata sul numero di singoli <em>Task</em> e sottotask conclusi (micro-avanzamento), anziché sulle sole schede intere.</li>
-              <li>👥 <strong>Team Coinvolto:</strong> Aggiunto nella scheda Progetto un riepilogo visivo (bollini) di tutti i collaboratori impegnati, calcolato in base agli assegnatari di qualsiasi scheda o checklist del progetto.</li>
-              <li>⏱️ <strong>Orologio Integrato:</strong> Aggiunta l'indicazione di data e ora correnti nella barra principale in alto, sempre visibile in qualsiasi sezione del gestionale.</li>
-              <li>✏️ <strong>Rinomina Titolo Schede:</strong> Aggiunta la possibilità di rinominare in modo rapido il titolo di qualsiasi scheda cliccandoci direttamente sopra all'interno della finestra della scheda.</li>
-            </ul>
-          </section>
+              </div>
+            </div>
+          )}
 
-          <section>
-            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.6.0)</h3>
-            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <li>✨ <strong>Checklist Avanzate (2 Livelli):</strong> Ora puoi organizzare i tuoi task in modo molto più strutturato. Sotto a ogni voce della checklist puoi creare illimitati "sotto-task" rientrati!</li>
-              <li>✏️ <strong>Rinomina Rapida:</strong> Clicca sul titolo di una checklist o sul testo di una voce per rinominarla all'istante, senza doverla cancellare.</li>
-              <li>⬆️⬇️ <strong>Riordinamento:</strong> Usa le nuove freccette accanto alle voci per spostarle su o giù e cambiare l'ordine delle tue checklist o dei tuoi task con un solo clic.</li>
-              <li>🗑️ <strong>Eliminazione Precisa:</strong> Aggiunti pulsanti dedicati (cestino) per eliminare intere checklist o singole voci in modo pulito.</li>
-            </ul>
-          </section>
+          {/* TAB: NOTE RILASCIO */}
+          {activeTab === 'notes' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
+              
+              <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.9.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🗑️ <strong>Elimina dall'Archivio:</strong> I pulsanti "Elimina" (bacheche, liste, progetti, schede) ora cancellano definitivamente dal DB.</li>
+                  <li>🗜️ <strong>Impostazioni Compatte:</strong> Ridisegnata la pagina Impostazioni: meno spazi, testi concisi, tutto in una vista.</li>
+                  <li>📖 <strong>Guida Dettagliata:</strong> Introdotta questa sezione manuale completa, divisa in schede logiche e navigabile.</li>
+                </ul>
+              </div>
 
-          <section>
-            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.5.0)</h3>
-            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <li>✨ <strong>Lettore di Documenti Migliorato:</strong> L'intelligenza artificiale ora si comporta come un puro "estrattore di dati" fedele al testo, senza inventare o allucinare task standard.</li>
-              <li>✨ <strong>Creazione Singola Scheda:</strong> Invece di generare un'intera bacheca, l'AI legge un file (PDF, Word, Excel, CSV) e crea una <strong>singola scheda</strong> altamente dettagliata nella colonna che scegli tu, convertendo i dati in comode checklist interne.</li>
-              <li>✨ <strong>Fix di Navigazione AI:</strong> Dopo l'importazione rimani sulla stessa bacheca e visualizzi istantaneamente il risultato.</li>
-              <li>🐛 <strong>Bugfix Navigazione e Date:</strong> Risolti i problemi di stabilità nella vista "La Mia Giornata" che bloccavano l'app durante la visualizzazione dei task. Corretta anche l'etichettatura delle scadenze in tale vista.</li>
-            </ul>
-          </section>
+              <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.8.5</h4>
+                <ul style={noteUlStyle}>
+                  <li>🐛 <strong>Fix Banda Scura DEFINITIVO:</strong> Rimosso background dal kanbanContainer che causava il doppio gradiente sui clienti.</li>
+                  <li>🔧 <strong>Navigazione Impostazioni:</strong> Tab principali sempre visibili anche nelle Impostazioni.</li>
+                  <li>📐 <strong>Larghezza Colonne:</strong> Ripristinate le proporzioni corrette (flex: 1) nel Kanban.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.8.4</h4>
+                <ul style={noteUlStyle}>
+                  <li>🗜️ <strong>Ricerca Compatta:</strong> Barra di ricerca ridotta a lente espandibile. Tutte le opzioni stanno su singola riga.</li>
+                  <li>🐛 <strong>Fix Altezza Safari:</strong> Risolto disallineamento background/header nelle colonne lunghe su Safari.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.8.3</h4>
+                <ul style={noteUlStyle}>
+                  <li>🔍 <strong>Zoom Kanban:</strong> Nuovo slider nelle Impostazioni per ingrandire/ridurre gli elementi nel Kanban.</li>
+                  <li>🗜️ <strong>Barra Super-Compatta:</strong> Filtri e bottoni raggruppati per salvare spazio verticale.</li>
+                  <li>✏️ <strong>Testi Intestazione:</strong> Sostituito "Utente \ Stato" con "Cliente | Stato".</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.8.0 - v2.8.1</h4>
+                <ul style={noteUlStyle}>
+                  <li>✨ <strong>Gestione Clienti:</strong> Rinomina, elimina, unisci clienti.</li>
+                  <li>🎨 <strong>Colori Cliente:</strong> Assegnazione colore orizzontale su Kanban per riconoscimento immediato.</li>
+                  <li>🔗 <strong>URL Produzione Email:</strong> Link notifiche corretti tramite impostazione URL base.</li>
+                  <li>🎨 <strong>Ombreggiatura Celle:</strong> Rimossa ombra scura per omogeneità del colore cliente sulla riga.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.7.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>✨ <strong>Finestra Progetto:</strong> Ridisegnato layout con colonna dettagli destra.</li>
+                  <li>📊 <strong>Burn-up Chart:</strong> Il grafico roadmap mostra il vero avanzamento lineare verso scadenza.</li>
+                  <li>📈 <strong>Percentuale Reale:</strong> Calcolo su micro-task conclusi, non solo su schede intere.</li>
+                  <li>👥 <strong>Team Coinvolto:</strong> Avatar visivi dei collaboratori nella finestra progetto.</li>
+                  <li>⏱️ <strong>Orologio Integrato:</strong> Data e ora sempre visibili nell'header in alto.</li>
+                  <li>✏️ <strong>Rinomina Inline:</strong> Modifica rapida titolo scheda cliccandoci sopra.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.6.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>✨ <strong>Checklist a 2 Livelli:</strong> Supporto per infiniti sotto-task indentati.</li>
+                  <li>✏️ <strong>Rinomina Rapida:</strong> Clic per rinominare voci checklist istantaneamente.</li>
+                  <li>⬆️⬇️ <strong>Riordinamento:</strong> Frecce per muovere voci su/giù.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.5.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>✨ <strong>AI Documenti:</strong> L'AI legge PDF/Excel e genera una SINGOLA scheda super-dettagliata con checklist, limitando le allucinazioni.</li>
+                  <li>🐛 <strong>Bugfix Mia Giornata:</strong> Ripristinata la visualizzazione corretta delle scadenze e fix crash.</li>
+                </ul>
+              </div>
+
+            </div>
+          )}
+
         </div>
       </div>
     </div>
   );
 }
+
+// Stili condivisi
+const anchorStyle = {
+  background: 'transparent',
+  border: 'none',
+  color: 'var(--accent-primary)',
+  textAlign: 'left',
+  padding: '0.3rem 0',
+  cursor: 'pointer',
+  fontSize: '0.85rem',
+  textDecoration: 'underline',
+  textUnderlineOffset: '2px'
+};
+
+const sectionStyle = {
+  scrollMarginTop: '20px'
+};
+
+const ulStyle = {
+  paddingLeft: '1.2rem',
+  marginTop: '0.5rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.4rem',
+  fontSize: '0.9rem',
+  color: 'var(--text-secondary)'
+};
+
+const noteCardStyle = {
+  background: 'var(--bg-glass)',
+  border: '1px solid var(--border-color)',
+  borderRadius: '8px',
+  padding: '0.8rem 1rem'
+};
+
+const noteHeaderStyle = {
+  margin: '0 0 0.5rem 0',
+  color: 'var(--text-primary)',
+  fontSize: '1rem'
+};
+
+const noteUlStyle = {
+  margin: 0,
+  paddingLeft: '1.2rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.3rem',
+  fontSize: '0.85rem',
+  color: 'var(--text-secondary)'
+};
