@@ -9,6 +9,8 @@ import { parse as csvParse } from 'csv-parse/sync';
 export async function POST(request) {
   try {
     const formData = await request.formData();
+    const file = formData.get('file');
+    const prompt = formData.get('prompt');
     const listId = formData.get('listId');
     const boardId = formData.get('boardId');
 
