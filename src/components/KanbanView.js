@@ -21,8 +21,13 @@ function getContrastYIQ(hexcolor){
 export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh, onCardUpdate, currentUser, zenMode, filterClientId }) {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState(null);
+  const [zoomLevel, setZoomLevel] = useState(100);
 
-  useEffect(() => { setIsMounted(true); }, []);
+  useEffect(() => { 
+    setIsMounted(true); 
+    const savedZoom = localStorage.getItem('kanbanZoom');
+    if (savedZoom) setZoomLevel(parseInt(savedZoom, 10));
+  }, []);
   
   const [newListMode, setNewListMode] = useState(false);
   const [newListName, setNewListName] = useState('');
@@ -342,9 +347,9 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
   if (!isMounted) return null;
 
   return (
-      <div className={styles.kanbanContainer}>
+      <div className={styles.kanbanContainer} style={{ zoom: zoomLevel / 100 }}>
          <div className={styles.kanbanHeaderRow}>
-            <div className={styles.kanbanUserCorner}>Utente \ Stato</div>
+            <div className={styles.kanbanUserCorner}>Cliente | Stato</div>
             {lists.map(list => {
               const hasDates = list.startDate || list.endDate;
               return (

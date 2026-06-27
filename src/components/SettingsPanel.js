@@ -391,6 +391,34 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           </div>
         </div>
 
+        {/* Impostazioni Vista Kanban */}
+        <div className={styles.card}>
+          <h3>🔍 Impostazioni Vista Kanban</h3>
+          <p className={styles.subtitle}>Regola lo zoom per visualizzare più elementi o ingrandire il testo.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
+            <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Livello di Zoom</label>
+            <input 
+              type="range" 
+              min="50" 
+              max="150" 
+              step="5"
+              defaultValue={typeof window !== 'undefined' ? (localStorage.getItem('kanbanZoom') || '100') : '100'}
+              onChange={(e) => {
+                const val = e.target.value;
+                localStorage.setItem('kanbanZoom', val);
+                document.getElementById('zoomLevelLabel').innerText = val + '%';
+              }}
+              style={{ width: '100%' }}
+            />
+            <div id="zoomLevelLabel" style={{ textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              {typeof window !== 'undefined' ? (localStorage.getItem('kanbanZoom') || '100') : '100'}%
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+              Le modifiche avranno effetto immediato la prossima volta che apri la vista Kanban.
+            </p>
+          </div>
+        </div>
+
         {/* Impostazioni Email */}
         <div className={styles.card}>
           <h3>📧 Server di Posta (SMTP)</h3>

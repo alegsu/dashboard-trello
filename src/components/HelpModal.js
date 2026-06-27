@@ -57,6 +57,16 @@ export default function HelpModal({ onClose }) {
           </section>
 
           <section>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.3)</h3>
+            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <li>🔍 <strong>Zoom Kanban:</strong> Aggiunta l'impostazione "Zoom Vista Kanban" nel pannello Impostazioni & Gestione. Ora puoi regolare lo zoom globale del Kanban per visualizzare più o meno elementi contemporaneamente!</li>
+              <li>🗜️ <strong>Interfaccia Super-Compatta:</strong> Le opzioni di vista (Kanban, Timeline, Progetti, etc.) e i filtri di ricerca sono stati tutti compattati in una singola barra superiore per massimizzare lo spazio verticale per il tuo lavoro.</li>
+              <li>🐛 <strong>Bug Fix Banda Scura:</strong> Risolto in modo definitivo e assoluto il bug visivo della banda scura/sovrapposizione causato dal rendering dei colori in sovrapposizione in Safari.</li>
+              <li>✏️ <strong>Testi Intestazione:</strong> Sostituito "Utente \ Stato" con "Cliente | Stato" come richiesto.</li>
+            </ul>
+          </section>
+
+          <section>
             <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.1)</h3>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <li>🎨 <strong>Miglioramento Colori Kanban:</strong> Rimossa l'ombreggiatura scura delle singole celle Kanban per consentire al colore di sfondo del Cliente di risaltare maggiormente e in modo completamente omogeneo su tutta la riga.</li>

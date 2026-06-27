@@ -68,7 +68,6 @@
   font-weight: 600;
   border-right: 1px solid var(--border-color);
   background: var(--bg-glass);
-  backdrop-filter: blur(8px);
   position: sticky;
   left: 0;
   z-index: 10;

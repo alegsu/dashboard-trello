@@ -197,7 +197,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.8.2
+              v2.8.3
             </span>
           </div>
           
@@ -283,175 +283,119 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
         </div>
 
         {view !== 'settings' && !zenMode && (
-          <div style={{ display: 'flex', gap: '1rem', background: 'rgba(0,0,0,0.05)', padding: '0.5rem', borderRadius: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-primary)', padding: '0 0.5rem', borderRadius: '6px', flex: 1, border: '1px solid var(--border-color)' }}>
-              <Search size={18} color="var(--text-secondary)" />
+          <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-glass)', padding: '0.4rem', borderRadius: '8px', flexWrap: 'wrap', alignItems: 'center', border: '1px solid var(--border-color)', backdropFilter: 'blur(12px)' }}>
+            
+            {/* Search */}
+            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-primary)', padding: '0 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', width: '150px' }}>
+              <Search size={14} color="var(--text-secondary)" />
               <input 
                 type="text" 
-                placeholder="Cerca task..." 
+                placeholder="Cerca..." 
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                style={{ border: 'none', background: 'transparent', padding: '0.5rem', width: '100%', outline: 'none', color: 'var(--text-primary)' }}
+                style={{ border: 'none', background: 'transparent', padding: '0.3rem', width: '100%', outline: 'none', color: 'var(--text-primary)', fontSize: '0.8rem' }}
               />
             </div>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <Filter size={18} color="var(--text-secondary)" />
+            {/* Filters */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <Filter size={14} color="var(--text-secondary)" />
               
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                <Building size={14} color="var(--text-secondary)" />
-                <select 
-                  value={filterClientId} 
-                  onChange={e => {
-                    const cid = e.target.value;
-                    setFilterClientId(cid);
-                    if (cid) {
-                      const client = initialClients.find(c => c.id === cid);
-                      if (client) {
-                        const board = initialBoards.find(b => b.name.toLowerCase().includes(client.name.toLowerCase()));
-                        if (board) setSelectedBoardId(board.id);
-                      }
+              <select 
+                value={filterClientId} 
+                onChange={e => {
+                  const cid = e.target.value;
+                  setFilterClientId(cid);
+                  if (cid) {
+                    const client = initialClients.find(c => c.id === cid);
+                    if (client) {
+                      const board = initialBoards.find(b => b.name.toLowerCase().includes(client.name.toLowerCase()));
+                      if (board) setSelectedBoardId(board.id);
                     }
-                  }}
-                  style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-                >
-                  <option value="">Tutti i Clienti</option>
-                  {(initialClients || [])
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
+                  }
+                }}
+                style={{ padding: '0.2rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
+              >
+                <option value="">Tutti i Clienti</option>
+                {(initialClients || []).sort((a, b) => a.name.localeCompare(b.name)).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                <Folder size={14} color="var(--text-secondary)" />
-                <select 
-                  value={filterProjectId} 
-                  onChange={e => setFilterProjectId(e.target.value)}
-                  style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-                >
-                  <option value="">Tutti i Progetti</option>
-                  {allProjects.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </div>
+              <select 
+                value={filterProjectId} 
+                onChange={e => setFilterProjectId(e.target.value)}
+                style={{ padding: '0.2rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
+              >
+                <option value="">Tutti i Progetti</option>
+                {allProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                <Tag size={14} color="var(--text-secondary)" />
-                <select 
-                  value={filterLabelId} 
-                  onChange={e => setFilterLabelId(e.target.value)}
-                  style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-                >
-                  <option value="">Tutte le Etichette</option>
-                  {allLabels.map(l => (
-                    <option key={l.id} value={l.id}>{l.name}</option>
-                  ))}
-                </select>
-              </div>
+              <select 
+                value={filterLabelId} 
+                onChange={e => setFilterLabelId(e.target.value)}
+                style={{ padding: '0.2rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
+              >
+                <option value="">Tutte le Etichette</option>
+                {allLabels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+              </select>
 
               <select 
                 value={filterUserId} 
                 onChange={e => setFilterUserId(e.target.value)}
-                style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+                style={{ padding: '0.2rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
               >
                 <option value="">Tutti gli Utenti</option>
                 <option value="unassigned">Non Assegnati</option>
                 {initialMembers.map(m => {
-                  // Calculate workload: incomplete cards assigned to this member
                   const assignedCards = initialCards.filter(c => c.assignees && c.assignees.some(a => a.id === m.id));
                   let workloadEmoji = '🟢';
                   if (assignedCards.length >= 5 && assignedCards.length <= 10) workloadEmoji = '🟡';
                   if (assignedCards.length > 10) workloadEmoji = '🔴';
-                  
-                  return (
-                    <option key={m.id} value={m.id}>
-                      {workloadEmoji} {m.name} ({assignedCards.length})
-                    </option>
-                  );
+                  return <option key={m.id} value={m.id}>{workloadEmoji} {m.name} ({assignedCards.length})</option>;
                 })}
               </select>
             </div>
-          </div>
-        )}
-        
-        {!zenMode && (
-          <div className={styles.navBar} style={{ display: 'flex', alignItems: 'center' }}>
-            <button 
-              className={`${styles.navButton} ${view === 'kanban' ? styles.active : ''}`}
-              onClick={() => setView('kanban')}
-              disabled={initialBoards.length === 0}
-            >
-              📋 Kanban
-            </button>
-            <button 
-              className={`${styles.navButton} ${view === 'timeline' ? styles.active : ''}`}
-              onClick={() => setView('timeline')}
-              disabled={initialBoards.length === 0}
-            >
-              📊 Timeline
-            </button>
-            <button 
-              className={`${styles.navButton} ${view === 'projects' ? styles.active : ''}`}
-              onClick={() => setView('projects')}
-            >
-              🏢 Progetti
-            </button>
-            <button 
-              className={`${styles.navButton} ${view === 'clients' ? styles.active : ''}`}
-              onClick={() => setView('clients')}
-            >
-              👥 Clienti e Rubrica
-            </button>
-            <button 
-              className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`}
-              onClick={() => setView('settings')}
-            >
-              ⚙️ Impostazioni
-            </button>
-            <a href="/archive" className={styles.navButton} style={{ textDecoration: 'none' }}>
-              🗄️ Archivio
-            </a>
 
-            <div style={{ position: 'relative', marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-              <button 
-                onClick={() => setShowNotificationsModal(!showNotificationsModal)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', position: 'relative', padding: '0.5rem' }}
-              >
-                <Bell size={20} />
-                {notifications.filter(n => !n.read).length > 0 && (
-                  <span style={{ position: 'absolute', top: 0, right: 0, background: 'var(--status-danger)', color: 'white', fontSize: '0.65rem', padding: '2px 6px', borderRadius: '10px', fontWeight: 'bold' }}>
-                    {notifications.filter(n => !n.read).length}
-                  </span>
+            <div style={{ flex: 1 }}></div>
+
+            {/* Nav Tabs merged into the same row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <button className={`${styles.navButton} ${view === 'kanban' ? styles.active : ''}`} onClick={() => setView('kanban')} disabled={initialBoards.length === 0} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📋 Kanban</button>
+              <button className={`${styles.navButton} ${view === 'timeline' ? styles.active : ''}`} onClick={() => setView('timeline')} disabled={initialBoards.length === 0} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📊 Timeline</button>
+              <button className={`${styles.navButton} ${view === 'projects' ? styles.active : ''}`} onClick={() => setView('projects')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🏢 Progetti</button>
+              <button className={`${styles.navButton} ${view === 'clients' ? styles.active : ''}`} onClick={() => setView('clients')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>👥 Clienti</button>
+              <button className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`} onClick={() => setView('settings')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>⚙️ Imposta</button>
+              <a href="/archive" className={styles.navButton} style={{ textDecoration: 'none', padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🗄️ Arch.</a>
+              
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}>
+                <button onClick={() => setShowNotificationsModal(!showNotificationsModal)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', position: 'relative', padding: '0.2rem' }}>
+                  <Bell size={16} />
+                  {notifications.filter(n => !n.read).length > 0 && (
+                    <span style={{ position: 'absolute', top: -5, right: -5, background: 'var(--status-danger)', color: 'white', fontSize: '0.6rem', padding: '2px 4px', borderRadius: '10px', fontWeight: 'bold' }}>
+                      {notifications.filter(n => !n.read).length}
+                    </span>
+                  )}
+                </button>
+                {showNotificationsModal && (
+                  <div style={{ position: 'absolute', top: '100%', right: 0, width: '300px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', zIndex: 1000, overflow: 'hidden' }}>
+                    <div style={{ padding: '0.8rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h4 style={{ margin: 0 }}>Notifiche</h4>
+                      <button onClick={markAllAsRead} style={{ fontSize: '0.75rem', background: 'transparent', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer' }}>Letto tutto</button>
+                    </div>
+                    <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                      {notifications.length === 0 ? (
+                        <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Nessuna notifica.</div>
+                      ) : (
+                        notifications.map(n => (
+                          <div key={n.id} onClick={() => markNotificationAsRead(n.id, n.link)} style={{ padding: '0.8rem', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', background: n.read ? 'transparent' : 'rgba(var(--accent-rgb), 0.1)' }}>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{n.message}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>{new Date(n.createdAt).toLocaleString()}</div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 )}
-              </button>
-
-              {showNotificationsModal && (
-                <div style={{ position: 'absolute', top: '100%', right: 0, width: '300px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', zIndex: 1000, overflow: 'hidden' }}>
-                  <div style={{ padding: '0.8rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h4 style={{ margin: 0 }}>Notifiche</h4>
-                    <button onClick={markAllAsRead} style={{ fontSize: '0.75rem', background: 'transparent', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer' }}>Letto tutto</button>
-                  </div>
-                  <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
-                    {notifications.length === 0 ? (
-                      <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Nessuna notifica.</div>
-                    ) : (
-                      notifications.map(n => (
-                        <div 
-                          key={n.id} 
-                          onClick={() => markNotificationAsRead(n.id, n.link)}
-                          style={{ padding: '0.8rem', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', background: n.read ? 'transparent' : 'rgba(var(--accent-rgb), 0.1)' }}
-                        >
-                          <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{n.message}</div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>{new Date(n.createdAt).toLocaleString()}</div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           </div>
         )}
