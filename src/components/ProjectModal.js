@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { X, Save, Folder, Clock, DollarSign, Tag, Calendar, AlertCircle } from 'lucide-react';
+import { X, Save, Folder, Clock, DollarSign, Tag, Calendar, AlertCircle, Copy as CopyIcon, Sparkles } from 'lucide-react';
 import styles from './CardModal.module.css'; // Possiamo riusare alcuni stili del CardModal
 
 export default function ProjectModal({ project, clients, members, currentUser, onClose, onRefresh }) {
@@ -18,9 +18,11 @@ export default function ProjectModal({ project, clients, members, currentUser, o
     sellingPrice: project.sellingPrice || '',
     budget: project.budget || '',
     effort: project.effort || '',
-    driveFolderId: project.driveFolderId || '',
-    notes: project.notes || ''
+    driveFolderId: project.driveFolderId || ''
   });
+
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const hasAdvancedData = !!(project.sellingPrice || project.budget || project.estimatedHours || project.actualHours || project.effort);
 
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
@@ -68,6 +70,27 @@ export default function ProjectModal({ project, clients, members, currentUser, o
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isArchived: true })
     });
+    if (onRefresh) onRefresh();
+    onClose();
+  };
+
+  const handleClone = async () => {
+    if (!window.confirm("Vuoi clonare questo progetto?")) return;
+    setSaving(true);
+    
+    const clonedData = {
+      ...formData,
+      name: formData.name + " (Copia)",
+      status: "In Coda"
+    };
+
+    await fetch(`/api/projects`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(clonedData)
+    });
+    
+    setSaving(false);
     if (onRefresh) onRefresh();
     onClose();
   };
@@ -203,37 +226,14 @@ export default function ProjectModal({ project, clients, members, currentUser, o
             </div>
           </div>
 
-          <div>
-            <h4 style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Folder size={16}/> Note Interne (PM)</h4>
-            <div style={{ position: 'relative' }}>
-              <textarea 
-                id="textarea-notes"
-                value={formData.notes} 
-                onChange={e => handleMentionChange(e.target.value, 'notes', val => setFormData({ ...formData, notes: val }))}
-                className={styles.textarea}
-                placeholder="Note visibili solo internamente... usa @ per menzionare"
-                rows={4}
-                style={{ background: 'rgba(255,200,0,0.05)', borderLeft: '3px solid #ffcc00' }}
-              />
-              {renderMentionDropdown('notes', formData.notes, val => setFormData({ ...formData, notes: val }))}
-            </div>
-          </div>
-
-          <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginTop: '0.5rem' }}>
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--accent-primary)' }}>✨ Riassunto Progetto (AI)</h4>
-            <button 
-              onClick={generateSummary} 
-              disabled={loadingSummary}
-              style={{ background: 'var(--accent-primary)', color: '#000', padding: '0.4rem 0.8rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem', marginBottom: '0.5rem' }}
-            >
-              {loadingSummary ? 'Generazione in corso...' : 'Genera Riassunto'}
-            </button>
-            {aiSummary && (
-              <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'var(--bg-glass)', padding: '0.75rem', borderRadius: '6px' }}>
+          {aiSummary && (
+            <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--accent-primary)' }}><Sparkles size={16}/> Riassunto Progetto (AI)</h4>
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic', background: 'var(--bg-glass)', padding: '0.75rem', borderRadius: '6px' }}>
                 {aiSummary.split('\n').map((line, i) => <p key={i} style={{ margin: '0 0 0.5rem 0' }}>{line}</p>)}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Comments Section */}
           <div style={{ marginTop: '1rem' }}>
@@ -267,10 +267,27 @@ export default function ProjectModal({ project, clients, members, currentUser, o
 
         {/* Sidebar Data Area */}
         <div style={{ flex: 1, paddingLeft: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-              <X size={24} />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+            <button onClick={handleSave} disabled={saving} className={styles.btnSecondary} style={{ background: 'var(--status-success)', color: 'white', border: 'none', padding: '0.4rem 0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <Save size={14} /> Salva
             </button>
+            <button onClick={generateSummary} disabled={loadingSummary} className={styles.btnSecondary} style={{ background: 'var(--accent-primary)', color: '#000', border: 'none', padding: '0.4rem 0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <Sparkles size={14} /> AI
+            </button>
+            <button onClick={handleClone} className={styles.btnSecondary} style={{ background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '0.4rem 0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <CopyIcon size={14} /> Clona
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginLeft: 'auto' }}>
+              <button onClick={handleArchive} title="Archivia" style={{ background: 'transparent', border: '1px solid var(--status-warning)', color: 'var(--status-warning)', cursor: 'pointer', padding: '0.4rem', borderRadius: '4px' }}>
+                <Folder size={14} />
+              </button>
+              <button onClick={handleDelete} title="Elimina" style={{ background: 'transparent', border: '1px solid var(--status-danger)', color: 'var(--status-danger)', cursor: 'pointer', padding: '0.4rem', borderRadius: '4px' }}>
+                <X size={14} />
+              </button>
+              <button onClick={onClose} title="Chiudi" style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.4rem' }}>
+                <X size={20} />
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.8rem' }}>
@@ -319,41 +336,55 @@ export default function ProjectModal({ project, clients, members, currentUser, o
             </div>
 
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
-
-            <div>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><DollarSign size={12}/> Prezzo Vendita (€)</label>
-              <input type="number" value={formData.sellingPrice} onChange={e => setFormData({ ...formData, sellingPrice: e.target.value })} placeholder="0.00" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+            
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <button 
+                onClick={() => setShowAdvanced(!showAdvanced)} 
+                className={styles.btnSecondary}
+                style={{ fontSize: '0.8rem', padding: '0.3rem 0.8rem', background: 'transparent', border: '1px dashed var(--border-color)' }}
+              >
+                {showAdvanced || hasAdvancedData ? 'Nascondi campi avanzati' : 'Aggiungi dettagli (Costi, Ore, Effort...)'}
+              </button>
             </div>
 
-            <div>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><DollarSign size={12}/> Budget Costi (€)</label>
-              <input type="number" value={formData.budget} onChange={e => setFormData({ ...formData, budget: e.target.value })} placeholder="0.00" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
-            </div>
+            {(showAdvanced || hasAdvancedData) && (
+              <>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><DollarSign size={12}/> Prezzo Vendita (€)</label>
+                  <input type="number" value={formData.sellingPrice} onChange={e => setFormData({ ...formData, sellingPrice: e.target.value })} placeholder="0.00" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+                </div>
 
-            <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><DollarSign size={12}/> Budget Costi (€)</label>
+                  <input type="number" value={formData.budget} onChange={e => setFormData({ ...formData, budget: e.target.value })} placeholder="0.00" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+                </div>
 
-            <div>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Clock size={12}/> Ore Stimate</label>
-              <input type="number" value={formData.estimatedHours} onChange={e => setFormData({ ...formData, estimatedHours: e.target.value })} placeholder="0" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
-            </div>
+                <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
 
-            <div>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Clock size={12}/> Ore Effettive</label>
-              <input type="number" value={formData.actualHours} onChange={e => setFormData({ ...formData, actualHours: e.target.value })} placeholder="0" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
-            </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Clock size={12}/> Ore Stimate</label>
+                  <input type="number" value={formData.estimatedHours} onChange={e => setFormData({ ...formData, estimatedHours: e.target.value })} placeholder="0" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+                </div>
 
-            <div>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <AlertCircle size={12}/> Effort 
-                <span title="Livello di Effort o Complessità da 1 a 10. Indica lo sforzo richiesto per completare il progetto (1=Basso, 10=Altissimo)." style={{ cursor: 'help', background: 'var(--bg-secondary)', borderRadius: '50%', width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>?</span>
-              </label>
-              <select value={formData.effort} onChange={e => setFormData({ ...formData, effort: e.target.value })} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
-                <option value="">-- Seleziona --</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                  <option key={n} value={n}>{n}</option>
-                ))}
-              </select>
-            </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Clock size={12}/> Ore Effettive</label>
+                  <input type="number" value={formData.actualHours} onChange={e => setFormData({ ...formData, actualHours: e.target.value })} placeholder="0" style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <AlertCircle size={12}/> Effort 
+                    <span title="Livello di Effort o Complessità da 1 a 10. Indica lo sforzo richiesto per completare il progetto (1=Basso, 10=Altissimo)." style={{ cursor: 'help', background: 'var(--bg-secondary)', borderRadius: '50%', width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>?</span>
+                  </label>
+                  <select value={formData.effort} onChange={e => setFormData({ ...formData, effort: e.target.value })} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
+                    <option value="">-- Seleziona --</option>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
             
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>
             
@@ -369,20 +400,6 @@ export default function ProjectModal({ project, clients, members, currentUser, o
 
           </div>
 
-          <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <button onClick={handleSave} disabled={saving} style={{ width: '100%', background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.6rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-              <Save size={16} /> {saving ? 'Salvataggio...' : 'Salva Modifiche'}
-            </button>
-            <button onClick={handleArchive} style={{ width: '100%', background: 'transparent', color: 'var(--status-warning)', border: '1px solid var(--status-warning)', borderRadius: '4px', padding: '0.6rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-              Archivia Progetto
-            </button>
-            <button onClick={handleDelete} style={{ width: '100%', background: 'transparent', color: 'var(--status-danger)', border: '1px solid var(--status-danger)', borderRadius: '4px', padding: '0.6rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-              Elimina Progetto
-            </button>
-            <button onClick={onClose} style={{ width: '100%', background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.6rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-              <X size={16} /> Chiudi
-            </button>
-          </div>
 
         </div>
       </div>
