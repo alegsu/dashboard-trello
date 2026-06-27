@@ -34,9 +34,15 @@ export async function POST(request) {
     const fileName = file.name.toLowerCase();
     
     if (fileName.endsWith('.pdf')) {
-      const pdfParse = require('pdf-parse');
-      const data = await pdfParse(buffer);
-      extractedText = data.text;
+      const PDFParser = require("pdf2json");
+      const pdfParser = new PDFParser(this, 1);
+      extractedText = await new Promise((resolve, reject) => {
+        pdfParser.on("pdfParser_dataError", errData => reject(errData.parserError));
+        pdfParser.on("pdfParser_dataReady", () => {
+          resolve(pdfParser.getRawTextContent());
+        });
+        pdfParser.parseBuffer(buffer);
+      });
     } else if (fileName.endsWith('.docx')) {
       const result = await mammoth.extractRawText({ buffer });
       extractedText = result.value;
@@ -55,8 +61,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Formato file non supportato.' }, { status: 400 });
     }
 
-    if (!extractedText.trim()) {
-      return NextResponse.json({ error: 'Nessun testo estratto dal file.' }, { status: 400 });
+    if (!extractedText || !extractedText.trim()) {
+      return NextResponse.json({ error: 'Nessun testo estratto dal file o file vuoto.' }, { status: 400 });
     }
 
     // Limita il testo per evitare di superare i token (es. max 40k caratteri)
@@ -120,11 +126,11 @@ Nota: "labels", "labelNames" e "checklists" sono opzionali, inseriscili solo se 
       boardData = JSON.parse(rawText);
     } catch (e) {
       console.error("Failed to parse AI JSON:", rawText);
-      return NextResponse.json({ error: 'L\'AI non ha restituito un JSON valido.' }, { status: 500 });
+      return NextResponse.json({ error: 'L\'AI non ha restituito un formato JSON valido.' }, { status: 500 });
     }
 
     if (!boardData.boardName || !boardData.lists) {
-      return NextResponse.json({ error: 'Il JSON restituito non contiene la struttura richiesta.' }, { status: 500 });
+      return NextResponse.json({ error: 'La struttura generata dall\'AI non è conforme.' }, { status: 500 });
     }
 
     // Inserimento su Database
@@ -218,6 +224,6 @@ Nota: "labels", "labelNames" e "checklists" sono opzionali, inseriscili solo se 
 
   } catch (error) {
     console.error("Import Document Error:", error);
-    return NextResponse.json({ error: 'Errore durante l\'importazione del documento.' }, { status: 500 });
+    return NextResponse.json({ error: `Errore durante l'importazione: ${error.message}` }, { status: 500 });
   }
 }
