@@ -45,6 +45,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
   const [smtpPort, setSmtpPort] = useState('465');
   const [smtpUser, setSmtpUser] = useState('');
   const [smtpPass, setSmtpPass] = useState('');
+  const [baseUrl, setBaseUrl] = useState('');
 
   // Templates
   const [templates, setTemplates] = useState([]);
@@ -62,6 +63,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
       if (data.SMTP_PORT) setSmtpPort(data.SMTP_PORT);
       if (data.SMTP_USER) setSmtpUser(data.SMTP_USER);
       if (data.SMTP_PASS) setSmtpPass(data.SMTP_PASS);
+      if (data.BASE_URL) setBaseUrl(data.BASE_URL);
     });
 
     fetch('/api/templates')
@@ -119,7 +121,8 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
         SMTP_HOST: smtpHost,
         SMTP_PORT: smtpPort,
         SMTP_USER: smtpUser,
-        SMTP_PASS: smtpPass
+        SMTP_PASS: smtpPass,
+        BASE_URL: baseUrl
       })
     });
     setLoading(false);
@@ -422,8 +425,19 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
               placeholder="Password o App Password"
               className={styles.input}
             />
+            
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }} />
+            <h4 style={{ margin: 0, fontSize: '0.9rem' }}>URL di Produzione (Per le Email)</h4>
+            <input 
+              type="url" 
+              value={baseUrl} 
+              onChange={e => setBaseUrl(e.target.value)} 
+              placeholder="es. https://miosito.com"
+              className={styles.input}
+            />
+            
             <button onClick={handleSaveSmtp} disabled={loading} className={styles.button} style={{marginTop: '0.5rem'}}>
-              Salva Impostazioni SMTP
+              Salva Impostazioni
             </button>
           </div>
 

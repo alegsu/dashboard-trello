@@ -11,7 +11,8 @@ export async function PUT(request, { params }) {
       data: {
         ...(body.name !== undefined && { name: body.name }),
         ...(body.notebookLmUrl !== undefined && { notebookLmUrl: body.notebookLmUrl }),
-        ...(body.notes !== undefined && { notes: body.notes })
+        ...(body.notes !== undefined && { notes: body.notes }),
+        ...(body.color !== undefined && { color: body.color })
       }
     });
 

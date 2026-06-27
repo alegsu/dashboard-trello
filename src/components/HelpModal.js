@@ -57,6 +57,16 @@ export default function HelpModal({ onClose }) {
           </section>
 
           <section>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.8.0)</h3>
+            <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <li>✨ <strong>Gestione Clienti Avanzata:</strong> Ora nella Rubrica Clienti puoi rinominare i clienti, eliminarli definitivamente (spostando schede e progetti su "Senza Cliente") o unirli (spostando tutto su un altro cliente per eliminare i duplicati).</li>
+              <li>🎨 <strong>Colori Personalizzati per Cliente:</strong> Puoi assegnare un colore univoco a ciascun cliente. Questo colore riempirà l'intera riga orizzontale di quel cliente nella vista Kanban (Board principale) per un riconoscimento visivo immediato!</li>
+              <li>🔗 <strong>Email con Link Corretti:</strong> Introdotta l'impostazione "URL di Produzione" nelle Impostazioni & Gestione, affinché tutte le email automatiche non puntino più a 'localhost' ma all'indirizzo web corretto del gestionale.</li>
+              <li>🗑️ <strong>Eliminazione Definitiva da Archivio:</strong> Aggiunto il pulsante "Elimina" nell'Archivio per sbarazzarsi permanentemente di una scheda, oltre all'opzione di ripristino.</li>
+            </ul>
+          </section>
+
+          <section>
             <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>🚀 Note di Rilascio (v2.7.0)</h3>
             <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <li>✨ <strong>Migliorie Finestra Progetto:</strong> Ridisegnato completamente il layout del riepilogo Progetto. Ora la finestra è molto più ampia e professionale, i grafici sono visibili chiaramente al centro, e i dettagli accessori (costi, ore, effort) sono in una colonna destra laterale, richiamabili tramite pulsante apposito.</li>

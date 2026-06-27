@@ -42,7 +42,8 @@ export async function GET(request) {
 
     // 0. Sincronizzazione Automatica Google Sheets
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      const baseUrlSetting = await prisma.systemSetting.findUnique({ where: { key: 'BASE_URL' } });
+      const baseUrl = baseUrlSetting?.value || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
       const csvUrlSetting = settings.find(s => s.key === 'SHEETS_CSV_URL');
       if (csvUrlSetting && csvUrlSetting.value) {
         console.log("Inizio sincronizzazione automatica Google Sheets...");
@@ -116,7 +117,7 @@ export async function GET(request) {
             ${cardsHtmlList}
           </ul>
           <div style="margin-top: 30px; text-align: center;">
-            <a href="https://gestion-ale.vercel.app" style="background-color: #a1bdcf; color: #0f172a; font-weight: bold; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Apri GestionAle</a>
+            <a href="${baseUrl}" style="background-color: #a1bdcf; color: #0f172a; font-weight: bold; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Apri GestionAle</a>
           </div>
         </div>
         <div style="background-color: #f8fafc; padding: 15px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">

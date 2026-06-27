@@ -438,8 +438,17 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
               return true;
             }).map((clientId, rowIndex) => {
               const client = clientId === unassignedId ? { name: 'Nessun Cliente' } : clientMap.get(clientId);
+              let bgColor = rowIndex % 2 === 0 ? 'transparent' : 'rgba(161, 189, 207, 0.12)';
+              if (client?.color) {
+                const hex = client.color.replace('#', '');
+                const r = parseInt(hex.substring(0,2), 16) || 30;
+                const g = parseInt(hex.substring(2,4), 16) || 41;
+                const b = parseInt(hex.substring(4,6), 16) || 59;
+                bgColor = `rgba(${r}, ${g}, ${b}, 0.25)`;
+              }
+
               return (
-                <div key={clientId} className={styles.kanbanSwimlane} style={{ background: rowIndex % 2 === 0 ? 'transparent' : 'rgba(161, 189, 207, 0.12)' }}>
+                <div key={clientId} className={styles.kanbanSwimlane} style={{ background: bgColor }}>
                   <div className={styles.kanbanUserHeader}>
                      {client?.name}
                   </div>
@@ -499,12 +508,19 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                             );
                           })}
                           
-                          {newCardCell === cellKey ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.3rem' }}>
-                              <input autoFocus value={newCardName} onChange={e => setNewCardName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddCard(clientId, list.id)} placeholder="Nome Task..." style={{ padding: '0.3rem', borderRadius: '4px', fontSize: '0.8rem' }} />
+                          {(newCardCell?.listId === list.id && newCardCell?.clientId === clientId) ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: 'auto' }}>
+                              <input 
+                                autoFocus 
+                                value={newCardName} 
+                                onChange={e => setNewCardName(e.target.value)} 
+                                onKeyDown={e => e.key === 'Enter' && handleAddCard(clientId, list.id)}
+                                placeholder="Nome Scheda..." 
+                                style={{ padding: '0.4rem' }} 
+                              />
                               <div style={{ display: 'flex', gap: '0.3rem' }}>
-                                <button onClick={() => handleAddCard(clientId, list.id)} style={{ padding: '0.2rem 0.4rem', cursor: 'pointer', fontSize: '0.75rem', background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '4px' }}>Salva</button>
-                                <button onClick={() => setNewCardCell(null)} style={{ padding: '0.2rem 0.4rem', cursor: 'pointer', fontSize: '0.75rem', background: 'var(--status-danger)', color: 'white', border: 'none', borderRadius: '4px' }}>X</button>
+                                <button onClick={() => handleAddCard(clientId, list.id)} style={{ flex: 1, background: 'var(--status-success)', color: 'white', border: 'none', padding: '0.2rem', borderRadius: '4px', cursor: 'pointer' }}>Salva</button>
+                                <button onClick={() => setNewCardCell(null)} style={{ flex: 1, background: 'var(--status-danger)', color: 'white', border: 'none', padding: '0.2rem', borderRadius: '4px', cursor: 'pointer' }}>X</button>
                               </div>
                             </div>
                           ) : (

@@ -29,6 +29,18 @@ export default async function ArchivePage() {
     }
   }
 
+  async function deleteCard(formData) {
+    "use server";
+    const id = formData.get('id');
+    if (id) {
+      await prisma.card.delete({
+        where: { id }
+      });
+      revalidatePath('/archive');
+      redirect('/archive');
+    }
+  }
+
   return (
     <div className={styles.archiveContainer}>
       <header className={styles.archiveHeader}>
@@ -55,10 +67,14 @@ export default async function ArchivePage() {
                   <td><strong>{card.name}</strong></td>
                   <td>{card.board?.name || 'N/A'}</td>
                   <td>{card.list?.name || 'N/A'}</td>
-                  <td>
+                  <td style={{ display: 'flex', gap: '0.5rem' }}>
                     <form action={restoreCard}>
                       <input type="hidden" name="id" value={card.id} />
                       <button type="submit" className={styles.restoreButton}>Ripristina</button>
+                    </form>
+                    <form action={deleteCard}>
+                      <input type="hidden" name="id" value={card.id} />
+                      <button type="submit" className={styles.deleteButton} style={{ background: '#b91c1c', color: 'white', padding: '0.4rem 0.8rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={(e) => { if(!window.confirm('Eliminare definitivamente?')) e.preventDefault(); }}>Elimina</button>
                     </form>
                   </td>
                 </tr>

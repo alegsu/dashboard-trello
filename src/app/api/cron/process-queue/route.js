@@ -53,6 +53,10 @@ export async function GET(request) {
                 </li>`;
       }).join('');
 
+      // URL di base
+      const baseUrlSetting = await prisma.systemSetting.findUnique({ where: { key: 'BASE_URL' } });
+      const BASE_URL = baseUrlSetting?.value || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
       const htmlEmail = getEmailTemplate({
         title: "Hai nuovi aggiornamenti",
         bodyHtml: `
@@ -62,11 +66,11 @@ export async function GET(request) {
             ${listItems}
           </ul>
         `,
-        ctaLink: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
-        ctaText: "Apri la Dashboard"
+        ctaLink: BASE_URL,
+        ctaText: "Apri la Bacheca"
       });
 
-      const textEmail = `Ciao ${user.name},\n\nHai ${notifications.length} nuovi aggiornamenti nel gestionale.\n\nVai su ${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'} per vederli.`;
+      const textEmail = `Ciao ${user.name},\n\nHai ${notifications.length} nuovi aggiornamenti nel gestionale.\n\nVai su ${BASE_URL} per vederli.`;
 
       // Invia email
       const sent = await sendNotificationEmail(

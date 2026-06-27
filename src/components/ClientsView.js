@@ -7,8 +7,11 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
   const [selectedClient, setSelectedClient] = useState(null);
   
   // Campi Form
+  const [name, setName] = useState('');
   const [notebookLmUrl, setNotebookLmUrl] = useState('');
   const [notes, setNotes] = useState('');
+  const [color, setColor] = useState('');
+  const [mergeTargetId, setMergeTargetId] = useState('');
   
   // Google Sheets Sync
   const [csvUrl, setCsvUrl] = useState('');
@@ -28,8 +31,11 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
 
   const handleSelectClient = (c) => {
     setSelectedClient(c);
+    setName(c.name || '');
     setNotebookLmUrl(c.notebookLmUrl || '');
     setNotes(c.notes || '');
+    setColor(c.color || '');
+    setMergeTargetId('');
   };
 
   const handleSave = async (e) => {
@@ -41,18 +47,60 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          name,
           notebookLmUrl,
-          notes
+          notes,
+          color
         })
       });
 
       if (res.ok) {
         if (onRefresh) onRefresh();
         alert('Dati cliente salvati con successo!');
+        setSelectedClient({ ...selectedClient, name, notebookLmUrl, notes, color });
       } else {
         alert('Errore durante il salvataggio.');
       }
     } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedClient) return;
+    if (!confirm(`Sei sicuro di voler eliminare definitivamente il cliente "${selectedClient.name}"? Tutte le schede e i progetti ad esso assegnati diventeranno "Senza Cliente".`)) return;
+
+    try {
+      const res = await fetch(`/api/clients/${selectedClient.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        if (onRefresh) onRefresh();
+        setSelectedClient(null);
+        alert('Cliente eliminato!');
+      }
+    } catch(err) {
+      console.error(err);
+    }
+  };
+
+  const handleMerge = async () => {
+    if (!selectedClient || !mergeTargetId) return;
+    const targetClient = clients.find(c => c.id === mergeTargetId);
+    if (!confirm(`Tutte le schede e progetti di "${selectedClient.name}" verranno spostati in "${targetClient.name}". Il cliente "${selectedClient.name}" verrà eliminato. Procedere?`)) return;
+
+    try {
+      const res = await fetch('/api/clients/merge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sourceId: selectedClient.id, targetId: mergeTargetId })
+      });
+      if (res.ok) {
+        if (onRefresh) onRefresh();
+        setSelectedClient(null);
+        alert('Clienti uniti con successo!');
+      } else {
+        alert('Errore durante la fusione.');
+      }
+    } catch(err) {
       console.error(err);
     }
   };
@@ -145,9 +193,18 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
         {/* Dettagli Cliente Selezionato */}
         {selectedClient && (
           <div style={{ flex: '2 1 500px', background: 'var(--bg-glass)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)', alignSelf: 'flex-start' }}>
-            <h2>{selectedClient.name}</h2>
             
-            <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+            <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontWeight: 'bold' }}>Nome Cliente</label>
+                <input 
+                  type="text" 
+                  value={name} 
+                  onChange={e => setName(e.target.value)} 
+                  style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '1.2rem', fontWeight: 'bold' }}
+                />
+              </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <label style={{ fontWeight: 'bold' }}>Link Progetto NotebookLM</label>
@@ -179,12 +236,61 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                 />
               </div>
 
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontWeight: 'bold' }}>Colore Riga Bacheca</label>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input 
+                    type="color" 
+                    value={color || '#1E293B'} 
+                    onChange={e => setColor(e.target.value)} 
+                    style={{ width: '40px', height: '40px', padding: '0', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  />
+                  <small style={{ color: 'var(--text-secondary)' }}>Scegli il colore di sfondo per l'intera riga di questo cliente in KanbanView.</small>
+                  <button type="button" onClick={() => setColor('')} style={{ padding: '0.3rem 0.6rem', background: 'var(--bg-secondary)', color: 'var(--text-primary)', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.8rem', cursor: 'pointer', marginLeft: 'auto' }}>
+                    Reset Colore
+                  </button>
+                </div>
+              </div>
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
                 <button type="submit" style={{ padding: '0.6rem 1.2rem', background: 'var(--accent-primary)', color: 'black', borderRadius: '4px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>
                   Salva Informazioni
                 </button>
               </div>
             </form>
+
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '2rem 0' }} />
+            
+            <h3 style={{ color: 'var(--status-danger)' }}>Zona Pericolosa</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem', background: 'rgba(255,0,0,0.05)', padding: '1rem', border: '1px solid rgba(255,0,0,0.2)', borderRadius: '8px' }}>
+              
+              <div>
+                <h4 style={{ margin: '0 0 0.5rem 0' }}>Unisci a un altro cliente</h4>
+                <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Sposta tutti i progetti e le schede di questo cliente in un altro cliente, poi elimina questo.</p>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <select value={mergeTargetId} onChange={e => setMergeTargetId(e.target.value)} style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+                    <option value="">-- Seleziona cliente di destinazione --</option>
+                    {clients.filter(c => c.id !== selectedClient.id).map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                  <button onClick={handleMerge} disabled={!mergeTargetId} style={{ padding: '0.5rem 1rem', background: 'var(--status-warning)', color: 'white', borderRadius: '4px', border: 'none', cursor: mergeTargetId ? 'pointer' : 'not-allowed', fontWeight: 'bold' }}>
+                    Unisci e Elimina
+                  </button>
+                </div>
+              </div>
+
+              <hr style={{ border: 'none', borderTop: '1px solid rgba(255,0,0,0.1)' }} />
+              
+              <div>
+                <h4 style={{ margin: '0 0 0.5rem 0' }}>Elimina Cliente</h4>
+                <button onClick={handleDelete} style={{ padding: '0.5rem 1rem', background: 'var(--status-danger)', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
+                  Elimina Definitivamente
+                </button>
+              </div>
+
+            </div>
 
             {/* Mostriamo i dati sincronizzati da Google Sheets se presenti */}
             {selectedClient.sheetData && (

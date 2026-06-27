@@ -38,10 +38,7 @@ export async function POST(request) {
     };
 
     if (clientId) {
-      // Create an internal project for this card to associate with the client if not provided otherwise
-      // Actually KanbanView doesn't send projectId right now.
-      // Wait, let's just keep the existing behavior and map clientId if needed, but the schema says card.projectId.
-      // Skipping project assignment for now since we didn't have it before.
+      data.clientId = clientId;
     }
 
     if (assignees && assignees.length > 0) {

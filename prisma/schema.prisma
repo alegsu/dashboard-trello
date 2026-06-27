@@ -160,6 +160,7 @@ model Client {
   notebookLmUrl String? // Link to Google NotebookLM
   notes         String? @db.Text // Quick notes / Contact info
   sheetData     String? @db.Text // Parsed Google Sheet JSON
+  color         String? // Hex color code for the client row
   
   projects    Project[]
   cards       Card[]
