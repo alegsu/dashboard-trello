@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { X, Save, Folder, Clock, DollarSign, Tag, Calendar, AlertCircle, Copy as CopyIcon, Sparkles, CheckCircle, Users, Activity } from 'lucide-react';
+import { X, Save, Folder, Clock, DollarSign, Tag, Calendar, AlertCircle, Copy, Archive, Trash2, Sparkles, CheckCircle, Users, Activity } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import styles from './CardModal.module.css'; // Possiamo riusare alcuni stili del CardModal
 
@@ -339,13 +339,13 @@ export default function ProjectModal({ project, clients, members, currentUser, o
               <Sparkles size={14} />
             </button>
             <button onClick={handleClone} title="Clona Progetto" style={{ background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <CopyIcon size={14} />
+              <Copy size={16} />
             </button>
             <button onClick={handleArchive} title="Archivia" style={{ background: 'transparent', color: 'var(--status-warning)', border: '1px solid var(--status-warning)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <Folder size={14} />
+              <Archive size={16} />
             </button>
             <button onClick={handleDelete} title="Elimina" style={{ background: 'transparent', color: 'var(--status-danger)', border: '1px solid var(--status-danger)', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <X size={14} />
+              <Trash2 size={16} />
             </button>
             <div style={{ width: '1px', height: '24px', background: 'var(--border-color)', margin: '0 0.5rem' }}></div>
             <button onClick={onClose} title="Chiudi" style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.4rem' }}>
@@ -443,7 +443,6 @@ export default function ProjectModal({ project, clients, members, currentUser, o
                         <Tooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '12px' }} />
                         <Legend wrapperStyle={{ fontSize: '10px' }} />
                         <Line type="monotone" dataKey="Totale" stroke="rgba(255,255,255,0.1)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
-                        <Line type="monotone" dataKey="Ideale" stroke="var(--status-warning)" strokeWidth={2} dot={false} strokeDasharray="3 3" />
                         <Line type="monotone" dataKey="Completati" stroke="var(--status-success)" strokeWidth={3} dot={{ r: 3 }} />
                       </LineChart>
                     </ResponsiveContainer>
@@ -461,7 +460,6 @@ export default function ProjectModal({ project, clients, members, currentUser, o
                         <Tooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '12px' }} />
                         <Legend wrapperStyle={{ fontSize: '10px' }} />
                         <Line type="monotone" dataKey="Totale" stroke="rgba(255,255,255,0.1)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
-                        <Line type="monotone" dataKey="Ideale" stroke="var(--status-warning)" strokeWidth={2} dot={false} strokeDasharray="3 3" />
                         <Line type="monotone" dataKey="Completati" stroke="var(--accent-primary)" strokeWidth={3} dot={{ r: 3 }} />
                       </LineChart>
                     </ResponsiveContainer>

@@ -275,6 +275,25 @@ export default function ProjectsView({ clients = [], members = [], currentUser, 
                         const daysPassed = (today - start) / (1000 * 60 * 60 * 24);
                         const daysRemaining = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
                         
+                        const getWorkingDays = (startDate, endDate) => {
+                          if (startDate > endDate) return 0;
+                          let count = 0;
+                          const curDate = new Date(startDate.getTime());
+                          curDate.setHours(0,0,0,0);
+                          const end = new Date(endDate.getTime());
+                          end.setHours(0,0,0,0);
+                          while (curDate <= end) {
+                            const dayOfWeek = curDate.getDay();
+                            if(dayOfWeek !== 0 && dayOfWeek !== 6) count++;
+                            curDate.setDate(curDate.getDate() + 1);
+                          }
+                          return count;
+                        };
+                        
+                        const tomorrow = new Date();
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        const workingDaysRemaining = daysRemaining > 0 ? getWorkingDays(tomorrow, due) : 0;
+                        
                         let percentPassed = Math.min(100, Math.max(0, (daysPassed / totalDays) * 100));
                         let timeColor = 'var(--status-success)';
                         if (daysRemaining <= 7) timeColor = 'var(--status-warning, #f59e0b)';
@@ -289,7 +308,7 @@ export default function ProjectsView({ clients = [], members = [], currentUser, 
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Calendar size={12}/> Scadenza Timer</span>
                               <span style={{ color: timeColor, fontWeight: 'bold' }}>
-                                {daysRemaining < 0 ? `Scaduto da ${Math.abs(daysRemaining)} gg` : `${daysRemaining} gg rimanenti`}
+                                {daysRemaining < 0 ? `Scaduto da ${Math.abs(daysRemaining)} gg` : `${daysRemaining} gg rimanenti (${workingDaysRemaining} lav.)`}
                               </span>
                             </div>
                             <div className={styles.progressBarBg} style={{ height: '6px' }}>

@@ -197,7 +197,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.8.1
+              v2.8.2
             </span>
           </div>
           
@@ -270,9 +270,13 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               </div>
             )}
             {currentTime && (
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginLeft: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', textTransform: 'capitalize' }}>
-                <Clock size={14} /> 
-                {currentTime.toLocaleString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              <div style={{ color: 'var(--text-secondary)', marginLeft: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', lineHeight: '1.2' }}>
+                <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                  {currentTime.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+                </div>
+                <div style={{ fontSize: '0.75rem' }}>
+                  {currentTime.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                </div>
               </div>
             )}
           </div>
