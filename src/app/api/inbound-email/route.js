@@ -38,7 +38,7 @@ export async function POST(request) {
       const resendKey = process.env.RESEND_API_KEY;
       if (resendKey) {
         debugInfo.msg = `Recupero corpo email per email_id: ${emailData.email_id}`;
-        const resendResponse = await fetch(`https://api.resend.com/emails/${emailData.email_id}`, {
+        const resendResponse = await fetch(`https://api.resend.com/emails/receiving/${emailData.email_id}`, {
           headers: { 'Authorization': `Bearer ${resendKey}` }
         });
         if (resendResponse.ok) {
