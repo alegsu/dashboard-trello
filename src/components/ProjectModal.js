@@ -89,31 +89,32 @@ export default function ProjectModal({ project, clients, members, currentUser, o
 
   const timelineData = [];
   let currentD = new Date(startD);
-  let dayIndex = 0;
 
+  const getCompletionDate = (item) => {
+    if (item.completedAt) return new Date(item.completedAt).getTime();
+    if (item.updatedAt) return new Date(item.updatedAt).getTime();
+    return new Date().getTime();
+  };
+
+  const cardsByDate = completedCards.map(c => getCompletionDate(c)).sort();
+  const tasksByDate = completedTasks.map(t => getCompletionDate(t)).sort();
+  
   while (currentD <= lastD) {
-    let idealCards = Math.round((dayIndex / totalDaysToDue) * allCards.length);
-    if (dayIndex > totalDaysToDue) idealCards = allCards.length;
-    
-    let actualCards = null;
-    if (currentD <= todayD) {
-      if (currentD.getTime() === todayD.getTime()) {
-        actualCards = completedCards.length;
-      } else {
-        actualCards = totalDaysToToday === 0 ? 0 : Math.round((dayIndex / totalDaysToToday) * completedCards.length);
-      }
+    const endOfDay = currentD.getTime() + 86400000 - 1;
+
+    let actualCards = 0;
+    for (let d of cardsByDate) {
+      if (d <= endOfDay) actualCards++;
     }
 
-    let idealTasks = Math.round((dayIndex / totalDaysToDue) * allTasks.length);
-    if (dayIndex > totalDaysToDue) idealTasks = allTasks.length;
-    
-    let actualTasks = null;
-    if (currentD <= todayD) {
-      if (currentD.getTime() === todayD.getTime()) {
-        actualTasks = completedTasks.length;
-      } else {
-        actualTasks = totalDaysToToday === 0 ? 0 : Math.round((dayIndex / totalDaysToToday) * completedTasks.length);
-      }
+    let actualTasks = 0;
+    for (let d of tasksByDate) {
+      if (d <= endOfDay) actualTasks++;
+    }
+
+    if (currentD > todayD) {
+      actualCards = null;
+      actualTasks = null;
     }
 
     const month = String(currentD.getMonth() + 1).padStart(2, '0');
@@ -121,30 +122,25 @@ export default function ProjectModal({ project, clients, members, currentUser, o
 
     timelineData.push({
       name: `${month}/${day}`,
-      cardsTotale: allCards.length,
-      cardsIdeale: idealCards,
-      cardsCompletati: actualCards,
-      tasksTotale: allTasks.length,
-      tasksIdeale: idealTasks,
-      tasksCompletati: actualTasks
+      TotaleCards: allCards.length,
+      CompletatiCards: actualCards,
+      TotaleTasks: allTasks.length,
+      CompletatiTasks: actualTasks
     });
 
     currentD.setDate(currentD.getDate() + 1);
-    dayIndex++;
   }
 
   const cardsTimelineData = timelineData.map(d => ({
     name: d.name,
-    Totale: d.cardsTotale,
-    Ideale: d.cardsIdeale,
-    Completati: d.cardsCompletati
+    Totale: d.TotaleCards,
+    Completati: d.CompletatiCards
   }));
 
   const tasksTimelineData = timelineData.map(d => ({
     name: d.name,
-    Totale: d.tasksTotale,
-    Ideale: d.tasksIdeale,
-    Completati: d.tasksCompletati
+    Totale: d.TotaleTasks,
+    Completati: d.CompletatiTasks
   }));
 
   const [comments, setComments] = useState([]);

@@ -19,6 +19,10 @@ export async function PUT(request, { params }) {
     delete updateData.baseUrl;
     delete updateData.authorId;
     
+    if (data.isCompleted !== undefined) {
+      updateData.completedAt = data.isCompleted ? new Date() : null;
+    }
+    
     if (data.assignees) {
       updateData.assignees = {
         set: data.assignees.map(userId => ({ id: userId }))
@@ -79,7 +83,7 @@ export async function PUT(request, { params }) {
         if (targetList && updated.checklist.card.listId !== targetList.id) {
           await prisma.card.update({
             where: { id: cardId },
-            data: { listId: targetList.id }
+            data: { listId: targetList.id, completedAt: new Date() }
           });
         }
       }

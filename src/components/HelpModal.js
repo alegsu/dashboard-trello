@@ -150,6 +150,15 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
               
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.9.2</h4>
+                <ul style={noteUlStyle}>
+                  <li>📈 <strong>Grafici Storici Reali:</strong> La Roadmap Temporale dei Progetti ora traccia i completamenti reali giorno per giorno, mostrando il vero avanzamento storico invece di una stima lineare. <em>Nota: le schede e i task vecchi appariranno raggruppati alla data di oggi, ma i prossimi avanzamenti saranno tracciati precisamente nel giorno in cui vengono eseguiti!</em></li>
+                  <li>📅 <strong>Giorni Lavorativi per Scadenze:</strong> Ottimizzato il calcolo dei giorni rimanenti nei progetti per conteggiare solo i giorni feriali (lunedì-venerdì) ed escludere i weekend.</li>
+                  <li>📊 <strong>Grafici Puliti:</strong> Rimossa la riga inutile "Ideale" dai grafici di progetto per dare più risalto al solo andamento Reale.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.9.1</h4>
                 <ul style={noteUlStyle}>
                   <li>🔗 <strong>Finestra Scheda Globale:</strong> Ora se clicchi su una scheda dalla vista Progetti o da La Mia Giornata, la scheda si apre istantaneamente in sovraimpressione senza farti perdere la vista in cui ti trovi!</li>

@@ -45,13 +45,19 @@ export async function PUT(request, { params }) {
 
     if (data.listId) {
       const newList = await prisma.list.findUnique({ where: { id: data.listId } });
-      if (newList && (newList.name.toLowerCase().includes('fatto') || newList.name.toLowerCase().includes('completat'))) {
-        const checklists = await prisma.checklist.findMany({ where: { cardId: id } });
-        for (const cl of checklists) {
-          await prisma.checklistItem.updateMany({
-            where: { checklistId: cl.id, isCompleted: false },
-            data: { isCompleted: true }
-          });
+      if (newList) {
+        const isFatto = newList.name.toLowerCase().includes('fatto') || newList.name.toLowerCase().includes('completat');
+        if (isFatto) {
+          updateData.completedAt = new Date();
+          const checklists = await prisma.checklist.findMany({ where: { cardId: id } });
+          for (const cl of checklists) {
+            await prisma.checklistItem.updateMany({
+              where: { checklistId: cl.id, isCompleted: false },
+              data: { isCompleted: true, completedAt: new Date() }
+            });
+          }
+        } else {
+          updateData.completedAt = null;
         }
       }
     }

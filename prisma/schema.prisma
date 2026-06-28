@@ -96,6 +96,7 @@ model Card {
   attachments Attachment[]
 
   updatedAt   DateTime @default(now()) @updatedAt
+  completedAt DateTime? // Traccia storicamente quando è stata completata
   isArchived Boolean @default(false)
 }
 
@@ -149,6 +150,7 @@ model ChecklistItem {
   assignees   User[]    @relation("ChecklistItemAssignees")
   dueDate     DateTime?
   notes       String?   // Aggiunto per le note espandibili
+  completedAt DateTime? // Traccia storicamente quando è stato completato
 }
 
 model Client {
