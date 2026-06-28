@@ -23,7 +23,8 @@ export async function POST(request) {
     const emailData = payload.data || payload; // Fallback se fosse un formato diverso
     const fromAddress = emailData.from || '';
     const subject = emailData.subject || '';
-    const textBody = emailData.text || '';
+    // Alcuni client di posta mandano solo HTML, quindi usiamo html come fallback se text è vuoto
+    const textBody = emailData.text || emailData.html || '';
     const htmlBody = emailData.html || '';
 
     // Estrai la vera email dal campo from (es. "Nome Cognome <email@dominio.it>")
