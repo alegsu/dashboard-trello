@@ -19,11 +19,12 @@ export async function POST(request) {
     }
 
     // Estrai dati dalla mail (Resend Inbound payload)
-    // Resend manda `from`, `to`, `subject`, `text`, `html`
-    const fromAddress = payload.from || '';
-    const subject = payload.subject || '';
-    const textBody = payload.text || '';
-    const htmlBody = payload.html || '';
+    // Resend manda gli eventi webhook con la struttura: { type: "email.received", data: { from, to, subject, text, html } }
+    const emailData = payload.data || payload; // Fallback se fosse un formato diverso
+    const fromAddress = emailData.from || '';
+    const subject = emailData.subject || '';
+    const textBody = emailData.text || '';
+    const htmlBody = emailData.html || '';
 
     // Estrai la vera email dal campo from (es. "Nome Cognome <email@dominio.it>")
     const emailMatch = fromAddress.match(/<([^>]+)>/);
