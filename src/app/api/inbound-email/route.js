@@ -24,12 +24,32 @@ export async function POST(request) {
     const fromAddress = emailData.from || '';
     const subject = emailData.subject || '';
     // Alcuni client di posta mandano solo HTML, quindi usiamo html come fallback se text è vuoto
-    const textBody = emailData.text || emailData.html || '';
-    const htmlBody = emailData.html || '';
+    let textBody = emailData.text || emailData.html || '';
+    let htmlBody = emailData.html || '';
 
     // Estrai la vera email dal campo from (es. "Nome Cognome <email@dominio.it>")
     const emailMatch = fromAddress.match(/<([^>]+)>/);
     const senderEmail = emailMatch ? emailMatch[1].toLowerCase() : fromAddress.toLowerCase();
+
+    // Se Resend ha mandato solo i metadati (evento email.received globale), recuperiamo il body tramite API
+    if (!textBody && !htmlBody && emailData.email_id) {
+      const resendKey = process.env.RESEND_API_KEY;
+      if (resendKey) {
+        console.log(`Recupero corpo email per email_id: ${emailData.email_id}`);
+        const resendResponse = await fetch(`https://api.resend.com/emails/${emailData.email_id}`, {
+          headers: { 'Authorization': `Bearer ${resendKey}` }
+        });
+        if (resendResponse.ok) {
+          const fullEmail = await resendResponse.json();
+          textBody = fullEmail.text || fullEmail.html || '';
+          htmlBody = fullEmail.html || '';
+        } else {
+          console.error("Errore fetch da Resend API:", await resendResponse.text());
+        }
+      } else {
+        console.error("RESEND_API_KEY mancante. Impossibile recuperare il testo dell'email.");
+      }
+    }
 
     // Sicurezza: L'utente mittente deve esistere nel gestionale
     const user = await prisma.user.findUnique({
