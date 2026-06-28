@@ -94,7 +94,7 @@ ${contextProjects || 'Nessun progetto'}
 Analizza il seguente Oggetto e Testo dell'email.
 Devi estrarre i dati in formato JSON strettamente aderente a questa struttura:
 {
-  "action": "CREATE_TASK" | "ADD_NOTE" | "UNKNOWN",
+  "action": "CREATE_TASK",
   "clientId": "id_del_cliente_oppure_null",
   "projectId": "id_del_progetto_oppure_null",
   "title": "Titolo breve per la scheda o la nota",
@@ -103,11 +103,9 @@ Devi estrarre i dati in formato JSON strettamente aderente a questa struttura:
 }
 
 Regole:
-1. Se il testo contiene appunti o resoconti su un cliente, action = "ADD_NOTE" e metti il clientId.
-2. Se il testo contiene cose da fare, action = "CREATE_TASK".
-3. Se riconosci chiaramente il cliente o il progetto dal testo o dall'oggetto, inserisci i relativi ID. Se sei in dubbio o il cliente non esiste, lascia i campi a null.
-4. Se trovi un elenco puntato o numerato di cose da fare, estrailo in "checklists".
-5. Nel campo description inserisci le informazioni rilevanti ripulite (togli saluti inutili o le firme delle mail inoltrate).
+1. Crea sempre un "CREATE_TASK" per ogni email ricevuta, indipendentemente che sia un appunto o una cosa da fare.
+2. Se riconosci chiaramente il cliente o il progetto dal testo o dall'oggetto, inserisci i relativi ID. Se sei in dubbio o il cliente non esiste, lascia i campi a null.
+3. Nel campo description inserisci le informazioni rilevanti ripulite (togli saluti inutili o le firme delle mail inoltrate).
 `;
 
     const openai = new OpenAI({ apiKey });
@@ -125,21 +123,7 @@ Regole:
     console.log("=== AI DECISION ===", aiResult);
 
     // Esegui l'azione sul Database
-    if (aiResult.action === "ADD_NOTE" && aiResult.clientId) {
-      // Aggiungi nota al cliente
-      const client = await prisma.client.findUnique({ where: { id: aiResult.clientId } });
-      if (client) {
-        const timestamp = new Date().toLocaleString('it-IT');
-        const newNote = `[Nota generata da Email - ${timestamp} - ${user.name}]\n**${aiResult.title}**\n${aiResult.description}\n\n`;
-        const updatedNotes = client.notes ? client.notes + '\n\n' + newNote : newNote;
-        await prisma.client.update({
-          where: { id: client.id },
-          data: { notes: updatedNotes }
-        });
-      }
-    } 
-    else if (aiResult.action === "CREATE_TASK" || aiResult.action === "UNKNOWN" || !aiResult.action) {
-      // Trova la board principale e la lista TO DO
+    // Trova la board principale e la lista TO DO
       const board = await prisma.board.findFirst({
         where: { name: { contains: 'CLIENTI', mode: 'insensitive' } },
         include: { lists: true }
@@ -210,7 +194,6 @@ Regole:
           }
         });
       }
-    }
 
     return NextResponse.json({ success: true, aiResult, debugInfo, textBodyEmpty: !textBody });
   } catch (err) {
