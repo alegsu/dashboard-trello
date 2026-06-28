@@ -150,6 +150,15 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
               
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.9.1</h4>
+                <ul style={noteUlStyle}>
+                  <li>🔗 <strong>Finestra Scheda Globale:</strong> Ora se clicchi su una scheda dalla vista Progetti o da La Mia Giornata, la scheda si apre istantaneamente in sovraimpressione senza farti perdere la vista in cui ti trovi!</li>
+                  <li>✉️ <strong>Link Email Corretti:</strong> Sistemati i formati dei link nelle notifiche email. <em>Nota: affinché i link puntino al gestionale corretto e non a localhost, è necessario salvare l'URL di Produzione nel pannello Impostazioni.</em></li>
+                  <li>💬 <strong>Messaggi Email Puliti:</strong> Migliorata la formattazione dei messaggi di notifica email per essere più comprensibili.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.9.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🗑️ <strong>Elimina dall'Archivio:</strong> I pulsanti "Elimina" (bacheche, liste, progetti, schede) ora cancellano definitivamente dal DB.</li>
