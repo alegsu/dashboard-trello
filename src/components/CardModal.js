@@ -4,7 +4,7 @@ import { X, Calendar, User, CheckSquare, Clock, Tag, MessageSquare, Paperclip, E
 import confetti from 'canvas-confetti';
 import styles from './CardModal.module.css';
 
-export default function CardModal({ cardId, members, onClose, onRefresh, currentUser }) {
+export default function CardModal({ cardId, members, onClose, onRefresh, onDeleteCard, currentUser }) {
   const [card, setCard] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -185,6 +185,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isArchived: true })
       });
+      if (onDeleteCard) onDeleteCard(cardId);
       onRefresh();
       onClose();
     }
@@ -193,6 +194,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, current
   const deleteCard = async () => {
     if (window.confirm("Sei sicuro di voler ELIMINARE DEFINITIVAMENTE questa scheda? L'azione è irreversibile.")) {
       await fetch(`/api/cards/${cardId}`, { method: 'DELETE' });
+      if (onDeleteCard) onDeleteCard(cardId);
       onRefresh();
       onClose();
     }

@@ -197,6 +197,10 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
     setLiveCards(prev => prev.map(c => c.id === updatedCard.id ? updatedCard : c));
   };
 
+  const handleCardDelete = (deletedCardId) => {
+    setLiveCards(prev => prev.filter(c => c.id !== deletedCardId));
+  };
+
   return (
     <main className={styles.mainContainer}>
       <header className={`glass-panel ${styles.header}`} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem', padding: '1rem 1.5rem', borderTop: '3px solid var(--accent-primary)' }}>
@@ -503,6 +507,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
           members={initialMembers} 
           currentUser={currentUser}
           onRefresh={handleRefresh}
+          onDeleteCard={handleCardDelete}
           onClose={() => {
             setGlobalCardId(null);
             const url = new URL(window.location.href);
