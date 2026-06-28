@@ -31,23 +31,26 @@ export async function POST(request) {
     const emailMatch = fromAddress.match(/<([^>]+)>/);
     const senderEmail = emailMatch ? emailMatch[1].toLowerCase() : fromAddress.toLowerCase();
 
+    let debugInfo = {};
+
     // Se Resend ha mandato solo i metadati (evento email.received globale), recuperiamo il body tramite API
     if (!textBody && !htmlBody && emailData.email_id) {
       const resendKey = process.env.RESEND_API_KEY;
       if (resendKey) {
-        console.log(`Recupero corpo email per email_id: ${emailData.email_id}`);
+        debugInfo.msg = `Recupero corpo email per email_id: ${emailData.email_id}`;
         const resendResponse = await fetch(`https://api.resend.com/emails/${emailData.email_id}`, {
           headers: { 'Authorization': `Bearer ${resendKey}` }
         });
         if (resendResponse.ok) {
           const fullEmail = await resendResponse.json();
+          debugInfo.fullEmailKeys = Object.keys(fullEmail);
           textBody = fullEmail.text || fullEmail.html || '';
           htmlBody = fullEmail.html || '';
         } else {
-          console.error("Errore fetch da Resend API:", await resendResponse.text());
+          debugInfo.error = await resendResponse.text();
         }
       } else {
-        console.error("RESEND_API_KEY mancante. Impossibile recuperare il testo dell'email.");
+        debugInfo.error = "RESEND_API_KEY mancante";
       }
     }
 
@@ -192,7 +195,7 @@ Regole:
       }
     }
 
-    return NextResponse.json({ success: true, aiResult });
+    return NextResponse.json({ success: true, aiResult, debugInfo, textBodyEmpty: !textBody });
   } catch (err) {
     console.error("Errore durante la ricezione dell'inbound email:", err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
