@@ -148,6 +148,15 @@ export default function HelpModal({ onClose }) {
           {/* TAB: NOTE RILASCIO */}
           {activeTab === 'notes' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
+
+              <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.10.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🤖 <strong>Task via Email (Inbound):</strong> Inoltra o invia email a `assistente@gestionale.shinyup.it`! Il gestionale riceverà le mail, l'AI estrarrà il testo in automatico e creerà una scheda (con le eventuali liste di To-Do) nel Progetto/Cliente corretto.</li>
+                  <li>🏷️ <strong>Etichetta "DA MAIL":</strong> Le schede create in automatico dall'assistente AI tramite l'inoltro email verranno contrassegnate automaticamente da un'etichetta azzurra "DA MAIL" per un rapido riconoscimento.</li>
+                  <li>💨 <strong>Eliminazione Schede Istantanea:</strong> Migliorata la reattività della board Kanban. Quando archivi o elimini una scheda, scompare istantaneamente dalla vista senza dover ricaricare la pagina manualmente.</li>
+                </ul>
+              </div>
               
               <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.9.2</h4>
