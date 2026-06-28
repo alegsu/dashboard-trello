@@ -198,6 +198,6 @@ Regole:
     return NextResponse.json({ success: true, aiResult, debugInfo, textBodyEmpty: !textBody });
   } catch (err) {
     console.error("Errore durante la ricezione dell'inbound email:", err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: err.message, stack: err.stack, debug: 'yes' }, { status: 500 });
   }
 }
