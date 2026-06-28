@@ -164,6 +164,20 @@ Regole:
       });
       const newOrder = lastCard ? lastCard.order + 1000 : 1000;
 
+      // Find or create "DA MAIL" label
+      let mailLabel = await prisma.label.findFirst({
+        where: { boardId: board.id, name: { equals: 'DA MAIL', mode: 'insensitive' } }
+      });
+      if (!mailLabel) {
+        mailLabel = await prisma.label.create({
+          data: {
+            name: 'DA MAIL',
+            color: '#3498db', // Blue color for email
+            boardId: board.id
+          }
+        });
+      }
+
       // Crea la Card
       const newCard = await prisma.card.create({
         data: {
@@ -174,6 +188,9 @@ Regole:
           boardId: board.id,
           clientId: aiResult.clientId || null,
           projectId: aiResult.projectId || null,
+          labels: {
+            connect: [{ id: mailLabel.id }]
+          }
         }
       });
 
