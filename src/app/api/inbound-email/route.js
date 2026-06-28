@@ -181,7 +181,7 @@ Regole:
       if (aiResult.checklists && Array.isArray(aiResult.checklists) && aiResult.checklists.length > 0) {
         await prisma.checklist.create({
           data: {
-            name: "To-Do List (da Email)",
+            title: "To-Do List (da Email)",
             cardId: newCard.id,
             items: {
               create: aiResult.checklists.map((itemTesto, index) => ({
