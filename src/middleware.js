@@ -5,7 +5,7 @@ export async function middleware(request) {
   const path = request.nextUrl.pathname;
   
   // Rotte pubbliche che non richiedono login
-  if (path === '/login' || path.startsWith('/api/auth')) {
+  if (path === '/login' || path.startsWith('/api/auth') || path.startsWith('/api/inbound-email')) {
     return NextResponse.next();
   }
 
