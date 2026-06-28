@@ -1,9 +1,6 @@
 import React from 'react';
 import { Calendar, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
-import CardModal from './CardModal';
-
-export default function MyTasksView({ cards, currentUser, clients, boards, allMembers, onCardUpdate, lists, onRefresh }) {
-  const [selectedCard, setSelectedCard] = React.useState(null);
+export default function MyTasksView({ cards, currentUser, clients, boards, allMembers, onCardUpdate, lists, onRefresh, onCardClick }) {
 
   if (!currentUser) return <div>Caricamento...</div>;
 
@@ -62,7 +59,7 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
             return (
               <div 
                 key={card.id} 
-                onClick={() => setSelectedCard(card)}
+                onClick={() => { if (onCardClick) onCardClick(card.id); }}
                 style={{ 
                   background: 'var(--bg-glass)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1rem', 
                   cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'transform 0.2s, box-shadow 0.2s' 
@@ -84,7 +81,7 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelectedCard(card);
+                    if (onCardClick) onCardClick(card.id);
                   }}
                   style={{ background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
                 >
@@ -118,25 +115,6 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
           {renderCardList(upcoming, 'Prossimi Giorni', <Calendar size={20} />, '#3b82f6')}
           {renderCardList(noDate, 'Senza Scadenza', <CheckCircle size={20} />, 'var(--text-secondary)')}
         </>
-      )}
-
-      {selectedCard && (
-        <CardModal
-          cardId={selectedCard.id}
-          members={allMembers}
-          onClose={() => {
-            setSelectedCard(null);
-            // Optionally we can trigger a refresh here if we passed onRefresh,
-            // but onCardUpdate is available. Wait, CardModal expects onRefresh to trigger re-fetch.
-            // We can just call a window.location.reload() or pass a dummy function that relies on global state
-            // Actually DashboardClient.js handles handleRefresh. Let's pass a refresh mechanism if needed.
-          }}
-          onRefresh={() => {
-            if (onRefresh) onRefresh();
-            if (onCardUpdate) onCardUpdate(selectedCard);
-          }}
-          currentUser={currentUser}
-        />
       )}
     </div>
   );

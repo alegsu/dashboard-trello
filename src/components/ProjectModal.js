@@ -4,7 +4,7 @@ import { X, Save, Folder, Clock, DollarSign, Tag, Calendar, AlertCircle, Copy, A
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import styles from './CardModal.module.css'; // Possiamo riusare alcuni stili del CardModal
 
-export default function ProjectModal({ project, clients, members, currentUser, onClose, onRefresh }) {
+export default function ProjectModal({ project, clients, members, currentUser, onClose, onRefresh, onCardClick }) {
   const [formData, setFormData] = useState({
     name: project.name || '',
     clientId: project.clientId || 'none',
@@ -480,7 +480,13 @@ export default function ProjectModal({ project, clients, members, currentUser, o
                 activeCards.map(c => (
                   <div 
                     key={c.id} 
-                    onClick={() => { window.location.href = `/?card=${c.id}`; }}
+                    onClick={() => {
+                      if (onCardClick) {
+                        onCardClick(c.id);
+                      } else {
+                        window.location.href = `/?card=${c.id}`;
+                      }
+                    }}
                     title="Clicca per aprire la scheda"
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-glass)', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', cursor: 'pointer', transition: 'background 0.2s' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(161, 189, 207, 0.1)'}

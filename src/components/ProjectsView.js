@@ -4,7 +4,7 @@ import { Briefcase, Plus, TrendingUp, CheckSquare, Layers, Clock, DollarSign, Ca
 import styles from './ProjectsView.module.css';
 import ProjectModal from './ProjectModal';
 
-export default function ProjectsView({ clients = [], members = [], currentUser, onRefresh }) {
+export default function ProjectsView({ clients = [], members = [], currentUser, onRefresh, onCardClick }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -400,6 +400,7 @@ export default function ProjectsView({ clients = [], members = [], currentUser, 
           members={members}
           currentUser={currentUser}
           onClose={() => setActiveProject(null)} 
+          onCardClick={onCardClick}
           onRefresh={() => {
             fetchProjects();
             if (onRefresh) onRefresh();

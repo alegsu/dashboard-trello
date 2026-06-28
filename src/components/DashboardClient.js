@@ -11,6 +11,7 @@ import PomodoroTimer from './PomodoroTimer';
 import HelpModal from './HelpModal';
 import MyTasksView from './MyTasksView';
 import DocumentImportModal from './DocumentImportModal';
+import CardModal from './CardModal';
 import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock } from 'lucide-react';
 
 export default function DashboardClient({ initialBoards, initialLists, initialCards, initialMembers, initialClients }) {
@@ -35,6 +36,14 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
       } else {
         setSelectedBoardId(initialBoards[0].id);
       }
+
+      const cardId = urlParams.get('card');
+      if (cardId) {
+        setGlobalCardId(cardId);
+        const url = new URL(window.location.href);
+        url.searchParams.delete('card');
+        window.history.replaceState({}, document.title, url);
+      }
     }
   }, [initialBoards]);
 
@@ -48,6 +57,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
   const [currentUser, setCurrentUser] = useState(null);
   const [zenMode, setZenMode] = useState(false);
   const [currentTime, setCurrentTime] = useState(null);
+  const [globalCardId, setGlobalCardId] = useState(null);
 
   useEffect(() => {
     setCurrentTime(new Date());
@@ -419,6 +429,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               currentUser={currentUser}
               zenMode={zenMode}
               filterClientId={filterClientId}
+              onCardClick={setGlobalCardId}
             />
           )}
           {view === 'timeline' && selectedBoardId && (
@@ -426,6 +437,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               lists={boardLists} 
               cards={boardCards} 
               members={initialMembers} 
+              onCardClick={setGlobalCardId}
             />
           )}
           {view === 'projects' && (
@@ -438,6 +450,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
                 setView('kanban');
                 setSelectedBoardId(boardId);
               }}
+              onCardClick={setGlobalCardId}
             />
           )}
           {view === 'clients' && (
@@ -453,6 +466,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               lists={initialLists || []}
               onCardUpdate={handleCardUpdate} 
               onRefresh={handleRefresh}
+              onCardClick={setGlobalCardId}
             />
           )}
           {view === 'settings' && (
@@ -481,6 +495,20 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
           onRefresh={() => window.location.reload()}
           boardLists={boardLists}
           selectedBoardId={selectedBoardId}
+        />
+      )}
+      {globalCardId && (
+        <CardModal 
+          cardId={globalCardId} 
+          members={initialMembers} 
+          currentUser={currentUser}
+          onRefresh={handleRefresh}
+          onClose={() => {
+            setGlobalCardId(null);
+            const url = new URL(window.location.href);
+            url.searchParams.delete('card');
+            window.history.replaceState({}, '', url);
+          }} 
         />
       )}
     </main>

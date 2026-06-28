@@ -45,17 +45,29 @@ export async function GET(request) {
 
       if (!user.email) continue;
 
-      let listItems = notifications.map(n => {
-        const linkHtml = n.link ? ` <a href="${n.link}" style="color: #3b82f6; text-decoration: none; font-weight: 500;">[Vedi]</a>` : '';
-        return `<li style="margin-bottom: 12px; font-size: 15px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; list-style-type: none;">
-                  <span style="display: inline-block; width: 8px; height: 8px; background-color: #a1bdcf; border-radius: 50%; margin-right: 8px;"></span>
-                  <strong>${n.type}:</strong> ${n.message}${linkHtml}
-                </li>`;
-      }).join('');
-
       // URL di base
       const baseUrlSetting = await prisma.systemSetting.findUnique({ where: { key: 'BASE_URL' } });
-      const BASE_URL = baseUrlSetting?.value || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      let BASE_URL = baseUrlSetting?.value || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      if (BASE_URL.endsWith('/')) BASE_URL = BASE_URL.slice(0, -1);
+
+      const typeMap = {
+        'CARD_ADD': '📌 Nuova Scheda',
+        'ASSIGN': '👤 Assegnazione',
+        'ASSIGN_TASK': '✅ Assegnazione Task',
+        'MENTION': '💬 Menzione',
+        'BOARD_UPDATE': '📋 Bacheca',
+      };
+
+      let listItems = notifications.map(n => {
+        const fullLink = n.link ? (n.link.startsWith('/') ? BASE_URL + n.link : BASE_URL + '/' + n.link) : '';
+        const linkHtml = fullLink ? ` <a href="${fullLink}" style="color: #3b82f6; text-decoration: none; font-weight: 500; font-size: 13px; margin-left: 8px;">Vai alla scheda ➔</a>` : '';
+        const badgeStr = typeMap[n.type] || n.type;
+        
+        return `<li style="margin-bottom: 16px; font-size: 15px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9; list-style-type: none;">
+                  <div style="margin-bottom: 6px;"><span style="display: inline-block; background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">${badgeStr}</span></div>
+                  <div style="color: #1e293b; line-height: 1.5;">${n.message}${linkHtml}</div>
+                </li>`;
+      }).join('');
 
       const htmlEmail = getEmailTemplate({
         title: "Hai nuovi aggiornamenti",

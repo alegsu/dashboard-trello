@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { flushSync } from 'react-dom';
 import confetti from 'canvas-confetti';
-import CardModal from './CardModal';
+
 import styles from './KanbanView.module.css';
 
 // Helper per calcolare se il testo deve essere chiaro o scuro in base al background
@@ -18,9 +18,8 @@ function getContrastYIQ(hexcolor){
   return (yiq >= 128) ? '#000000' : '#ffffff';
 }
 
-export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh, onCardUpdate, currentUser, zenMode, filterClientId }) {
+export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh, onCardUpdate, currentUser, zenMode, filterClientId, onCardClick }) {
   const [isMounted, setIsMounted] = useState(false);
-  const [selectedCardId, setSelectedCardId] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(100);
 
   useEffect(() => { 
@@ -481,7 +480,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => handleDropOnCard(e, cellKey, index)}
                                 className={styles.kanbanCard}
-                                onClick={() => setSelectedCardId(card.id)}
+                                onClick={() => { if (onCardClick) onCardClick(card.id); }}
                                 style={{ 
                                   background: card.color ? card.color : (bgColor === 'transparent' ? 'var(--bg-secondary)' : 'rgba(255, 255, 255, 0.3)'),
                                   color: getContrastYIQ(card.color || (bgColor === 'transparent' ? '#1e293b' : '#ffffff')),
@@ -542,16 +541,6 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
               )
             })}
          </div>
-
-      {selectedCardId && (
-        <CardModal 
-          cardId={selectedCardId} 
-          members={members} 
-          currentUser={currentUser}
-          onClose={() => setSelectedCardId(null)} 
-          onRefresh={onRefresh} 
-        />
-      )}
     </div>
   );
 }
