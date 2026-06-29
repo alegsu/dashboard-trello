@@ -163,6 +163,7 @@ model Client {
   
   driveFolderId String? // Google Drive folder ID
   notebookLmUrl String? // Link to Google NotebookLM
+  claudeUrl     String? // Link to Claude Project/Chat
   notes         String? @db.Text // Quick notes / Contact info
   sheetData     String? @db.Text // Parsed Google Sheet JSON
   color         String? // Hex color code for the client row

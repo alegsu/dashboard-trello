@@ -9,6 +9,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
   // Campi Form
   const [name, setName] = useState('');
   const [notebookLmUrl, setNotebookLmUrl] = useState('');
+  const [claudeUrl, setClaudeUrl] = useState('');
   const [notes, setNotes] = useState('');
   const [color, setColor] = useState('');
   const [mergeTargetId, setMergeTargetId] = useState('');
@@ -33,6 +34,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
     setSelectedClient(c);
     setName(c.name || '');
     setNotebookLmUrl(c.notebookLmUrl || '');
+    setClaudeUrl(c.claudeUrl || '');
     setNotes(c.notes || '');
     setColor(c.color || '');
     setMergeTargetId('');
@@ -49,6 +51,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
         body: JSON.stringify({
           name,
           notebookLmUrl,
+          claudeUrl,
           notes,
           color
         })
@@ -57,7 +60,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
       if (res.ok) {
         if (onRefresh) onRefresh();
         alert('Dati cliente salvati con successo!');
-        setSelectedClient({ ...selectedClient, name, notebookLmUrl, notes, color });
+        setSelectedClient({ ...selectedClient, name, notebookLmUrl, claudeUrl, notes, color });
       } else {
         alert('Errore durante il salvataggio.');
       }
@@ -223,6 +226,25 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                   )}
                 </div>
                 <small style={{ color: 'var(--text-secondary)' }}>Incolla il link diretto al progetto NotebookLM per questo cliente.</small>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontWeight: 'bold' }}>Link Progetto Claude</label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input 
+                    type="url" 
+                    value={claudeUrl} 
+                    onChange={e => setClaudeUrl(e.target.value)} 
+                    placeholder="https://claude.ai/project/..." 
+                    style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+                  />
+                  {claudeUrl && (
+                    <a href={claudeUrl} target="_blank" rel="noreferrer" style={{ padding: '0.5rem 1rem', background: '#d97757', color: 'white', borderRadius: '4px', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                      Apri Claude
+                    </a>
+                  )}
+                </div>
+                <small style={{ color: 'var(--text-secondary)' }}>Incolla il link diretto alla chat o al progetto Claude per questo cliente.</small>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
