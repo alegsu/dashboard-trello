@@ -108,6 +108,38 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
     }
   };
 
+  const handleConvertToSupplier = async () => {
+    if (!selectedClient) return;
+    if (!confirm(`Sei sicuro di voler convertire "${selectedClient.name}" in un Fornitore/Tool? Il cliente verrà rimosso da questa lista e inserito negli Accessi.`)) return;
+
+    try {
+      // 1. Create Access
+      const resAccess = await fetch('/api/accesses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: selectedClient.name,
+          notes: selectedClient.notes || '',
+          type: 'SUPPLIER',
+          showInCard: false
+        })
+      });
+
+      if (!resAccess.ok) throw new Error('Errore creazione accesso');
+
+      // 2. Delete Client
+      const resDel = await fetch(`/api/clients/${selectedClient.id}`, { method: 'DELETE' });
+      if (resDel.ok) {
+        if (onRefresh) onRefresh();
+        setSelectedClient(null);
+        alert('Convertito con successo!');
+      }
+    } catch(err) {
+      console.error(err);
+      alert('Errore durante la conversione');
+    }
+  };
+
   const handleSyncSheets = async () => {
     if (!csvUrl) return alert("Inserisci il link CSV di Google Sheets");
     
@@ -128,7 +160,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
       const data = await res.json();
       
       if (res.ok) {
-        alert(`Sincronizzazione completata!\\nClienti creati: ${data.results.clientsCreated}\\nClienti aggiornati: ${data.results.clientsUpdated}\\nNuovi utenti creati: ${data.results.usersCreated}`);
+        alert(`Sincronizzazione completata!\nClienti creati: ${data.results.clientsCreated}\nClienti aggiornati: ${data.results.clientsUpdated}\nNuovi utenti creati: ${data.results.usersCreated}`);
         if (onRefresh) onRefresh();
       } else {
         alert("Errore sinc: " + data.error);
@@ -197,108 +229,114 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
         {selectedClient && (
           <div style={{ flex: '2 1 500px', background: 'var(--bg-glass)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)', alignSelf: 'flex-start' }}>
             
-            <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontWeight: 'bold' }}>Nome Cliente</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Nome Cliente</label>
                 <input 
                   type="text" 
                   value={name} 
                   onChange={e => setName(e.target.value)} 
-                  style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '1.2rem', fontWeight: 'bold' }}
+                  style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 'bold' }}
                 />
               </div>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontWeight: 'bold' }}>Link Progetto NotebookLM</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Progetto NotebookLM</label>
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
                   <input 
                     type="url" 
                     value={notebookLmUrl} 
                     onChange={e => setNotebookLmUrl(e.target.value)} 
                     placeholder="https://notebooklm.google.com/..." 
-                    style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+                    style={{ flex: 1, padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
                   />
                   {notebookLmUrl && (
-                    <a href={notebookLmUrl} target="_blank" rel="noreferrer" style={{ padding: '0.5rem 1rem', background: 'var(--status-in-progress, #3b82f6)', color: 'white', borderRadius: '4px', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                      Apri NotebookLM
+                    <a href={notebookLmUrl} target="_blank" rel="noreferrer" style={{ padding: '0.4rem 0.8rem', background: 'var(--status-in-progress, #3b82f6)', color: 'white', borderRadius: '4px', textDecoration: 'none', display: 'flex', alignItems: 'center', fontSize: '0.85rem' }}>
+                      Apri
                     </a>
                   )}
                 </div>
-                <small style={{ color: 'var(--text-secondary)' }}>Incolla il link diretto al progetto NotebookLM per questo cliente.</small>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontWeight: 'bold' }}>Link Progetto Claude</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Progetto Claude</label>
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
                   <input 
                     type="url" 
                     value={claudeUrl} 
                     onChange={e => setClaudeUrl(e.target.value)} 
                     placeholder="https://claude.ai/project/..." 
-                    style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+                    style={{ flex: 1, padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
                   />
                   {claudeUrl && (
-                    <a href={claudeUrl} target="_blank" rel="noreferrer" style={{ padding: '0.5rem 1rem', background: '#d97757', color: 'white', borderRadius: '4px', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                      Apri Claude
+                    <a href={claudeUrl} target="_blank" rel="noreferrer" style={{ padding: '0.4rem 0.8rem', background: '#d97757', color: 'white', borderRadius: '4px', textDecoration: 'none', display: 'flex', alignItems: 'center', fontSize: '0.85rem' }}>
+                      Apri
                     </a>
                   )}
                 </div>
-                <small style={{ color: 'var(--text-secondary)' }}>Incolla il link diretto alla chat o al progetto Claude per questo cliente.</small>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontWeight: 'bold' }}>Appunti Veloci / Referenti</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Appunti Veloci / Referenti</label>
                 <textarea 
                   value={notes} 
                   onChange={e => setNotes(e.target.value)} 
-                  rows={8} 
-                  placeholder="Scrivi qui i contatti, gli accordi principali, i link Drive o altre info utili..."
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', resize: 'vertical' }}
+                  rows={4} 
+                  placeholder="Scrivi qui i contatti, gli accordi principali..."
+                  style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', resize: 'vertical', fontSize: '0.85rem' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontWeight: 'bold' }}>Colore Riga Bacheca</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Colore Riga Bacheca</label>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                   <input 
                     type="color" 
                     value={color || '#1E293B'} 
                     onChange={e => setColor(e.target.value)} 
-                    style={{ width: '40px', height: '40px', padding: '0', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                    style={{ width: '30px', height: '30px', padding: '0', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
                   />
-                  <small style={{ color: 'var(--text-secondary)' }}>Scegli il colore di sfondo per l'intera riga di questo cliente in KanbanView.</small>
-                  <button type="button" onClick={() => setColor('')} style={{ padding: '0.3rem 0.6rem', background: 'var(--bg-secondary)', color: 'var(--text-primary)', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.8rem', cursor: 'pointer', marginLeft: 'auto' }}>
+                  <button type="button" onClick={() => setColor('')} style={{ padding: '0.2rem 0.5rem', background: 'var(--bg-secondary)', color: 'var(--text-primary)', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.75rem', cursor: 'pointer' }}>
                     Reset Colore
                   </button>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                <button type="submit" style={{ padding: '0.6rem 1.2rem', background: 'var(--accent-primary)', color: 'black', borderRadius: '4px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>
-                  Salva Informazioni
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                <button type="submit" style={{ padding: '0.5rem 1rem', background: 'var(--accent-primary)', color: 'black', borderRadius: '4px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}>
+                  Salva Modifiche
                 </button>
               </div>
             </form>
 
-            <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '2rem 0' }} />
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '1.5rem 0' }} />
             
-            <h3 style={{ color: 'var(--status-danger)' }}>Zona Pericolosa</h3>
+            <h3 style={{ color: 'var(--status-danger)', fontSize: '1rem', marginTop: 0 }}>Zona Pericolosa</h3>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem', background: 'rgba(255,0,0,0.05)', padding: '1rem', border: '1px solid rgba(255,0,0,0.2)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', background: 'rgba(255,0,0,0.05)', padding: '0.8rem', border: '1px solid rgba(255,0,0,0.2)', borderRadius: '8px' }}>
               
               <div>
-                <h4 style={{ margin: '0 0 0.5rem 0' }}>Unisci a un altro cliente</h4>
-                <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Sposta tutti i progetti e le schede di questo cliente in un altro cliente, poi elimina questo.</p>
+                <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '0.9rem' }}>Converti in Fornitore/Tool</h4>
+                <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Questo non era un vero cliente? Spostalo nella rubrica degli Accessi ed eliminalo dalla lista clienti.</p>
+                <button onClick={handleConvertToSupplier} style={{ padding: '0.4rem 0.8rem', background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderRadius: '4px', border: '1px solid var(--border-color)', cursor: 'pointer', fontSize: '0.8rem' }}>
+                  Converti in Fornitore
+                </button>
+              </div>
+
+              <hr style={{ border: 'none', borderTop: '1px solid rgba(255,0,0,0.1)' }} />
+
+              <div>
+                <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '0.9rem' }}>Unisci a un altro cliente</h4>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <select value={mergeTargetId} onChange={e => setMergeTargetId(e.target.value)} style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-                    <option value="">-- Seleziona cliente di destinazione --</option>
+                  <select value={mergeTargetId} onChange={e => setMergeTargetId(e.target.value)} style={{ flex: 1, padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}>
+                    <option value="">-- Seleziona destinazione --</option>
                     {clients.filter(c => c.id !== selectedClient.id).map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
-                  <button onClick={handleMerge} disabled={!mergeTargetId} style={{ padding: '0.5rem 1rem', background: 'var(--status-warning)', color: 'white', borderRadius: '4px', border: 'none', cursor: mergeTargetId ? 'pointer' : 'not-allowed', fontWeight: 'bold' }}>
-                    Unisci e Elimina
+                  <button onClick={handleMerge} disabled={!mergeTargetId} style={{ padding: '0.4rem 0.8rem', background: 'var(--status-warning)', color: 'white', borderRadius: '4px', border: 'none', cursor: mergeTargetId ? 'pointer' : 'not-allowed', fontWeight: 'bold', fontSize: '0.8rem' }}>
+                    Unisci
                   </button>
                 </div>
               </div>
@@ -306,8 +344,8 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
               <hr style={{ border: 'none', borderTop: '1px solid rgba(255,0,0,0.1)' }} />
               
               <div>
-                <h4 style={{ margin: '0 0 0.5rem 0' }}>Elimina Cliente</h4>
-                <button onClick={handleDelete} style={{ padding: '0.5rem 1rem', background: 'var(--status-danger)', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
+                <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '0.9rem' }}>Elimina Cliente</h4>
+                <button onClick={handleDelete} style={{ padding: '0.4rem 0.8rem', background: 'var(--status-danger)', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem' }}>
                   Elimina Definitivamente
                 </button>
               </div>

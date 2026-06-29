@@ -10,7 +10,7 @@ export default async function Home() {
   const lists = await prisma.list.findMany({ orderBy: { order: 'asc' } });
   const clients = await prisma.client.findMany({ 
     orderBy: { name: 'asc' },
-    include: { collaborators: true }
+    include: { collaborators: true, accesses: true }
   });
   const cards = await prisma.card.findMany({ 
     include: { assignees: true, labels: true },

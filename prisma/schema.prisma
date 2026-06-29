@@ -171,6 +171,23 @@ model Client {
   projects    Project[]
   cards       Card[]
   collaborators User[]  @relation("ClientCollaborators")
+  accesses    Access[]  @relation("ClientAccesses")
+}
+
+model Access {
+  id        String   @id @default(cuid())
+  name      String   
+  url       String?
+  username  String?
+  password  String?
+  notes     String? @db.Text
+  
+  type      String   @default("SUPPLIER") // "CLIENT" or "SUPPLIER"
+  showInCard Boolean @default(true)
+  
+  clients   Client[] @relation("ClientAccesses")
+
+  createdAt DateTime @default(now())
 }
 
 

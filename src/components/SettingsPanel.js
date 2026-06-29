@@ -204,83 +204,91 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
 
       <div className={styles.grid}>
         {/* Gestione Team */}
-        <div className={styles.card}>
-          <h3>👥 Crea Account Team ({members.length})</h3>
-          <p className={styles.subtitle}>Crea le credenziali per i tuoi colleghi (loro non potranno registrarsi da soli).</p>
-          
-          <ul className={styles.list}>
-            {liveMembers.map(m => (
-              <li key={m.id} className={styles.listItem} style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 150px' }}>
-                  <div className={styles.avatar}>{m.name.charAt(0).toUpperCase()}</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                    <strong>{m.name}</strong>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{m.email || 'Nessuna email'}</span>
+        {effectiveCurrentUser?.role === 'admin' && (
+          <div className={styles.card}>
+            <h3>👥 Crea Account Team ({members.length})</h3>
+            <p className={styles.subtitle}>Crea le credenziali per i tuoi colleghi (loro non potranno registrarsi da soli).</p>
+            
+            <ul className={styles.list}>
+              {liveMembers.map(m => (
+                <li key={m.id} className={styles.listItem} style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 150px' }}>
+                    <div className={styles.avatar}>{m.name.charAt(0).toUpperCase()}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                      <strong>{m.name}</strong>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{m.email || 'Nessuna email'}</span>
+                    </div>
                   </div>
-                </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 250px', justifyContent: 'space-between', marginTop: '0.3rem' }}>
-                  <div>
-                    {effectiveCurrentUser?.role === 'admin' && m.id !== effectiveCurrentUser.id ? (
-                      <select 
-                        value={m.role}
-                        onChange={async (e) => {
-                          await fetch(`/api/users/${m.id}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ role: e.target.value })
-                          });
-                          window.location.reload();
-                        }}
-                        style={{ fontSize: '0.75rem', padding: '0.2rem', background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
-                      >
-                        <option value="user">Utente</option>
-                        <option value="admin">Amministratore</option>
-                      </select>
-                    ) : (
-                      <span style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', background: 'var(--bg-elevated)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-                        {m.role === 'admin' ? 'Amministratore' : 'Utente'}
-                      </span>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 250px', justifyContent: 'space-between', marginTop: '0.3rem' }}>
+                    <div>
+                      {effectiveCurrentUser?.role === 'admin' && m.id !== effectiveCurrentUser.id ? (
+                        <select 
+                          value={m.role}
+                          onChange={async (e) => {
+                            await fetch(`/api/users/${m.id}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ role: e.target.value })
+                            });
+                            window.location.reload();
+                          }}
+                          style={{ fontSize: '0.75rem', padding: '0.2rem', background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                        >
+                          <option value="user">Utente</option>
+                          <option value="admin">Amministratore</option>
+                        </select>
+                      ) : (
+                        <span style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', background: 'var(--bg-elevated)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                          {m.role === 'admin' ? 'Amministratore' : 'Utente'}
+                        </span>
+                      )}
+                    </div>
+
+                    {effectiveCurrentUser?.role === 'admin' && (
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', background: 'var(--bg-elevated)', padding: '0.2rem 0.5rem', borderRadius: '4px', textAlign: 'right' }}>
+                        <div style={{ marginBottom: '2px' }}><strong>Logins:</strong> {m.loginCount || 0}</div>
+                        <div><strong>Tempo:</strong> {m.totalUsageTime ? Math.round(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m</div>
+                      </div>
                     )}
                   </div>
-
-                  {effectiveCurrentUser?.role === 'admin' && (
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', background: 'var(--bg-elevated)', padding: '0.2rem 0.5rem', borderRadius: '4px', textAlign: 'right' }}>
-                      <div style={{ marginBottom: '2px' }}><strong>Logins:</strong> {m.loginCount || 0}</div>
-                      <div><strong>Tempo:</strong> {m.totalUsageTime ? Math.round(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m</div>
-                    </div>
+                  
+                  {m.id !== effectiveCurrentUser?.id && effectiveCurrentUser?.role === 'admin' && (
+                    <button onClick={() => handleDeleteUser(m.id)} className={styles.iconBtn} style={{color: 'var(--status-danger)', marginTop: '0.3rem'}} title="Elimina Utente">
+                      ❌
+                    </button>
                   )}
-                </div>
-              </li>
-            ))}
-            {liveMembers.length === 0 && <p className={styles.empty}>Nessun membro. Aggiungine uno!</p>}
-          </ul>
+                </li>
+              ))}
+              {liveMembers.length === 0 && <p className={styles.empty}>Nessun membro. Aggiungine uno!</p>}
+            </ul>
 
-          <div style={{display: 'flex', flexDirection: 'column', gap: '0.3rem', background: 'rgba(0,0,0,0.1)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.5rem'}}>
-            <input 
-              type="text" 
-              value={newUserName} 
-              onChange={e => setNewUserName(e.target.value)}
-              placeholder="Nome del collega..." 
-              className={styles.input} 
-            />
-            <input 
-              type="email" 
-              value={newUserEmail} 
-              onChange={e => setNewUserEmail(e.target.value)}
-              placeholder="Email aziendale..." 
-              className={styles.input} 
-            />
-            <input 
-              type="password" 
-              value={newUserPassword} 
-              onChange={e => setNewUserPassword(e.target.value)}
-              placeholder="Password temporanea..." 
-              className={styles.input} 
-            />
-            <button onClick={handleAddUser} disabled={loading} className={styles.btnPrimary}>Crea Utente</button>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '0.3rem', background: 'rgba(0,0,0,0.1)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.5rem'}}>
+              <input 
+                type="text" 
+                value={newUserName} 
+                onChange={e => setNewUserName(e.target.value)}
+                placeholder="Nome del collega..." 
+                className={styles.input} 
+              />
+              <input 
+                type="email" 
+                value={newUserEmail} 
+                onChange={e => setNewUserEmail(e.target.value)}
+                placeholder="Email aziendale..." 
+                className={styles.input} 
+              />
+              <input 
+                type="password" 
+                value={newUserPassword} 
+                onChange={e => setNewUserPassword(e.target.value)}
+                placeholder="Password temporanea..." 
+                className={styles.input} 
+              />
+              <button onClick={handleAddUser} disabled={loading} className={styles.btnPrimary}>Crea Utente</button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Impostazioni Account Corrente */}
         <div className={styles.card}>
@@ -418,55 +426,56 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
         </div>
 
         {/* Impostazioni Email */}
-        <div className={styles.card}>
-          <h3>📧 SMTP</h3>
-          <p className={styles.subtitle}>Email per le notifiche automatiche.</p>
-          <div style={{display: 'flex', flexDirection: 'column', gap: '0.3rem'}}>
-            <input 
-              type="text" 
-              value={smtpHost} 
-              onChange={e => setSmtpHost(e.target.value)} 
-              placeholder="SMTP Host (es. smtp.gmail.com)"
-              className={styles.input}
-            />
-            <input 
-              type="text" 
-              value={smtpPort} 
-              onChange={e => setSmtpPort(e.target.value)} 
-              placeholder="Porta (es. 465 o 587)"
-              className={styles.input}
-            />
-            <input 
-              type="email" 
-              value={smtpUser} 
-              onChange={e => setSmtpUser(e.target.value)} 
-              placeholder="Indirizzo Email"
-              className={styles.input}
-            />
-            <input 
-              type="password" 
-              value={smtpPass} 
-              onChange={e => setSmtpPass(e.target.value)} 
-              placeholder="Password o App Password"
-              className={styles.input}
-            />
-            
-            <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.3rem 0' }} />
-            <h4 style={{ margin: 0, fontSize: '0.8rem' }}>URL di Produzione</h4>
-            <input 
-              type="url" 
-              value={baseUrl} 
-              onChange={e => setBaseUrl(e.target.value)} 
-              placeholder="es. https://miosito.com"
-              className={styles.input}
-            />
-            
-            <button onClick={handleSaveSmtp} disabled={loading} className={styles.button} style={{marginTop: '0.5rem'}}>
-              Salva Impostazioni
-            </button>
+        {effectiveCurrentUser?.role === 'admin' && (
+          <div className={styles.card}>
+            <h3>📧 SMTP</h3>
+            <p className={styles.subtitle}>Email per le notifiche automatiche.</p>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '0.3rem'}}>
+              <input 
+                type="text" 
+                value={smtpHost} 
+                onChange={e => setSmtpHost(e.target.value)} 
+                placeholder="SMTP Host (es. smtp.gmail.com)"
+                className={styles.input}
+              />
+              <input 
+                type="text" 
+                value={smtpPort} 
+                onChange={e => setSmtpPort(e.target.value)} 
+                placeholder="Porta (es. 465 o 587)"
+                className={styles.input}
+              />
+              <input 
+                type="email" 
+                value={smtpUser} 
+                onChange={e => setSmtpUser(e.target.value)} 
+                placeholder="Indirizzo Email"
+                className={styles.input}
+              />
+              <input 
+                type="password" 
+                value={smtpPass} 
+                onChange={e => setSmtpPass(e.target.value)} 
+                placeholder="Password o App Password"
+                className={styles.input}
+              />
+              
+              <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.3rem 0' }} />
+              <h4 style={{ margin: 0, fontSize: '0.8rem' }}>URL di Produzione</h4>
+              <input 
+                type="url" 
+                value={baseUrl} 
+                onChange={e => setBaseUrl(e.target.value)} 
+                placeholder="es. https://miosito.com"
+                className={styles.input}
+              />
+              
+              <button onClick={handleSaveSmtp} disabled={loading} className={styles.button} style={{marginTop: '0.5rem'}}>
+                Salva Impostazioni
+              </button>
+            </div>
           </div>
-
-        </div>
+        )}
 
         {/* Generatore di Template Operativi */}
         <div className={styles.card}>

@@ -499,26 +499,54 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {(() => {
               const currentClient = allClients.find(c => c.id === card.clientId);
-              return currentClient?.claudeUrl ? (
-                <a 
-                  href={currentClient.claudeUrl} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  title={`Apri Progetto Claude (${currentClient.name})`}
-                  style={{ background: '#d97757', border: '1px solid #d97757', color: 'white', textDecoration: 'none', padding: '0.5rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}
-                >
-                  🤖
-                </a>
-              ) : null;
+              const visibleAccesses = currentClient?.accesses?.filter(a => a.showInCard) || [];
+              return (
+                <div style={{ display: 'flex', gap: '0.3rem' }}>
+                  {currentClient?.claudeUrl && (
+                    <a 
+                      href={currentClient.claudeUrl} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      title={`Apri Progetto Claude (${currentClient.name})`}
+                      style={{ background: '#d97757', border: '1px solid #d97757', color: 'white', textDecoration: 'none', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', fontSize: '0.9rem' }}
+                    >
+                      🤖
+                    </a>
+                  )}
+                  {visibleAccesses.length > 0 && (
+                    <div style={{ position: 'relative' }} className="access-dropdown-container">
+                      <button 
+                        onClick={(e) => {
+                          e.currentTarget.nextElementSibling.style.display = e.currentTarget.nextElementSibling.style.display === 'none' ? 'block' : 'none';
+                        }} 
+                        title="Vedi Accessi" 
+                        style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', cursor: 'pointer', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', fontSize: '0.9rem' }}
+                      >
+                        🔑
+                      </button>
+                      <div style={{ display: 'none', position: 'absolute', top: '100%', right: 0, width: '250px', background: 'var(--bg-glass)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', marginTop: '0.3rem' }}>
+                        <h5 style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Credenziali {currentClient.name}</h5>
+                        {visibleAccesses.map(a => (
+                          <div key={a.id} style={{ marginBottom: '0.5rem', background: 'var(--bg-primary)', padding: '0.4rem', borderRadius: '4px', fontSize: '0.75rem' }}>
+                            <strong style={{ display: 'block', marginBottom: '0.2rem' }}>{a.name}</strong>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.1rem' }}><span>User:</span> <span onClick={() => navigator.clipboard.writeText(a.username)} style={{ cursor: 'pointer', color: 'var(--accent-primary)' }} title="Copia">{a.username || '-'}</span></div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Pass:</span> <span onClick={() => navigator.clipboard.writeText(a.password)} style={{ cursor: 'pointer', color: 'var(--accent-primary)' }} title="Copia">••••••••</span></div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
             })()}
-            <button title="Copia Scheda" onClick={copyCard} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.5rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}>
-              <Copy size={16} />
+            <button title="Copia Scheda" onClick={copyCard} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}>
+              <Copy size={14} />
             </button>
-            <button title="Archivia Scheda" onClick={archiveCard} style={{ background: 'transparent', border: '1px solid var(--status-warning)', color: 'var(--status-warning)', cursor: 'pointer', padding: '0.5rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}>
-              <Archive size={16} />
+            <button title="Archivia Scheda" onClick={archiveCard} style={{ background: 'transparent', border: '1px solid var(--status-warning)', color: 'var(--status-warning)', cursor: 'pointer', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}>
+              <Archive size={14} />
             </button>
-            <button title="Elimina Scheda" onClick={deleteCard} style={{ background: 'transparent', border: '1px solid var(--status-danger)', color: 'var(--status-danger)', cursor: 'pointer', padding: '0.5rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}>
-              <Trash2 size={16} />
+            <button title="Elimina Scheda" onClick={deleteCard} style={{ background: 'transparent', border: '1px solid var(--status-danger)', color: 'var(--status-danger)', cursor: 'pointer', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}>
+              <Trash2 size={14} />
             </button>
             <button className={styles.closeBtn} onClick={onClose}><X size={20} /></button>
           </div>
@@ -854,41 +882,40 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
 
           <div className={styles.sideCol}>
             {/* AI Action */}
-            <div className={styles.widget} style={{ border: '1px solid var(--accent-primary)', background: 'rgba(161, 189, 207, 0.05)' }}>
+            <div className={styles.widget} style={{ border: '1px solid var(--accent-primary)', background: 'rgba(161, 189, 207, 0.05)', padding: '0.5rem' }}>
               <button 
                 onClick={generateAiSummary} 
                 disabled={loadingSummary}
                 className={styles.btnSecondary}
-                style={{ width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-elevated)', border: '1px solid var(--border-color)' }}
+                style={{ width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-elevated)', border: '1px solid var(--border-color)', fontSize: '0.8rem', padding: '0.3rem' }}
               >
-                ✨ {loadingSummary ? 'Generazione...' : 'Riassumi con AI'}
+                ✨ {loadingSummary ? '...' : 'Riassumi (AI)'}
               </button>
-              {aiError && !aiSummary && <div style={{ color: 'var(--status-danger)', fontSize: '0.75rem', marginTop: '0.5rem', textAlign: 'center' }}>{aiError}</div>}
             </div>
 
             {/* Due Date */}
-            <div className={styles.widget}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Calendar size={14}/> Scadenza</h4>
+            <div className={styles.widget} style={{ padding: '0.5rem' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0', fontSize: '0.8rem' }}><Calendar size={14}/> Scadenza</h4>
               <input 
                 type="date" 
                 value={card.due ? new Date(card.due).toISOString().split('T')[0] : ''} 
                 onChange={e => updateCard({ due: e.target.value ? new Date(e.target.value).toISOString() : null })}
                 className={styles.input}
-                style={{ width: '100%' }}
+                style={{ width: '100%', padding: '0.2rem', fontSize: '0.8rem' }}
               />
             </div>
 
-            <div className={styles.widget}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><User size={14}/> Assegnatari</h4>
+            <div className={styles.widget} style={{ padding: '0.5rem' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0', fontSize: '0.8rem' }}><User size={14}/> Assegnatari</h4>
               <div style={{ position: 'relative' }}>
                 <div 
                   className={styles.input} 
-                  style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', padding: '0.4rem', cursor: 'pointer', minHeight: '34px', alignItems: 'center' }}
+                  style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', padding: '0.2rem', cursor: 'pointer', minHeight: '26px', alignItems: 'center', fontSize: '0.8rem' }}
                   onClick={() => setShowAssigneesDropdown(!showAssigneesDropdown)}
                 >
                   {card.assignees.length === 0 && <span style={{ color: 'var(--text-secondary)' }}>Nessuno</span>}
                   {card.assignees.map(a => (
-                    <div key={a.id} style={{ display: 'flex', alignItems: 'center', background: 'var(--accent-primary)', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.8rem' }}>
+                    <div key={a.id} style={{ display: 'flex', alignItems: 'center', background: 'var(--accent-primary)', color: 'white', padding: '0.1rem 0.3rem', borderRadius: '4px', fontSize: '0.75rem' }}>
                       {a.name}
                     </div>
                   ))}
@@ -898,7 +925,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                     {members.map(m => {
                       const isAssigned = card.assignees.some(a => a.id === m.id);
                       return (
-                        <label key={m.id} className={styles.assigneeLabel} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.3rem', cursor: 'pointer', borderRadius: '4px' }}>
+                        <label key={m.id} className={styles.assigneeLabel} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.2rem', cursor: 'pointer', borderRadius: '4px', fontSize: '0.8rem' }}>
                           <input 
                             type="checkbox" 
                             checked={isAssigned} 
@@ -914,110 +941,114 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
             </div>
 
             {/* Client */}
-            <div className={styles.widget}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>🏢 Cliente</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <select 
-                  className={styles.input} 
-                  value={card.clientId || ''} 
-                  onChange={(e) => updateCard({ clientId: e.target.value || null, projectId: null })}
-                  style={{ padding: '0.4rem', borderRadius: '6px' }}
-                >
-                  <option value="">Nessuno</option>
-                  {allClients.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-                <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
-                  <input type="text" placeholder="Nuovo Cliente..." value={newClientName} onChange={e => setNewClientName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createClient()} className={styles.input} style={{ flex: 1, minWidth: 0 }} />
-                  <button onClick={createClient} className={styles.btnSecondary} style={{ padding: '0.25rem 0.5rem', flexShrink: 0 }}>Crea</button>
-                </div>
-              </div>
+            <div className={styles.widget} style={{ padding: '0.5rem' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0', fontSize: '0.8rem' }}>🏢 Cliente</h4>
+              <select 
+                className={styles.input} 
+                value={card.clientId || ''} 
+                onChange={(e) => updateCard({ clientId: e.target.value || null, projectId: null })}
+                style={{ padding: '0.2rem', borderRadius: '4px', fontSize: '0.8rem', width: '100%' }}
+              >
+                <option value="">Nessuno</option>
+                {allClients.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </div>
 
             {/* Project */}
-            <div className={styles.widget}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>📁 Progetto {card.clientId ? '(del Cliente)' : ''}</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <select 
-                  className={styles.input} 
-                  value={card.projectId || ''} 
-                  onChange={(e) => updateCard({ projectId: e.target.value || null })}
-                  style={{ padding: '0.4rem', borderRadius: '6px' }}
-                >
-                  <option value="">Nessuno</option>
-                  {allProjects.filter(p => !card.clientId || p.clientId === card.clientId).map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-                <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
-                  <input type="text" placeholder="Nuovo Progetto..." value={newProjectName} onChange={e => setNewProjectName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createProject()} className={styles.input} style={{ flex: 1, minWidth: 0 }} />
-                  <button onClick={createProject} className={styles.btnSecondary} style={{ padding: '0.25rem 0.5rem', flexShrink: 0 }}>Crea</button>
-                </div>
-              </div>
+            <div className={styles.widget} style={{ padding: '0.5rem' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0', fontSize: '0.8rem' }}>📁 Progetto</h4>
+              <select 
+                className={styles.input} 
+                value={card.projectId || ''} 
+                onChange={(e) => updateCard({ projectId: e.target.value || null })}
+                style={{ padding: '0.2rem', borderRadius: '4px', fontSize: '0.8rem', width: '100%' }}
+              >
+                <option value="">Nessuno</option>
+                {allProjects.filter(p => !card.clientId || p.clientId === card.clientId).map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
             </div>
 
             {/* Card Color */}
-            <div className={styles.widget}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>🎨 Colore Scheda</h4>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div className={styles.widget} style={{ padding: '0.5rem' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0', fontSize: '0.8rem' }}>🎨 Colore</h4>
+              <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div 
                   onClick={() => updateCard({ color: null })}
                   style={{ 
-                    width: '24px', height: '24px', borderRadius: '50%', cursor: 'pointer',
+                    width: '18px', height: '18px', borderRadius: '50%', cursor: 'pointer',
                     background: 'transparent', 
                     border: '1px dashed var(--text-secondary)',
-                    boxShadow: !card.color ? '0 0 0 2px var(--bg-secondary), 0 0 0 4px var(--text-primary)' : 'none'
+                    boxShadow: !card.color ? '0 0 0 2px var(--bg-secondary), 0 0 0 2px var(--text-primary)' : 'none'
                   }}
-                  title="Nessun colore"
+                  title="Nessuno"
                 />
-                {['#a1bdcf', '#fca5a5', '#fcd34d', '#86efac', '#93c5fd', '#d8b4fe'].map(col => (
+                {['#a1bdcf', '#fca5a5', '#fcd34d', '#86efac', '#93c5fd'].map(col => (
                   <div 
                     key={col}
                     onClick={() => updateCard({ color: col })}
                     style={{ 
-                      width: '24px', height: '24px', borderRadius: '50%', cursor: 'pointer',
+                      width: '18px', height: '18px', borderRadius: '50%', cursor: 'pointer',
                       background: col, 
                       border: 'none',
-                      boxShadow: card.color === col ? '0 0 0 2px var(--bg-secondary), 0 0 0 4px var(--text-primary)' : 'none'
+                      boxShadow: card.color === col ? '0 0 0 2px var(--bg-secondary), 0 0 0 2px var(--text-primary)' : 'none'
                     }}
                   />
                 ))}
-                <div style={{ position: 'relative', width: '24px', height: '24px', borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--border-color)', boxShadow: card.color && !['#a1bdcf', '#fca5a5', '#fcd34d', '#86efac', '#93c5fd', '#d8b4fe'].includes(card.color) ? '0 0 0 2px var(--bg-secondary), 0 0 0 4px var(--text-primary)' : 'none' }}>
+                <div style={{ position: 'relative', width: '18px', height: '18px', borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--border-color)', boxShadow: card.color && !['#a1bdcf', '#fca5a5', '#fcd34d', '#86efac', '#93c5fd'].includes(card.color) ? '0 0 0 2px var(--bg-secondary), 0 0 0 2px var(--text-primary)' : 'none' }}>
                   <input 
                     type="color" 
                     value={card.color || '#ffffff'} 
                     onChange={e => updateCard({ color: e.target.value })}
-                    style={{ position: 'absolute', top: '-10px', left: '-10px', width: '44px', height: '44px', cursor: 'pointer', padding: 0, border: 'none' }}
-                    title="Scegli colore personalizzato"
+                    style={{ position: 'absolute', top: '-10px', left: '-10px', width: '38px', height: '38px', cursor: 'pointer', padding: 0, border: 'none' }}
                   />
                 </div>
               </div>
             </div>
 
             {/* Labels */}
-            <div className={styles.widget}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Tag size={14}/> Etichette</h4>
-              <div className={styles.labelsList}>
-                {boardLabels.map(label => {
-                  const isAssigned = card.labels.some(l => l.id === label.id);
-                  return (
-                    <label key={label.id} className={styles.assigneeLabel}>
-                      <input 
-                        type="checkbox" 
-                        checked={isAssigned} 
-                        onChange={() => toggleLabel(label.id)} 
-                      />
-                      <span className={styles.labelBadge} style={{ backgroundColor: label.color }}>{label.name}</span>
-                    </label>
-                  );
-                })}
+            <div className={styles.widget} style={{ padding: '0.5rem' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0', fontSize: '0.8rem' }}><Tag size={14}/> Etichette</h4>
+              
+              <div 
+                className={styles.input} 
+                style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', padding: '0.2rem', cursor: 'pointer', minHeight: '26px', alignItems: 'center', fontSize: '0.8rem', position: 'relative' }}
+                onClick={(e) => {
+                  const dropdown = e.currentTarget.nextElementSibling;
+                  dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                }}
+              >
+                {card.labels.length === 0 && <span style={{ color: 'var(--text-secondary)' }}>Nessuna</span>}
+                {card.labels.map(l => (
+                  <span key={l.id} style={{ backgroundColor: l.color, color: '#fff', padding: '0.1rem 0.3rem', borderRadius: '4px', fontSize: '0.75rem' }}>{l.name}</span>
+                ))}
               </div>
-              <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <input type="text" placeholder="Nuova etichetta..." value={newLabelName} onChange={e => setNewLabelName(e.target.value)} className={styles.input} />
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input type="color" value={newLabelColor} onChange={e => setNewLabelColor(e.target.value)} style={{ height: '32px', width: '32px', padding: 0, border: 'none', cursor: 'pointer' }} />
-                  <button onClick={createLabel} className={styles.btnSecondary} style={{ flex: 1, padding: '0.25rem' }}>Crea</button>
+              <div style={{ display: 'none', position: 'absolute', right: '1rem', width: '220px', zIndex: 10, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem', marginTop: '0.2rem', maxHeight: '250px', overflowY: 'auto', boxShadow: '0 4px 6px rgba(0,0,0,0.5)' }}>
+                <div className={styles.labelsList} style={{ gap: '0.2rem' }}>
+                  {boardLabels.map(label => {
+                    const isAssigned = card.labels.some(l => l.id === label.id);
+                    return (
+                      <label key={label.id} className={styles.assigneeLabel} style={{ padding: '0.2rem', fontSize: '0.8rem', gap: '0.4rem' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={isAssigned} 
+                          onChange={() => toggleLabel(label.id)} 
+                        />
+                        <span className={styles.labelBadge} style={{ backgroundColor: label.color, flex: 1, padding: '0.1rem 0.4rem' }}>{label.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  <input type="text" placeholder="Nuova etichetta..." value={newLabelName} onChange={e => setNewLabelName(e.target.value)} className={styles.input} style={{ fontSize: '0.8rem', padding: '0.2rem' }} />
+                  <div style={{ display: 'flex', gap: '0.3rem' }}>
+                    <input type="color" value={newLabelColor} onChange={e => setNewLabelColor(e.target.value)} style={{ height: '24px', width: '24px', padding: 0, border: 'none', cursor: 'pointer' }} />
+                    <button onClick={createLabel} className={styles.btnSecondary} style={{ flex: 1, padding: '0.1rem', fontSize: '0.75rem' }}>Crea</button>
+                  </div>
                 </div>
               </div>
             </div>

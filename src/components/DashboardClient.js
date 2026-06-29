@@ -7,6 +7,7 @@ import TimelineView from './TimelineView';
 import SettingsPanel from './SettingsPanel';
 import ProjectsView from './ProjectsView';
 import ClientsView from './ClientsView';
+import AccessesView from './AccessesView';
 import PomodoroTimer from './PomodoroTimer';
 import HelpModal from './HelpModal';
 import MyTasksView from './MyTasksView';
@@ -403,6 +404,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <button className={`${styles.navButton} ${view === 'timeline' ? styles.active : ''}`} onClick={() => setView('timeline')} disabled={initialBoards.length === 0} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📊 Timeline</button>
               <button className={`${styles.navButton} ${view === 'projects' ? styles.active : ''}`} onClick={() => setView('projects')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🏢 Progetti</button>
               <button className={`${styles.navButton} ${view === 'clients' ? styles.active : ''}`} onClick={() => setView('clients')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>👥 Clienti</button>
+              <button className={`${styles.navButton} ${view === 'accesses' ? styles.active : ''}`} onClick={() => setView('accesses')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🔑 Accessi</button>
               <button className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`} onClick={() => setView('settings')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>⚙️ Imposta</button>
               <a href="/archive" className={styles.navButton} style={{ textDecoration: 'none', padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🗄️ Arch.</a>
               
@@ -481,6 +483,9 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
           )}
           {view === 'clients' && (
             <ClientsView clients={initialClients} cards={liveCards} onRefresh={handleRefresh} />
+          )}
+          {view === 'accesses' && (
+            <AccessesView clients={initialClients} onRefresh={handleRefresh} />
           )}
           {view === 'my-tasks' && (
             <MyTasksView 
