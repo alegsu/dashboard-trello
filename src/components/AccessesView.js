@@ -118,7 +118,7 @@ export default function AccessesView({ clients = [], onRefresh }) {
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className={styles.container} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className={styles.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <h2 style={{ margin: 0 }}>🔑 Accessi & Credenziali</h2>
