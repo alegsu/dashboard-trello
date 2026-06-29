@@ -468,7 +468,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
       </header>
       
       <div className={styles.content}>
-        <section className={`glass-panel ${styles.viewArea}`} style={{ padding: view === 'settings' ? '1rem' : 0 }}>
+        <section className={styles.viewArea} style={{ padding: view === 'settings' ? '1rem' : 0 }}>
           {view === 'kanban' && (
             <KanbanView 
               boardId={selectedBoardId} 
