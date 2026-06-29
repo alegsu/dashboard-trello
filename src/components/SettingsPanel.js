@@ -277,7 +277,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                       <tr style={{ borderBottom: '1px solid var(--border-color)', background: 'transparent' }}>
                         <td style={{ padding: '0.5rem' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div className={styles.avatar} style={{ width: '32px', height: '32px', fontSize: '0.85rem' }}>{m.name.charAt(0).toUpperCase()}</div>
+                            <div className={styles.avatar} style={{ width: '32px', height: '32px', fontSize: '0.85rem' }}>{(m.name || '?').charAt(0).toUpperCase()}</div>
                             {isEditing ? (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }} onClick={e => e.stopPropagation()}>
                                 <input type="text" value={editingUserName} onChange={e => setEditingUserName(e.target.value)} className={styles.input} style={{ padding: '0.1rem 0.3rem', fontSize: '0.8rem' }} />

@@ -427,7 +427,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <button className={`${styles.navButton} ${view === 'clients' ? styles.active : ''}`} onClick={() => setView('clients')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>👥 Clienti</button>
               <button className={`${styles.navButton} ${view === 'accesses' ? styles.active : ''}`} onClick={() => setView('accesses')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🔑 Accessi</button>
               <button className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`} onClick={() => setView('settings')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>⚙️ Imposta</button>
-              {effectiveCurrentUser?.role === 'admin' && (
+              {currentUser?.role === 'admin' && (
                 <button className={`${styles.navButton} ${view === 'management' ? styles.active : ''}`} onClick={() => setView('management')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-primary)' }}>👑 Management</button>
               )}
               <a href="/archive" className={styles.navButton} style={{ textDecoration: 'none', padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🗄️ Arch.</a>
@@ -538,7 +538,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             <ManagementPanel 
               members={initialMembers} 
               clients={initialClients}
-              currentUser={effectiveCurrentUser}
+              currentUser={currentUser}
             />
           )}
           {visibleBoards.length === 0 && view !== 'settings' && (
