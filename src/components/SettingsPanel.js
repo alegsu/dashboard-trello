@@ -609,9 +609,9 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                   </button>
                 </div>
                 {effectiveCurrentUser?.role === 'admin' && (
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '0.75rem', flexWrap: 'wrap', padding: '0.3rem', background: 'var(--bg-glass)', borderRadius: '4px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.75rem', padding: '0.5rem', background: 'var(--bg-glass)', borderRadius: '4px' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>Colore:</span>
+                      <span style={{ color: 'var(--text-secondary)' }}>Colore Bacheca:</span>
                       <input 
                         type="color" 
                         defaultValue={b.color || '#3b82f6'} 
@@ -622,15 +622,15 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                           }
                         }} 
                         title="Cambia colore base" 
-                        style={{width: '20px', height: '20px', padding: '0', border: 'none', cursor: 'pointer', background: 'transparent'}}
+                        style={{width: '24px', height: '24px', padding: '0', border: 'none', cursor: 'pointer', background: 'transparent'}}
                       />
                     </label>
                     
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginLeft: '0.5rem' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>Accesso:</span>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Membri con Accesso (Ctrl/Cmd per selezione multipla. Nessuno = Pubblica):</span>
                       <select 
                         multiple 
-                        style={{ fontSize: '0.7rem', padding: '0.2rem', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px', height: '40px', minWidth: '120px' }}
+                        style={{ width: '100%', fontSize: '0.75rem', padding: '0.4rem', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px', height: '80px' }}
                         defaultValue={b.assignees?.map(u => u.id) || []}
                         onChange={async (e) => {
                            const selectedIds = Array.from(e.target.selectedOptions, option => option.value);
@@ -639,11 +639,10 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                         }}
                       >
                         {liveMembers.map(m => (
-                          <option key={m.id} value={m.id}>{m.name}</option>
+                          <option key={m.id} value={m.id} style={{ padding: '0.2rem' }}>{m.name}</option>
                         ))}
                       </select>
                     </label>
-                    <span style={{color: 'var(--text-secondary)', fontSize: '0.65rem', maxWidth: '150px'}}>Ctrl/Cmd per selezione multipla. Nessuno = Pubblica.</span>
                   </div>
                 )}
               </li>
