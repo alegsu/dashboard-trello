@@ -241,7 +241,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
 
   const maxCards = Math.max(...liveMembers.map(m => m._count?.cards || 0), 1);
   const maxTasks = Math.max(...liveMembers.map(m => m._count?.checklistItems || 0), 1);
-  const maxProjects = Math.max(...liveMembers.map(m => m._count?.projects || 0), 1);
+  const maxLists = Math.max(...liveMembers.map(m => m._count?.lists || 0), 1);
 
   const getClientEffortsForUser = (userName) => {
     let clientsData = [];
@@ -352,25 +352,25 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                           <div><strong>Durata:</strong> {m.totalUsageTime ? Math.floor(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m</div>
                         </td>
                         <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem', width: '30%' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                            <span>Schede ({m._count?.cards || 0})</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
+                            <span>Task ({m._count?.cards || 0})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
-                              <div style={{ background: 'var(--status-info)', height: '100%', width: `${((m._count?.cards || 0) / maxCards) * 100}%` }}></div>
+                              <div style={{ background: 'var(--accent-secondary, #a1bdcf)', height: '100%', width: `${((m._count?.cards || 0) / maxCards) * 100}%` }}></div>
                             </div>
                           </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                            <span>Task ({m._count?.checklistItems || 0})</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
+                            <span>Sottotask ({m._count?.checklistItems || 0})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                               <div style={{ background: 'var(--status-warning)', height: '100%', width: `${((m._count?.checklistItems || 0) / maxTasks) * 100}%` }}></div>
                             </div>
                           </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                            <span>Progetti ({m._count?.projects || 0})</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
+                            <span>Bacheche ({m._count?.lists || 0})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
-                              <div style={{ background: 'var(--status-success)', height: '100%', width: `${((m._count?.projects || 0) / maxProjects) * 100}%` }}></div>
+                              <div style={{ background: 'var(--status-success)', height: '100%', width: `${((m._count?.lists || 0) / maxLists) * 100}%` }}></div>
                             </div>
                           </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', alignItems: 'center', gap: '0.5rem' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', alignItems: 'center', gap: '0.5rem' }}>
                             <span style={{ color: totalClientEffort > 100 ? 'var(--status-danger)' : 'inherit' }}>Clienti ({clientEfforts.length})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                               <div style={{ background: 'var(--status-danger)', height: '100%', width: `${Math.min(totalClientEffort, 100)}%` }}></div>
@@ -487,6 +487,29 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
               <option value="light">Chiaro</option>
             </select>
           </div>
+          
+          <h3 style={{ marginTop: '1rem' }}>🔍 Zoom Kanban</h3>
+          <p className={styles.subtitle}>Regola lo zoom della tua vista Kanban.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', background: 'var(--bg-glass)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Livello di Zoom</label>
+            <input 
+              type="range" 
+              min="50" 
+              max="150" 
+              step="5"
+              defaultValue={typeof window !== 'undefined' ? (localStorage.getItem('kanbanZoom') || '100') : '100'}
+              onChange={(e) => {
+                const val = e.target.value;
+                localStorage.setItem('kanbanZoom', val);
+                document.getElementById('zoomLevelLabel').innerText = val + '%';
+              }}
+              style={{ width: '100%' }}
+            />
+            <div id="zoomLevelLabel" style={{ textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              {typeof window !== 'undefined' ? (localStorage.getItem('kanbanZoom') || '100') : '100'}%
+            </div>
+            <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', margin: '0' }}>Effetto immediato al prossimo caricamento Kanban.</p>
+          </div>
 
           <h3 style={{ marginTop: '0.8rem' }}>🔔 Notifiche Email</h3>
           <p className={styles.subtitle}>Scegli quando ricevere un avviso via email.</p>
@@ -571,31 +594,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           </div>
         </div>
 
-        {/* Impostazioni Vista Kanban */}
-        <div className={styles.card}>
-          <h3>🔍 Zoom Kanban</h3>
-          <p className={styles.subtitle}>Regola lo zoom della vista Kanban.</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Livello di Zoom</label>
-            <input 
-              type="range" 
-              min="50" 
-              max="150" 
-              step="5"
-              defaultValue={typeof window !== 'undefined' ? (localStorage.getItem('kanbanZoom') || '100') : '100'}
-              onChange={(e) => {
-                const val = e.target.value;
-                localStorage.setItem('kanbanZoom', val);
-                document.getElementById('zoomLevelLabel').innerText = val + '%';
-              }}
-              style={{ width: '100%' }}
-            />
-            <div id="zoomLevelLabel" style={{ textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              {typeof window !== 'undefined' ? (localStorage.getItem('kanbanZoom') || '100') : '100'}%
-            </div>
-            <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', margin: '0' }}>Effetto immediato al prossimo caricamento Kanban.</p>
-          </div>
-        </div>
+
 
         {/* Impostazioni Email */}
         {effectiveCurrentUser?.role === 'admin' && (
