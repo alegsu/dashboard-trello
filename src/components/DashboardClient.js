@@ -28,7 +28,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   
   const [currentUser, setCurrentUser] = useState(null);
 
-  const visibleBoards = React.useMemo(() => {
+  const visibleBoards = useMemo(() => {
     return initialBoards.filter(b => 
       !currentUser || 
       currentUser.role === 'admin' || 
