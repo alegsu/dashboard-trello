@@ -13,7 +13,8 @@ export default async function Home() {
           cards: true,
           checklistItems: true,
           clients: true,
-          lists: true
+          lists: true,
+          projects: true
         }
       }
     }

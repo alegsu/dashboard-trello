@@ -10,6 +10,11 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
+  const [editingUserId, setEditingUserId] = useState(null);
+  const [editingUserName, setEditingUserName] = useState('');
+  const [editingUserEmail, setEditingUserEmail] = useState('');
+  const [expandedUserId, setExpandedUserId] = useState(null);
+
   const [liveMembers, setLiveMembers] = useState(members || []);
   
   React.useEffect(() => {
@@ -202,6 +207,27 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
     }
   };
 
+  const startEditingUser = (u) => {
+    setEditingUserId(u.id);
+    setEditingUserName(u.name);
+    setEditingUserEmail(u.email || '');
+  };
+
+  const saveEditedUser = async (id) => {
+    try {
+      await fetch(`/api/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editingUserName, email: editingUserEmail })
+      });
+      setLiveMembers(prev => prev.map(m => m.id === id ? { ...m, name: editingUserName, email: editingUserEmail } : m));
+      setEditingUserId(null);
+    } catch (e) {
+      console.error(e);
+      alert('Errore salvataggio utente');
+    }
+  };
+
   const handleAddBoard = async () => {
     if (!newBoardName.trim()) return;
     setLoading(true);
@@ -211,6 +237,40 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
       body: JSON.stringify({ name: newBoardName })
     });
     window.location.reload();
+  };
+
+  const maxCards = Math.max(...liveMembers.map(m => m._count?.cards || 0), 1);
+  const maxTasks = Math.max(...liveMembers.map(m => m._count?.checklistItems || 0), 1);
+  const maxProjects = Math.max(...liveMembers.map(m => m._count?.projects || 0), 1);
+
+  const getClientEffortsForUser = (userName) => {
+    let clientsData = [];
+    clients.forEach(client => {
+      if (client.sheetData) {
+        try {
+          const parsed = JSON.parse(client.sheetData);
+          if (parsed.servicesDetails) {
+            let assignedServices = [];
+            let totalEffort = 0;
+            Object.entries(parsed.servicesDetails).forEach(([serviceName, collaborators]) => {
+              const collab = collaborators.find(c => c.name.toLowerCase() === userName.toLowerCase());
+              if (collab) {
+                let effortNum = 0;
+                if (collab.effort) {
+                  effortNum = parseInt(collab.effort.replace(/\D/g, ''), 10) || 0;
+                }
+                assignedServices.push({ service: serviceName, effort: effortNum });
+                totalEffort += effortNum;
+              }
+            });
+            if (assignedServices.length > 0) {
+              clientsData.push({ client, totalEffort, assignedServices });
+            }
+          }
+        } catch (e) {}
+      }
+    });
+    return clientsData;
   };
 
   return (
@@ -239,58 +299,132 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                   </tr>
                 </thead>
                 <tbody>
-                  {liveMembers.map(m => (
-                    <tr key={m.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                      <td style={{ padding: '0.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <div className={styles.avatar} style={{ width: '32px', height: '32px', fontSize: '0.85rem' }}>{m.name.charAt(0).toUpperCase()}</div>
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <strong>{m.name}</strong>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{m.email || 'Nessuna email'}</span>
+                  {liveMembers.map(m => {
+                    const clientEfforts = getClientEffortsForUser(m.name);
+                    const totalClientEffort = clientEfforts.reduce((acc, c) => acc + c.totalEffort, 0);
+                    const isExpanded = expandedUserId === m.id;
+                    const isEditing = editingUserId === m.id;
+                    return (
+                    <React.Fragment key={m.id}>
+                      <tr style={{ borderBottom: isExpanded ? 'none' : '1px solid var(--border-color)', background: isExpanded ? 'rgba(0,0,0,0.05)' : 'transparent' }}>
+                        <td style={{ padding: '0.5rem', cursor: 'pointer' }} onClick={() => setExpandedUserId(isExpanded ? null : m.id)}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div className={styles.avatar} style={{ width: '32px', height: '32px', fontSize: '0.85rem' }}>{m.name.charAt(0).toUpperCase()}</div>
+                            {isEditing ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }} onClick={e => e.stopPropagation()}>
+                                <input type="text" value={editingUserName} onChange={e => setEditingUserName(e.target.value)} className={styles.input} style={{ padding: '0.1rem 0.3rem', fontSize: '0.8rem' }} />
+                                <input type="email" value={editingUserEmail} onChange={e => setEditingUserEmail(e.target.value)} className={styles.input} style={{ padding: '0.1rem 0.3rem', fontSize: '0.8rem' }} />
+                                <button onClick={() => saveEditedUser(m.id)} className={styles.btnPrimary} style={{ padding: '0.1rem', fontSize: '0.7rem' }}>Salva</button>
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <strong>{m.name}</strong>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{m.email || 'Nessuna email'}</span>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      </td>
-                      <td style={{ padding: '0.5rem' }}>
-                        {effectiveCurrentUser?.role === 'admin' && m.id !== effectiveCurrentUser.id ? (
-                          <select 
-                            value={m.role}
-                            onChange={async (e) => {
-                              await fetch(`/api/users/${m.id}`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ role: e.target.value })
-                              });
-                              window.location.reload();
-                            }}
-                            style={{ fontSize: '0.75rem', padding: '0.3rem', background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
-                          >
-                            <option value="user">Utente</option>
-                            <option value="admin">Admin</option>
-                          </select>
-                        ) : (
-                          <span style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem', background: 'var(--bg-elevated)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-                            {m.role === 'admin' ? 'Admin' : 'Utente'}
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
-                        <div style={{ marginBottom: '2px' }}><strong>Logins:</strong> {m.loginCount || 0}</div>
-                        <div><strong>Durata:</strong> {m.totalUsageTime ? Math.floor(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m</div>
-                      </td>
-                      <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
-                        <div style={{ marginBottom: '2px' }}><strong>Schede:</strong> {m._count?.cards || 0}</div>
-                        <div style={{ marginBottom: '2px' }}><strong>Task (Checklist):</strong> {m._count?.checklistItems || 0}</div>
-                        <div><strong>Liste:</strong> {m._count?.lists || 0}</div>
-                      </td>
-                      <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                        {m.id !== effectiveCurrentUser?.id && effectiveCurrentUser?.role === 'admin' && (
-                          <button onClick={() => handleDeleteUser(m.id)} style={{background: 'transparent', border: '1px solid var(--status-danger)', color: 'var(--status-danger)', padding: '0.2rem 0.4rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem'}} title="Elimina Utente">
-                            Elimina
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td style={{ padding: '0.5rem' }}>
+                          {effectiveCurrentUser?.role === 'admin' && m.id !== effectiveCurrentUser.id ? (
+                            <select 
+                              value={m.role}
+                              onChange={async (e) => {
+                                await fetch(`/api/users/${m.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ role: e.target.value })
+                                });
+                                window.location.reload();
+                              }}
+                              style={{ fontSize: '0.75rem', padding: '0.3rem', background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                            >
+                              <option value="user">Utente</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                          ) : (
+                            <span style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem', background: 'var(--bg-elevated)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                              {m.role === 'admin' ? 'Admin' : 'Utente'}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
+                          <div style={{ marginBottom: '2px' }}><strong>Logins:</strong> {m.loginCount || 0}</div>
+                          <div><strong>Durata:</strong> {m.totalUsageTime ? Math.floor(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m</div>
+                        </td>
+                        <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem', width: '30%' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
+                            <span>Schede ({m._count?.cards || 0})</span>
+                            <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
+                              <div style={{ background: 'var(--status-info)', height: '100%', width: `${((m._count?.cards || 0) / maxCards) * 100}%` }}></div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
+                            <span>Task ({m._count?.checklistItems || 0})</span>
+                            <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
+                              <div style={{ background: 'var(--status-warning)', height: '100%', width: `${((m._count?.checklistItems || 0) / maxTasks) * 100}%` }}></div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
+                            <span>Progetti ({m._count?.projects || 0})</span>
+                            <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
+                              <div style={{ background: 'var(--status-success)', height: '100%', width: `${((m._count?.projects || 0) / maxProjects) * 100}%` }}></div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ color: totalClientEffort > 100 ? 'var(--status-danger)' : 'inherit' }}>Clienti ({clientEfforts.length})</span>
+                            <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
+                              <div style={{ background: 'var(--status-danger)', height: '100%', width: `${Math.min(totalClientEffort, 100)}%` }}></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'center' }}>
+                            {effectiveCurrentUser?.role === 'admin' && !isEditing && (
+                              <button onClick={() => startEditingUser(m)} style={{background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', padding: '0.2rem 0.4rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem'}} title="Modifica Utente">
+                                ✎
+                              </button>
+                            )}
+                            {m.id !== effectiveCurrentUser?.id && effectiveCurrentUser?.role === 'admin' && (
+                              <button onClick={() => handleDeleteUser(m.id)} style={{background: 'transparent', border: '1px solid var(--status-danger)', color: 'var(--status-danger)', padding: '0.2rem 0.4rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem'}} title="Elimina Utente">
+                                Elimina
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                      {isExpanded && (
+                        <tr style={{ background: 'rgba(0,0,0,0.05)', borderBottom: '1px solid var(--border-color)' }}>
+                          <td colSpan="5" style={{ padding: '1rem' }}>
+                            <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem' }}>Dettaglio Clienti e Carico Lavoro</h4>
+                            {clientEfforts.length === 0 ? (
+                              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>Nessun cliente assegnato nei Fogli Google.</p>
+                            ) : (
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                                {clientEfforts.map((ce, idx) => (
+                                  <div key={idx} style={{ background: 'var(--bg-elevated)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                                    <strong style={{ display: 'block', marginBottom: '0.3rem', fontSize: '0.85rem' }}>{ce.client.name}</strong>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                      {ce.assignedServices.map((s, i) => (
+                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                                          <span>• {s.service}</span>
+                                          <strong style={{ color: 'var(--accent-primary)' }}>{s.effort}%</strong>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <div style={{ marginTop: '0.5rem', paddingTop: '0.3rem', borderTop: '1px dashed var(--border-color)', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                                      <span>Totale Effort:</span>
+                                      <strong style={{ color: ce.totalEffort > 50 ? 'var(--status-warning)' : 'var(--status-success)' }}>{ce.totalEffort}%</strong>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                    );
+                  })}
                   {liveMembers.length === 0 && (
                     <tr>
                       <td colSpan="5" style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Nessun membro. Aggiungine uno!</td>

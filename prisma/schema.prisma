@@ -27,6 +27,7 @@ model User {
   notifications  Notification[]
   pendingNotifications PendingNotification[]
   clients        Client[]        @relation("ClientCollaborators")
+  projects       Project[]       @relation("ProjectAssignees")
   
   // Impostazioni Notifiche
   notifyMentions       Boolean @default(true)
@@ -218,6 +219,7 @@ model Project {
   cards       Card[]
   comments    ProjectComment[]
   attachments Attachment[]
+  assignees   User[]   @relation("ProjectAssignees")
 
   isArchived Boolean @default(false)
 }

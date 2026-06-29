@@ -40,6 +40,7 @@ export async function PUT(request, { params }) {
         ...(body.driveFolderId !== undefined && { driveFolderId: body.driveFolderId }),
         ...(body.notes !== undefined && { notes: body.notes }),
         ...(body.isArchived !== undefined && { isArchived: body.isArchived }),
+        ...(body.assignees !== undefined && { assignees: { set: body.assignees.map(id => ({ id })) } })
       }
     });
     

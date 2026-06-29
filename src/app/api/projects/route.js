@@ -6,6 +6,7 @@ export async function GET() {
     const projects = await prisma.project.findMany({
       where: { isArchived: false },
       include: {
+        assignees: true,
         cards: {
           include: {
             list: true,
@@ -34,7 +35,7 @@ export async function POST(request) {
     const { 
       name, clientName, description, clientId, newClientName,
       status, category, priority, dueDate, estimatedHours, actualHours,
-      sellingPrice, budget, effort, driveFolderId, notes 
+      sellingPrice, budget, effort, driveFolderId, notes, assignees 
     } = await request.json();
     
     if (!name) return NextResponse.json({ error: 'Name is required' }, { status: 400 });
@@ -70,7 +71,10 @@ export async function POST(request) {
         budget: budget ? parseFloat(budget) : null,
         effort: effort ? parseFloat(effort) : null,
         driveFolderId,
-        notes
+        notes,
+        ...(assignees && assignees.length > 0 && {
+          assignees: { connect: assignees.map(id => ({ id })) }
+        })
       }
     });
     return NextResponse.json(newProject, { status: 201 });

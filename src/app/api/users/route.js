@@ -13,7 +13,8 @@ export async function GET() {
             cards: true,
             checklistItems: true,
             clients: true,
-            lists: true
+            lists: true,
+            projects: true
           }
         }
       }

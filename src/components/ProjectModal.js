@@ -19,7 +19,8 @@ export default function ProjectModal({ project, clients, members, currentUser, o
     sellingPrice: project.sellingPrice || '',
     budget: project.budget || '',
     effort: project.effort || '',
-    driveFolderId: project.driveFolderId || ''
+    driveFolderId: project.driveFolderId || '',
+    assignees: project.assignees?.map(a => a.id) || []
   });
 
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -572,6 +573,27 @@ export default function ProjectModal({ project, clients, members, currentUser, o
                 <option value="">-- Nessuna Categoria --</option>
                 {categories.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
               </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Collaboratori (Diretti)</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', background: 'var(--bg-elevated)', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', maxHeight: '120px', overflowY: 'auto' }}>
+                {(members || []).map(m => (
+                  <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={formData.assignees.includes(m.id)}
+                      onChange={(e) => {
+                        const newAssignees = e.target.checked 
+                          ? [...formData.assignees, m.id] 
+                          : formData.assignees.filter(id => id !== m.id);
+                        setFormData({ ...formData, assignees: newAssignees });
+                      }}
+                    />
+                    {m.name}
+                  </label>
+                ))}
+              </div>
             </div>
 
             <div>
