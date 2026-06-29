@@ -18,13 +18,18 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
   const [liveMembers, setLiveMembers] = useState(members || []);
   
   React.useEffect(() => {
-    fetch('/api/users', { cache: 'no-store' })
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setLiveMembers(data);
-        }
-      });
+    const fetchUsers = () => {
+      fetch('/api/users', { cache: 'no-store' })
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setLiveMembers(data);
+          }
+        });
+    };
+    fetchUsers();
+    const interval = setInterval(fetchUsers, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const effectiveCurrentUser = liveMembers.find(m => m.id === currentUser?.id) || currentUser;
@@ -273,6 +278,8 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
     return clientsData;
   };
 
+  const maxClients = Math.max(...liveMembers.map(m => getClientEffortsForUser(m.name).length), 1);
+
   return (
     <div className={styles.container}>
 
@@ -373,7 +380,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                           <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', alignItems: 'center', gap: '0.5rem' }}>
                             <span style={{ color: totalClientEffort > 100 ? 'var(--status-danger)' : 'inherit' }}>Clienti ({clientEfforts.length})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
-                              <div style={{ background: 'var(--status-danger)', height: '100%', width: `${Math.min(totalClientEffort, 100)}%` }}></div>
+                              <div style={{ background: 'var(--status-danger)', height: '100%', width: `${(clientEfforts.length / maxClients) * 100}%` }}></div>
                             </div>
                           </div>
                         </td>
