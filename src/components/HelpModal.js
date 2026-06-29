@@ -150,6 +150,16 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.15.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>👥 <strong>Collaboratori sui Progetti:</strong> È ora possibile assegnare i collaboratori direttamente ai Progetti tramite l'apposito modulo. Gli avatar saranno visibili nelle schede progetto.</li>
+                  <li>📊 <strong>Analisi Carico Lavoro Avanzata:</strong> Nel pannello Impostazioni, la sezione "Gestione Team" mostra ora mini-istogrammi grafici che evidenziano istantaneamente il peso del lavoro (Schede, Task, Progetti e Clienti) rispetto agli altri membri del team.</li>
+                  <li>🔍 <strong>Dettaglio Effort Clienti:</strong> Cliccando sulla riga di un collaboratore nelle Impostazioni, si espande una vista con la lista dei Clienti assegnati (dedotta dai Google Sheet) e il relativo Effort (%).</li>
+                  <li>✏️ <strong>Modifica Rapida Utenti:</strong> Gli Admin possono ora modificare al volo "Nome" e "Email" di un membro del team senza doverlo ricreare.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.14.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🤖 <strong>Integrazione Claude AI:</strong> Nelle impostazioni dei Clienti (anagrafica) è ora presente un campo per inserire il link diretto al Progetto Claude specifico per quel cliente.</li>
