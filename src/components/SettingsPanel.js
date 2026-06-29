@@ -220,14 +220,14 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
       
       {error && <div style={{background: '#fee2e2', color: '#b91c1c', padding: '0.5rem', borderRadius: '6px', marginBottom: '0.5rem', fontSize: '0.82rem'}}>{error}</div>}
 
-      <div className={styles.grid}>
-        {/* Gestione Team */}
-        {effectiveCurrentUser?.role === 'admin' && (
-          <div className={styles.card}>
-            <h3>👥 Crea Account Team ({members.length})</h3>
-            <p className={styles.subtitle}>Crea le credenziali per i tuoi colleghi (loro non potranno registrarsi da soli).</p>
-            
-            <div style={{ overflowX: 'auto', marginTop: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
+      {/* Gestione Team - Moved out of grid for full horizontal width */}
+      {effectiveCurrentUser?.role === 'admin' && (
+        <div className={styles.card} style={{ marginBottom: '1.5rem' }}>
+          <h3>👥 Gestione Team ({members.length})</h3>
+          <p className={styles.subtitle}>Crea le credenziali per i tuoi colleghi (loro non potranno registrarsi da soli).</p>
+
+          
+          <div style={{ overflowX: 'auto', marginTop: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead style={{ background: 'var(--bg-elevated)', textAlign: 'left' }}>
                   <tr>
@@ -327,6 +327,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           </div>
         )}
 
+      <div className={styles.grid}>
         {/* Impostazioni Account Corrente */}
         <div className={styles.card}>
           <h3>🎨 Il Mio Account</h3>
