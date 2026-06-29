@@ -345,22 +345,28 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     setEditingListEndDate(friday.toISOString().split('T')[0]);
   };
 
-  const handleAddOrShowClient = async () => {
-    const name = window.prompt("Inserisci il nome del cliente per mostrare la sua riga (se non esiste, ti verrà chiesto di crearlo):");
-    if (!name || name.trim() === '') return;
+  const [showClientAutocomplete, setShowClientAutocomplete] = useState(false);
+  const [clientAutocompleteText, setClientAutocompleteText] = useState('');
+
+  const confirmClientAutocomplete = async () => {
+    const name = clientAutocompleteText;
+    if (!name || name.trim() === '') {
+      setShowClientAutocomplete(false);
+      return;
+    }
     
     const searchName = name.trim().toLowerCase();
     const existingClient = clients && clients.find(c => c.name.toLowerCase() === searchName);
     
     if (existingClient) {
-      // Il cliente esiste già, mostriamo semplicemente la sua riga
       if (!forcedVisibleClients.includes(existingClient.id)) {
         setForcedVisibleClients(prev => [...prev, existingClient.id]);
       }
+      setClientAutocompleteText('');
+      setShowClientAutocomplete(false);
       return;
     }
 
-    // Se non esiste, chiediamo conferma prima di crearlo
     if (window.confirm(`Il cliente "${name.trim()}" non è presente in anagrafica. Vuoi crearlo ora?`)) {
       try {
         const res = await fetch('/api/clients', {
@@ -387,28 +393,51 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
          <div className={styles.kanbanHeaderRow}>
             <div className={styles.kanbanUserCorner} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               Cliente | Stato
-              <button 
-                onClick={handleAddOrShowClient}
-                style={{ 
-                  background: 'transparent', 
-                  border: '1px solid var(--accent-primary)', 
-                  color: 'var(--accent-primary)', 
-                  borderRadius: '50%', 
-                  width: '20px', 
-                  height: '20px', 
-                  display: 'inline-flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  cursor: 'pointer', 
-                  fontSize: '14px', 
-                  lineHeight: '1',
-                  padding: 0,
-                  flexShrink: 0
-                }}
-                title="Nuovo Cliente"
-              >
-                +
-              </button>
+              {!showClientAutocomplete ? (
+                <button 
+                  onClick={() => setShowClientAutocomplete(true)}
+                  style={{ 
+                    background: 'transparent', 
+                    border: '1px solid var(--accent-primary)', 
+                    color: 'var(--accent-primary)', 
+                    borderRadius: '50%', 
+                    width: '20px', 
+                    height: '20px', 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    cursor: 'pointer', 
+                    fontSize: '14px', 
+                    lineHeight: '1',
+                    padding: 0,
+                    flexShrink: 0
+                  }}
+                  title="Aggiungi Cliente al Tabellone"
+                >
+                  +
+                </button>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <input 
+                    type="text" 
+                    list="client-list-datalist"
+                    value={clientAutocompleteText}
+                    onChange={(e) => setClientAutocompleteText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') confirmClientAutocomplete();
+                      if (e.key === 'Escape') setShowClientAutocomplete(false);
+                    }}
+                    placeholder="Nome cliente..."
+                    autoFocus
+                    style={{ padding: '2px 4px', fontSize: '12px', width: '120px', borderRadius: '4px', border: '1px solid var(--accent-primary)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+                  />
+                  <datalist id="client-list-datalist">
+                    {(clients || []).map(c => <option key={c.id} value={c.name} />)}
+                  </datalist>
+                  <button onClick={confirmClientAutocomplete} style={{ background: 'var(--accent-primary)', border: 'none', borderRadius: '4px', color: 'white', padding: '2px 6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>✓</button>
+                  <button onClick={() => { setShowClientAutocomplete(false); setClientAutocompleteText(''); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>✕</button>
+                </div>
+              )}
             </div>
             {lists.map(list => {
               const hasDates = list.startDate || list.endDate;
