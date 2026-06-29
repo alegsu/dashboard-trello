@@ -581,8 +581,10 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           </div>
         </div>
 
-        {/* Gestione Bacheche */}
-        <div className={styles.card}>
+        {/* Colonna Bacheche + Template */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Gestione Bacheche */}
+          <div className={styles.card}>
           <h3>📋 Bacheche ({boards.length})</h3>
           <p className={styles.subtitle}>Crea nuovi spazi di lavoro indipendenti.</p>
           
@@ -662,9 +664,49 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
               + Crea
             </button>
           </div>
+          </div>
         </div>
 
+        {/* Generatore di Template Operativi */}
+        <div className={styles.card}>
+          <h3>📄 Template Operativi</h3>
+          <p className={styles.subtitle}>Genera schede da template Markdown con checklist.</p>
+          <div className={styles.formGroup}>
+            <label>Template (Dal file .md)</label>
+            <select className={styles.input} style={{ padding: '0.4rem 0.5rem' }} value={selectedTemplateTitle} onChange={e => setSelectedTemplateTitle(e.target.value)}>
+              <option value="">-- Seleziona Template --</option>
+              {templates.map((t, idx) => (
+                <option key={idx} value={t.title}>{t.title} ({t.checklists.length} checklist)</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className={styles.formGroup}>
+            <label>Cliente</label>
+            <select className={styles.input} style={{ padding: '0.4rem 0.5rem' }} value={selectedClient} onChange={e => setSelectedClient(e.target.value)}>
+              <option value="none">-- Nessun Cliente --</option>
+              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
 
+          <div className={styles.formGroup}>
+            <label>Lista di Destinazione</label>
+            <select className={styles.input} style={{ padding: '0.4rem 0.5rem' }} value={selectedList} onChange={e => setSelectedList(e.target.value)}>
+              <option value="">-- Seleziona Lista --</option>
+              {lists.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+            </select>
+          </div>
+
+          <button 
+            className={styles.btnPrimary} 
+            onClick={handleGenerateTemplate} 
+            disabled={generatingTemplate || !selectedTemplateTitle || !selectedList}
+            style={{ width: '100%', marginTop: '0.5rem' }}
+          >
+            {generatingTemplate ? 'Generazione...' : 'Genera Scheda da Template'}
+          </button>
+        </div>
+      </div>
 
         {/* Impostazioni Email */}
         {effectiveCurrentUser?.role === 'admin' && (
@@ -718,45 +760,6 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           </div>
         )}
 
-        {/* Generatore di Template Operativi */}
-        <div className={styles.card}>
-          <h3>📄 Template Operativi</h3>
-          <p className={styles.subtitle}>Genera schede da template Markdown con checklist.</p>
-          <div className={styles.formGroup}>
-            <label>Template (Dal file .md)</label>
-            <select className={styles.input} style={{ padding: '0.4rem 0.5rem' }} value={selectedTemplateTitle} onChange={e => setSelectedTemplateTitle(e.target.value)}>
-              <option value="">-- Seleziona Template --</option>
-              {templates.map((t, idx) => (
-                <option key={idx} value={t.title}>{t.title} ({t.checklists.length} checklist)</option>
-              ))}
-            </select>
-          </div>
-          
-          <div className={styles.formGroup}>
-            <label>Cliente</label>
-            <select className={styles.input} style={{ padding: '0.4rem 0.5rem' }} value={selectedClient} onChange={e => setSelectedClient(e.target.value)}>
-              <option value="none">-- Nessun Cliente --</option>
-              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>Lista di Destinazione</label>
-            <select className={styles.input} style={{ padding: '0.4rem 0.5rem' }} value={selectedList} onChange={e => setSelectedList(e.target.value)}>
-              <option value="">-- Seleziona Lista --</option>
-              {lists.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-            </select>
-          </div>
-
-          <button 
-            className={styles.btnPrimary} 
-            onClick={handleGenerateTemplate} 
-            disabled={generatingTemplate || !selectedTemplateTitle || !selectedList}
-            style={{ width: '100%', marginTop: '0.5rem' }}
-          >
-            {generatingTemplate ? 'Generazione...' : 'Genera Scheda da Template'}
-          </button>
-        </div>
 
         {/* Archivio */}
         <div className={styles.card} style={{ gridColumn: '1 / -1' }}>
