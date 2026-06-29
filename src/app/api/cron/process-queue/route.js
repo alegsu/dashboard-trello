@@ -59,7 +59,7 @@ export async function GET(request) {
 
       // URL di base
       const baseUrlSetting = await prisma.systemSetting.findUnique({ where: { key: 'BASE_URL' } });
-      let BASE_URL = baseUrlSetting?.value || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      let BASE_URL = baseUrlSetting?.value || process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'));
       if (BASE_URL.endsWith('/')) BASE_URL = BASE_URL.slice(0, -1);
 
       const typeMap = {
