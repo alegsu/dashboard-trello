@@ -497,6 +497,20 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
             title="Clicca per modificare il titolo"
           />
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {(() => {
+              const currentClient = allClients.find(c => c.id === card.clientId);
+              return currentClient?.claudeUrl ? (
+                <a 
+                  href={currentClient.claudeUrl} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  title={`Apri Progetto Claude (${currentClient.name})`}
+                  style={{ background: '#d97757', border: '1px solid #d97757', color: 'white', textDecoration: 'none', padding: '0.5rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}
+                >
+                  🤖
+                </a>
+              ) : null;
+            })()}
             <button title="Copia Scheda" onClick={copyCard} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.5rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}>
               <Copy size={16} />
             </button>

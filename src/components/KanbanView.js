@@ -600,29 +600,6 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                                     📅 {new Date(card.due).toLocaleDateString('it-IT')}
                                   </div>
                                 )}
-                                {client?.claudeUrl && (
-                                  <a 
-                                    href={client.claudeUrl} 
-                                    target="_blank" 
-                                    rel="noreferrer" 
-                                    title="Apri Progetto Claude"
-                                    onClick={(e) => e.stopPropagation()}
-                                    style={{ 
-                                      display: 'inline-flex', 
-                                      alignItems: 'center', 
-                                      justifyContent: 'center',
-                                      background: '#d97757', 
-                                      color: 'white', 
-                                      borderRadius: '4px', 
-                                      padding: '0.1rem 0.4rem', 
-                                      fontSize: '0.8rem',
-                                      textDecoration: 'none',
-                                      marginTop: card.due ? '0.2rem' : '0'
-                                    }}
-                                  >
-                                    🤖 Claude
-                                  </a>
-                                )}
                               </div>
                             );
                           })}
