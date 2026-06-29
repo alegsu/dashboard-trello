@@ -274,8 +274,8 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                     const isEditing = editingUserId === m.id;
                     return (
                     <React.Fragment key={m.id}>
-                      <tr style={{ borderBottom: isExpanded ? 'none' : '1px solid var(--border-color)', background: isExpanded ? 'rgba(0,0,0,0.05)' : 'transparent' }}>
-                        <td style={{ padding: '0.5rem', cursor: 'pointer' }} onClick={() => setExpandedUserId(isExpanded ? null : m.id)}>
+                      <tr style={{ borderBottom: '1px solid var(--border-color)', background: 'transparent' }}>
+                        <td style={{ padding: '0.5rem' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <div className={styles.avatar} style={{ width: '32px', height: '32px', fontSize: '0.85rem' }}>{m.name.charAt(0).toUpperCase()}</div>
                             {isEditing ? (
@@ -286,9 +286,8 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                               </div>
                             ) : (
                               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <strong style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: isExpanded ? 'var(--accent-primary)' : 'inherit' }}>
-                                  {m.name} 
-                                  <span style={{ fontSize: '0.55rem', opacity: 0.7, padding: '0.1rem 0.3rem', background: 'var(--bg-elevated)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>{isExpanded ? '▼ Espanso' : '▶ Dettagli'}</span>
+                                <strong style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'inherit' }}>
+                                  {m.name}
                                 </strong>
                                 <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{m.email || 'Nessuna email'}</span>
                               </div>
