@@ -64,6 +64,7 @@ export async function GET(request) {
         cards: {
           include: {
             list: true,
+            labels: true,
             project: { include: { client: true } }
           }
         }
@@ -76,22 +77,69 @@ export async function GET(request) {
       if (!user.email) continue;
       if (user.notifyDailyRecap === false) continue; // Rispetta l'impostazione utente
 
-      // Filtra le schede: ignora quelle in liste "Fatto" o "Completato"
-      const todoCards = user.cards.filter(c => 
-        c.list && !c.list.name.toLowerCase().includes('fatto') && !c.list.name.toLowerCase().includes('completat')
-      );
+      // Calcolo date (Fuso Orario Roma)
+      const nowRomeStr = new Date().toLocaleString("en-US", {timeZone: "Europe/Rome"});
+      const romeNow = new Date(nowRomeStr);
+      romeNow.setHours(0,0,0,0);
 
-      if (todoCards.length === 0) continue; // Niente da fare
+      const romeTomorrow = new Date(romeNow);
+      romeTomorrow.setDate(romeTomorrow.getDate() + 1);
+
+      const romeDayAfterTomorrow = new Date(romeNow);
+      romeDayAfterTomorrow.setDate(romeDayAfterTomorrow.getDate() + 2);
+
+      // Filtra le schede: ignora quelle in liste "Fatto" o "Completato" e filtra per scadenza
+      const todayCards = [];
+      const tomorrowCards = [];
+
+      user.cards.forEach(c => {
+        if (!c.list || c.list.name.toLowerCase().includes('fatto') || c.list.name.toLowerCase().includes('completat')) return;
+        if (!c.due) return;
+
+        const dueRomeStr = new Date(c.due).toLocaleString("en-US", {timeZone: "Europe/Rome"});
+        const romeDue = new Date(dueRomeStr);
+
+        if (romeDue < romeTomorrow) {
+          todayCards.push(c);
+        } else if (romeDue >= romeTomorrow && romeDue < romeDayAfterTomorrow) {
+          tomorrowCards.push(c);
+        }
+      });
+
+      if (todayCards.length === 0 && tomorrowCards.length === 0) continue; // Niente da fare
+
+      const renderCard = (c) => {
+        const clientName = c.project?.client?.name ? `<strong style="color: #0f172a;">[${c.project.client.name}]</strong> ` : '';
+        let labelsHtml = '';
+        if (c.labels && c.labels.length > 0) {
+          labelsHtml = c.labels.map(l => `<span style="background-color:${l.color}; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:4px;">${l.name}</span>`).join('');
+          labelsHtml = `<div style="margin-bottom: 4px;">${labelsHtml}</div>`;
+        }
+        const dueFormatted = new Date(c.due).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+        const dueRomeStr = new Date(c.due).toLocaleString("en-US", {timeZone: "Europe/Rome"});
+        const romeDueForCheck = new Date(dueRomeStr);
+        const isOverdue = romeDueForCheck < romeNow;
+        const dueColor = isOverdue ? 'color: #ef4444; font-weight: bold;' : 'color: #64748b;';
+        
+        return `
+          <li style="margin-bottom: 10px; padding: 10px; background-color: #f8fafc; border-radius: 6px; border-left: 4px solid #a1bdcf;">
+            <div style="margin-bottom: 4px;">${clientName}${c.name}</div>
+            ${labelsHtml}
+            <div style="font-size: 12px; color: #64748b;">
+              📍 ${c.list.name} &nbsp;|&nbsp; 🗓 <span style="${dueColor}">Scadenza: ${dueFormatted}</span>
+            </div>
+          </li>`;
+      };
 
       let cardsHtmlList = '';
-      todoCards.forEach(c => {
-        const clientName = c.project?.client?.name ? `<strong>[${c.project.client.name}]</strong> ` : '';
-        cardsHtmlList += `
-          <li style="margin-bottom: 10px; padding: 10px; background-color: #f8fafc; border-radius: 6px; border-left: 4px solid #a1bdcf;">
-            ${clientName}${c.name} <br>
-            <span style="font-size: 12px; color: #64748b;">📍 ${c.list.name}</span>
-          </li>`;
-      });
+      if (todayCards.length > 0) {
+        cardsHtmlList += `<h3 style="color: #ef4444; font-size: 16px; margin-top: 5px; margin-bottom: 10px;">🔴 In scadenza oggi (o scadute)</h3>`;
+        cardsHtmlList += todayCards.map(renderCard).join('');
+      }
+      if (tomorrowCards.length > 0) {
+        cardsHtmlList += `<h3 style="color: #f59e0b; font-size: 16px; margin-top: 15px; margin-bottom: 10px;">🟡 In scadenza domani</h3>`;
+        cardsHtmlList += tomorrowCards.map(renderCard).join('');
+      }
 
       const prompt = `Sei l'assistente virtuale dell'agenzia "GestionAle". Scrivi UNICAMENTE un breve messaggio motivazionale di buongiorno (massimo 2-3 frasi) per ${user.name}, con un tono energico e professionale. Non includere saluti finali o liste di task, solo l'introduzione.`;
 

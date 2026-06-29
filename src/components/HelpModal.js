@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.11.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>📬 <strong>Rate Limiting Email:</strong> Basta caselle di posta intasate! Il sistema ora raggruppa le notifiche e invia al massimo un'email riassuntiva ogni 3 ore per ciascun utente. Le notifiche intermedie rimangono in coda finché non scade il tempo.</li>
+                  <li>➕ <strong>Creazione Rapida Cliente:</strong> Aggiunto un comodo pulsante "+" direttamente nella cella "Cliente | Stato" della vista Kanban. Cliccandolo, puoi inserire istantaneamente il nome di un nuovo cliente senza dover passare dalle impostazioni!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.10.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🤖 <strong>Task via Email (Inbound):</strong> Inoltra o invia email a `assistente@gestionale.shinyup.it`! Il gestionale riceverà le mail, l'AI estrarrà il testo in automatico e creerà una scheda (con le eventuali liste di To-Do) nel Progetto/Cliente corretto.</li>
