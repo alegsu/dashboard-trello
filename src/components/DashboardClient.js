@@ -5,6 +5,7 @@ import styles from '@/app/page.module.css';
 import KanbanView from './KanbanView';
 import TimelineView from './TimelineView';
 import SettingsPanel from './SettingsPanel';
+import ManagementPanel from './ManagementPanel';
 import ProjectsView from './ProjectsView';
 import ClientsView from './ClientsView';
 import AccessesView from './AccessesView';
@@ -426,6 +427,9 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <button className={`${styles.navButton} ${view === 'clients' ? styles.active : ''}`} onClick={() => setView('clients')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>👥 Clienti</button>
               <button className={`${styles.navButton} ${view === 'accesses' ? styles.active : ''}`} onClick={() => setView('accesses')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🔑 Accessi</button>
               <button className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`} onClick={() => setView('settings')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>⚙️ Imposta</button>
+              {effectiveCurrentUser?.role === 'admin' && (
+                <button className={`${styles.navButton} ${view === 'management' ? styles.active : ''}`} onClick={() => setView('management')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-primary)' }}>👑 Management</button>
+              )}
               <a href="/archive" className={styles.navButton} style={{ textDecoration: 'none', padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🗄️ Arch.</a>
               
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}>
@@ -528,6 +532,13 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               currentUser={currentUser}
               lists={initialLists || []}
               onRefresh={handleRefresh}
+            />
+          )}
+          {view === 'management' && (
+            <ManagementPanel 
+              members={initialMembers} 
+              clients={initialClients}
+              currentUser={effectiveCurrentUser}
             />
           )}
           {visibleBoards.length === 0 && view !== 'settings' && (

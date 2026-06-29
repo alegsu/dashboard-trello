@@ -245,50 +245,6 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
     window.location.reload();
   };
 
-  const maxCards = Math.max(...liveMembers.map(m => m._count?.cards || 0), 0);
-  const maxTasks = Math.max(...liveMembers.map(m => m._count?.checklistItems || 0), 0);
-  const maxLists = Math.max(...liveMembers.map(m => m._count?.lists || 0), 0);
-
-  const getClientEffortsForUser = (userName) => {
-    let clientsData = [];
-    clients.forEach(client => {
-      if (client.sheetData) {
-        try {
-          const parsed = JSON.parse(client.sheetData);
-          if (parsed.servicesDetails) {
-            let assignedServices = [];
-            let totalEffort = 0;
-            Object.entries(parsed.servicesDetails).forEach(([serviceName, collaborators]) => {
-              const collab = collaborators.find(c => c.name.toLowerCase() === userName.toLowerCase());
-              if (collab) {
-                let effortNum = 0;
-                if (collab.effort) {
-                  effortNum = parseInt(collab.effort.replace(/\D/g, ''), 10) || 0;
-                }
-                if (effortNum === 0) effortNum = Math.floor(100 / collaborators.length);
-
-                let allCollaboratorsForService = collaborators.map(c => {
-                  let e = 0;
-                  if (c.effort) e = parseInt(c.effort.replace(/\D/g, ''), 10) || 0;
-                  if (e === 0) e = Math.floor(100 / collaborators.length);
-                  return { name: c.name, effort: e };
-                }).sort((a,b) => b.effort - a.effort);
-                
-                assignedServices.push({ service: serviceName, effort: effortNum, allCollaborators: allCollaboratorsForService });
-              }
-            });
-            if (assignedServices.length > 0) {
-              clientsData.push({ client, assignedServices });
-            }
-          }
-        } catch (e) {}
-      }
-    });
-    return clientsData;
-  };
-
-  const maxClientsVal = Math.max(...liveMembers.map(m => getClientEffortsForUser(m.name).length), 0);
-  const globalMax = Math.max(maxCards, maxTasks, maxLists, maxClientsVal, 1);
 
   return (
     <div className={styles.container}>
@@ -310,26 +266,11 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                   <tr>
                     <th style={{ padding: '0.75rem 0.5rem', borderBottom: '1px solid var(--border-color)' }}>Utente</th>
                     <th style={{ padding: '0.75rem 0.5rem', borderBottom: '1px solid var(--border-color)' }}>Ruolo</th>
-                    <th style={{ padding: '0.75rem 0.5rem', borderBottom: '1px solid var(--border-color)' }}>Utilizzo</th>
-                    <th style={{ padding: '0.75rem 0.5rem', borderBottom: '1px solid var(--border-color)' }}>Assegnazioni</th>
                     <th style={{ padding: '0.75rem 0.5rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center' }}>Azioni</th>
                   </tr>
                 </thead>
                 <tbody>
                   {liveMembers.map(m => {
-                    const clientEfforts = getClientEffortsForUser(m.name);
-                    const totalClientEffort = clientEfforts.reduce((acc, c) => acc + c.totalEffort, 0);
-                    
-                    const aggregatedServices = {};
-                    clientEfforts.forEach(ce => {
-                      ce.assignedServices.forEach(s => {
-                        if (!aggregatedServices[s.service]) aggregatedServices[s.service] = 0;
-                        aggregatedServices[s.service]++;
-                      });
-                    });
-                    const serviceEntries = Object.entries(aggregatedServices);
-                    
-                    const isExpanded = expandedUserId === m.id;
                     const isEditing = editingUserId === m.id;
                     return (
                     <React.Fragment key={m.id}>
@@ -377,45 +318,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                             </span>
                           )}
                         </td>
-                        <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
-                          <div style={{ marginBottom: '2px' }}><strong>Logins:</strong> {m.loginCount || 0}</div>
-                          <div><strong>Durata:</strong> {m.totalUsageTime ? Math.floor(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m</div>
-                        </td>
-                        <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem', width: '30%' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                            <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--accent-secondary, #a1bdcf)'}}>●</span> Task ({m._count?.cards || 0})</span>
-                            <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
-                              <div style={{ background: 'var(--accent-secondary, #a1bdcf)', height: '100%', width: `${((m._count?.cards || 0) / globalMax) * 100}%` }}></div>
-                            </div>
-                          </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                            <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--status-warning)'}}>●</span> Sottotask ({m._count?.checklistItems || 0})</span>
-                            <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
-                              <div style={{ background: 'var(--status-warning)', height: '100%', width: `${((m._count?.checklistItems || 0) / globalMax) * 100}%` }}></div>
-                            </div>
-                          </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                            <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--status-success)'}}>●</span> Bacheche ({m._count?.lists || 0})</span>
-                            <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
-                              <div style={{ background: 'var(--status-success)', height: '100%', width: `${((m._count?.lists || 0) / globalMax) * 100}%` }}></div>
-                            </div>
-                          </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ whiteSpace: 'nowrap' }}><span style={{color: '#8b5cf6'}}>●</span> Clienti ({clientEfforts.length})</span>
-                            <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
-                              <div style={{ background: '#8b5cf6', height: '100%', width: `${(clientEfforts.length / globalMax) * 100}%` }}></div>
-                            </div>
-                          </div>
-                          {serviceEntries.length > 0 && (
-                            <div style={{ marginTop: '0.6rem', display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
-                              {serviceEntries.map(([srv, count], idx) => (
-                                <span key={idx} style={{ background: 'var(--bg-elevated)', padding: '0.15rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.65rem' }}>
-                                  {srv}: <strong>{count}</strong>
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </td>
+
                         <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                           <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'center' }}>
                             {effectiveCurrentUser?.role === 'admin' && !isEditing && (
@@ -431,47 +334,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                           </div>
                         </td>
                       </tr>
-                      {isExpanded && (
-                        <tr style={{ background: 'rgba(0,0,0,0.05)', borderBottom: '1px solid var(--border-color)' }}>
-                          <td colSpan="5" style={{ padding: '1rem' }}>
-                            <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem' }}>Dettaglio Clienti e Carico Lavoro</h4>
-                            {clientEfforts.length === 0 ? (
-                              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>Nessun cliente assegnato nei Fogli Google.</p>
-                            ) : (
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                                {clientEfforts.map((ce, idx) => (
-                                  <div key={idx} style={{ background: 'var(--bg-elevated)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
-                                    <strong style={{ display: 'block', marginBottom: '0.3rem', fontSize: '0.85rem' }}>{ce.client.name}</strong>
-                                    
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                      {ce.assignedServices.map((s, i) => {
-                                        return (
-                                          <div key={i} style={{ marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: i < ce.assignedServices.length - 1 ? '1px dashed rgba(255,255,255,0.1)' : 'none' }}>
-                                            <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '0.3rem' }}>• {s.service}</div>
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', paddingLeft: '0.8rem' }}>
-                                              {s.allCollaborators.map((c, cIdx) => {
-                                                let color = 'var(--status-success)';
-                                                if (c.effort >= 100) color = 'var(--status-danger)';
-                                                else if (c.effort >= 50) color = 'var(--status-warning)';
-                                                const isMe = c.name.toLowerCase() === m.name.toLowerCase();
-                                                return (
-                                                  <span key={cIdx} style={{ background: isMe ? 'var(--accent-primary)' : 'var(--bg-primary)', color: isMe ? 'white' : 'var(--text-secondary)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', border: '1px solid var(--border-color)' }}>
-                                                    {c.name}: <strong style={{ color: isMe ? 'white' : color }}>{c.effort}%</strong>
-                                                  </span>
-                                                )
-                                              })}
-                                            </div>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      )}
+
                     </React.Fragment>
                     );
                   })}
