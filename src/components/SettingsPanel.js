@@ -184,6 +184,24 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
     }
   };
 
+  const handleDeleteUser = async (id) => {
+    if (!window.confirm('ATTENZIONE: Sei sicuro di voler eliminare questo utente? Questa operazione è distruttiva.')) return;
+    if (!window.confirm('Sei ASSOLUTAMENTE sicuro? Questa azione è IRREVERSIBILE.')) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        alert('Errore eliminazione utente');
+        setLoading(false);
+      }
+    } catch (e) {
+      console.error(e);
+      setLoading(false);
+    }
+  };
+
   const handleAddBoard = async () => {
     if (!newBoardName.trim()) return;
     setLoading(true);
@@ -266,8 +284,8 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                       </td>
                       <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                         {m.id !== effectiveCurrentUser?.id && effectiveCurrentUser?.role === 'admin' && (
-                          <button onClick={() => handleDeleteUser(m.id)} className={styles.iconBtn} style={{color: 'var(--status-danger)'}} title="Elimina Utente">
-                            ❌
+                          <button onClick={() => handleDeleteUser(m.id)} style={{background: 'transparent', border: '1px solid var(--status-danger)', color: 'var(--status-danger)', padding: '0.2rem 0.4rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem'}} title="Elimina Utente">
+                            Elimina
                           </button>
                         )}
                       </td>

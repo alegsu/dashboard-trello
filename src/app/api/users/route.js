@@ -6,7 +6,17 @@ export async function GET() {
   try {
     const users = await prisma.user.findMany({
       orderBy: { name: 'asc' },
-      select: { id: true, name: true, email: true, role: true, avatarUrl: true, loginCount: true, totalUsageTime: true, theme: true }
+      select: { 
+        id: true, name: true, email: true, role: true, avatarUrl: true, loginCount: true, totalUsageTime: true, theme: true,
+        _count: {
+          select: {
+            cards: true,
+            checklistItems: true,
+            clients: true,
+            lists: true
+          }
+        }
+      }
     });
     return NextResponse.json(users);
   } catch (error) {
