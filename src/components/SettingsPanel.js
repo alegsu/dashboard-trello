@@ -613,7 +613,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           
           <ul className={styles.list}>
             {boards.map(b => (
-              <li key={b.id} className={styles.listItem} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <li key={b.id} className={styles.listItem} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'stretch' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ color: b.color || 'var(--text-primary)' }}>■</span> 
@@ -660,7 +660,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                       </div>
                       
                       {openBoardDropdownId === b.id && (
-                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '4px', marginTop: '0.2rem', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '4px', marginTop: '0.2rem', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                           {liveMembers.map(m => {
                             const hasAccess = b.assignees?.some(u => u.id === m.id);
                             return (
