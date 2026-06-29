@@ -66,6 +66,7 @@ export async function GET(request) {
           include: {
             list: true,
             labels: true,
+            checklists: { include: { items: true } },
             project: { include: { client: true } }
           }
         }
@@ -122,13 +123,33 @@ export async function GET(request) {
         const isOverdue = romeDueForCheck < romeNow;
         const dueColor = isOverdue ? 'color: #ef4444; font-weight: bold;' : 'color: #64748b;';
         
+        const clientNotes = c.project?.client?.notes ? `<div style="font-size: 12px; color: #64748b; margin-top: 6px; border-left: 2px solid #cbd5e1; padding-left: 6px;"><em>Note Cliente:</em> ${c.project.client.notes}</div>` : '';
+        const cardDescription = c.description ? `<div style="font-size: 12px; color: #475569; margin-top: 6px;">📝 ${c.description}</div>` : '';
+        
+        let checklistsHtml = '';
+        if (c.checklists && c.checklists.length > 0) {
+          c.checklists.forEach(cl => {
+            const pendingItems = cl.items.filter(i => !i.isCompleted);
+            if (pendingItems.length > 0) {
+              checklistsHtml += `<div style="font-size: 12px; color: #475569; margin-top: 6px;"><strong>☑️ ${cl.name}:</strong><ul style="margin-top: 2px; padding-left: 16px; margin-bottom: 2px;">`;
+              pendingItems.forEach(i => {
+                checklistsHtml += `<li>${i.name}</li>`;
+              });
+              checklistsHtml += `</ul></div>`;
+            }
+          });
+        }
+
         return `
           <li style="margin-bottom: 10px; padding: 10px; background-color: #f8fafc; border-radius: 6px; border-left: 4px solid #a1bdcf;">
-            <div style="margin-bottom: 4px;">${clientName}${c.name}</div>
+            <div style="margin-bottom: 4px; font-size: 14px; font-weight: 500;">${clientName}${c.name}</div>
             ${labelsHtml}
             <div style="font-size: 12px; color: #64748b;">
               📍 ${c.list.name} &nbsp;|&nbsp; 🗓 <span style="${dueColor}">Scadenza: ${dueFormatted}</span>
             </div>
+            ${cardDescription}
+            ${checklistsHtml}
+            ${clientNotes}
           </li>`;
       };
 
