@@ -36,14 +36,26 @@ export async function GET(request) {
       groupedByUser[pn.userId].notifications.push(pn);
     });
 
-    let emailsSent = 0;
+    const processedUserIds = [];
 
     for (const userId in groupedByUser) {
       const group = groupedByUser[userId];
       const user = group.user;
       const notifications = group.notifications;
 
-      if (!user.email) continue;
+      if (!user.email) {
+        processedUserIds.push(userId); // We process them (by dropping)
+        continue;
+      }
+
+      // Rate Limiting: Massimo 1 email ogni 3 ore
+      if (user.lastNotificationEmailSentAt) {
+        const orePassate = (Date.now() - new Date(user.lastNotificationEmailSentAt).getTime()) / (1000 * 60 * 60);
+        if (orePassate < 3) {
+          // Non sono ancora passate 3 ore, saltiamo l'invio e lasciamo in coda
+          continue;
+        }
+      }
 
       // URL di base
       const baseUrlSetting = await prisma.systemSetting.findUnique({ where: { key: 'BASE_URL' } });
@@ -92,18 +104,24 @@ export async function GET(request) {
         htmlEmail
       );
 
+      processedUserIds.push(userId);
+
       if (sent) {
-        emailsSent++;
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastNotificationEmailSentAt: new Date() }
+        });
       }
     }
 
-    // 2. Elimina le notifiche in sospeso elaborate
-    const processedIds = pendingNotifications.map(n => n.id);
+    // 2. Elimina le notifiche in sospeso elaborate (solo quelle degli utenti processati)
     await prisma.pendingNotification.deleteMany({
-      where: { id: { in: processedIds } }
+      where: { userId: { in: processedUserIds } }
     });
 
-    return NextResponse.json({ success: true, emailsSent, processed: processedIds.length });
+    let emailsSent = processedUserIds.length;
+
+    return NextResponse.json({ success: true, emailsSent, processedUsers: processedUserIds.length });
   } catch (error) {
     console.error("Process Queue Error:", error);
     return NextResponse.json({ error: 'Errore durante l\'invio delle code' }, { status: 500 });

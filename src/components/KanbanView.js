@@ -343,12 +343,56 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     setEditingListEndDate(friday.toISOString().split('T')[0]);
   };
 
+  const handleCreateClient = async () => {
+    const name = window.prompt("Nome del nuovo cliente:");
+    if (!name || name.trim() === '') return;
+    
+    try {
+      const res = await fetch('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim() })
+      });
+      if (res.ok) {
+        if (onRefresh) onRefresh();
+      } else {
+        alert("Errore nella creazione del cliente.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Errore di rete nella creazione del cliente.");
+    }
+  };
+
   if (!isMounted) return null;
 
   return (
       <div className={styles.kanbanContainer} style={{ zoom: zoomLevel / 100 }}>
          <div className={styles.kanbanHeaderRow}>
-            <div className={styles.kanbanUserCorner}>Cliente | Stato</div>
+            <div className={styles.kanbanUserCorner} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Cliente | Stato
+              <button 
+                onClick={handleCreateClient}
+                style={{ 
+                  background: 'transparent', 
+                  border: '1px solid var(--accent-primary)', 
+                  color: 'var(--accent-primary)', 
+                  borderRadius: '50%', 
+                  width: '20px', 
+                  height: '20px', 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  cursor: 'pointer', 
+                  fontSize: '14px', 
+                  lineHeight: '1',
+                  padding: 0
+                }}
+                title="Nuovo Cliente"
+              >
+                +
+              </button>
+            </div>
             {lists.map(list => {
               const hasDates = list.startDate || list.endDate;
               return (

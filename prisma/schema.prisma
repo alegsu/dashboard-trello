@@ -39,6 +39,9 @@ model User {
   aiChecklistEnabled   Boolean @default(true)
   aiReportEnabled      Boolean @default(true)
   aiCategorizeEnabled  Boolean @default(true)
+
+  // Rate Limiting Notifiche
+  lastNotificationEmailSentAt DateTime?
 }
 
 model Board {
