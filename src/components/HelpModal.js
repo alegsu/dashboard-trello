@@ -150,6 +150,16 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.16.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>👑 <strong>Dashboard Management:</strong> Nuova scheda riservata esclusivamente agli amministratori, dedicata al monitoraggio delle prestazioni, dei login e del carico di lavoro del team (Task, Sottotask, Bacheche, Clienti e Progetti).</li>
+                  <li>🌡️ <strong>Termometro Scadenze Kanban:</strong> Ridisegnata la UI delle date di scadenza nelle schede Kanban. Ora includono un "termometro" visivo e un'etichetta di conto alla rovescia (es. "2 gg") che evidenzia in modo molto più chiaro e immediato l'urgenza della task.</li>
+                  <li>📧 <strong>Link Corretti nelle Notifiche:</strong> Risolto un bug che inseriva link errati nelle email automatiche. Ora il sistema individua automaticamente il dominio di produzione corretto.</li>
+                  <li>☑️ <strong>Assegnazione Clienti Migliorata:</strong> Trasformato il menu di selezione Clienti in una comoda lista di checkbox, permettendo di salvare credenziali e accessi senza dover forzatamente assegnare un cliente.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.15.0</h4>
                 <ul style={noteUlStyle}>
                   <li>👥 <strong>Collaboratori sui Progetti:</strong> È ora possibile assegnare i collaboratori direttamente ai Progetti tramite l'apposito modulo. Gli avatar saranno visibili nelle schede progetto.</li>
