@@ -448,26 +448,32 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                                       <div style={{ marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
                                         <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>Team assegnato (carico ripartito):</div>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
-                                          {ce.teamMembers.map((tm, tmIdx) => (
-                                            <span key={tmIdx} style={{ background: tm.name.toLowerCase() === m.name.toLowerCase() ? 'var(--accent-primary)' : 'var(--bg-primary)', color: tm.name.toLowerCase() === m.name.toLowerCase() ? 'white' : 'var(--text-secondary)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', border: '1px solid var(--border-color)' }}>
-                                              {tm.name}: <strong>{tm.effort}%</strong>
-                                            </span>
-                                          ))}
+                                          {ce.teamMembers.map((tm, tmIdx) => {
+                                            let color = '#eab308';
+                                            if (tm.effort >= 100) color = 'var(--status-success)';
+                                            else if (tm.effort >= 50) color = 'var(--status-warning)';
+                                            return (
+                                              <span key={tmIdx} style={{ background: tm.name.toLowerCase() === m.name.toLowerCase() ? 'var(--accent-primary)' : 'var(--bg-primary)', color: tm.name.toLowerCase() === m.name.toLowerCase() ? 'white' : 'var(--text-secondary)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', border: '1px solid var(--border-color)' }}>
+                                                {tm.name}: <strong style={{ color: tm.name.toLowerCase() === m.name.toLowerCase() ? 'white' : color }}>{tm.effort}%</strong>
+                                              </span>
+                                            );
+                                          })}
                                         </div>
                                       </div>
                                     )}
 
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                      {ce.assignedServices.map((s, i) => (
-                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                                          <span>• {s.service}</span>
-                                          <strong style={{ color: 'var(--accent-primary)' }}>{s.effort}%</strong>
-                                        </div>
-                                      ))}
-                                    </div>
-                                    <div style={{ marginTop: '0.5rem', paddingTop: '0.3rem', borderTop: '1px dashed var(--border-color)', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                                      <span>Totale Effort:</span>
-                                      <strong style={{ color: ce.totalEffort > 50 ? 'var(--status-warning)' : 'var(--status-success)' }}>{ce.totalEffort}%</strong>
+                                      {ce.assignedServices.map((s, i) => {
+                                        let color = '#eab308'; // yellow
+                                        if (s.effort >= 100) color = 'var(--status-success)';
+                                        else if (s.effort >= 50) color = 'var(--status-warning)';
+                                        return (
+                                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                                            <span>• {s.service}</span>
+                                            <strong style={{ color }}>{s.effort}%</strong>
+                                          </div>
+                                        );
+                                      })}
                                     </div>
                                   </div>
                                 ))}
@@ -655,11 +661,11 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.5rem' }}>
                       <span style={{ color: 'var(--text-secondary)' }}>Membri con Accesso (Nessuno = Pubblica per tutti):</span>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', background: 'var(--bg-secondary)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.4rem', background: 'var(--bg-secondary)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         {liveMembers.map(m => {
                           const hasAccess = b.assignees?.some(u => u.id === m.id);
                           return (
-                            <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', cursor: 'pointer', background: hasAccess ? 'rgba(59, 130, 246, 0.1)' : 'transparent', padding: '0.2rem 0.4rem', borderRadius: '4px' }}>
+                            <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', cursor: 'pointer', background: hasAccess ? 'rgba(59, 130, 246, 0.1)' : 'transparent', padding: '0.3rem 0.5rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box' }}>
                               <input 
                                 type="checkbox" 
                                 checked={hasAccess || false}
