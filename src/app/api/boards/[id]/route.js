@@ -28,10 +28,22 @@ export async function PUT(request, { params }) {
       return NextResponse.json(updatedBoard);
     }
 
-    if (body.name !== undefined) {
+    if (body.name !== undefined || body.color !== undefined || body.assignees !== undefined) {
+      const updateData = {};
+      if (body.name !== undefined) updateData.name = body.name;
+      if (body.color !== undefined) updateData.color = body.color;
+      
+      if (body.assignees !== undefined) {
+        // body.assignees should be an array of user IDs
+        updateData.assignees = {
+          set: body.assignees.map(id => ({ id }))
+        };
+      }
+
       const updatedBoard = await prisma.board.update({
         where: { id },
-        data: { name: body.name }
+        data: updateData,
+        include: { assignees: true }
       });
       return NextResponse.json(updatedBoard);
     }

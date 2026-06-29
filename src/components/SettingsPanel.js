@@ -588,19 +588,62 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           
           <ul className={styles.list}>
             {boards.map(b => (
-              <li key={b.id} className={styles.listItem} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div><span style={{marginRight: '8px'}}>📁</span> {b.name}</div>
-                <button 
-                  onClick={async () => {
-                    if(window.confirm('Sei sicuro di archiviare questa bacheca?')) {
-                      await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isArchived: true }) });
-                      if (onRefresh) onRefresh();
-                    }
-                  }}
-                  style={{ background: 'transparent', border: '1px solid var(--status-warning)', color: 'var(--status-warning)', borderRadius: '4px', padding: '0.15rem 0.4rem', cursor: 'pointer', fontSize: '0.72rem' }}
-                >
-                  Archivia
-                </button>
+              <li key={b.id} className={styles.listItem} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ color: b.color || 'var(--text-primary)' }}>■</span> 
+                    <span>{b.name}</span>
+                  </div>
+                  <button 
+                    onClick={async () => {
+                      if(window.confirm('Sei sicuro di archiviare questa bacheca?')) {
+                        await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isArchived: true }) });
+                        if (onRefresh) onRefresh();
+                      }
+                    }}
+                    style={{ background: 'transparent', border: '1px solid var(--status-warning)', color: 'var(--status-warning)', borderRadius: '4px', padding: '0.15rem 0.4rem', cursor: 'pointer', fontSize: '0.72rem' }}
+                  >
+                    Archivia
+                  </button>
+                </div>
+                {effectiveCurrentUser?.role === 'admin' && (
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '0.75rem', flexWrap: 'wrap', padding: '0.3rem', background: 'var(--bg-glass)', borderRadius: '4px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Colore:</span>
+                      <input 
+                        type="color" 
+                        defaultValue={b.color || '#3b82f6'} 
+                        onBlur={async (e) => {
+                          if (e.target.value !== b.color) {
+                            await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ color: e.target.value }) });
+                            if (onRefresh) onRefresh();
+                          }
+                        }} 
+                        title="Cambia colore base" 
+                        style={{width: '20px', height: '20px', padding: '0', border: 'none', cursor: 'pointer', background: 'transparent'}}
+                      />
+                    </label>
+                    
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginLeft: '0.5rem' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Accesso:</span>
+                      <select 
+                        multiple 
+                        style={{ fontSize: '0.7rem', padding: '0.2rem', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px', height: '40px', minWidth: '120px' }}
+                        defaultValue={b.assignees?.map(u => u.id) || []}
+                        onChange={async (e) => {
+                           const selectedIds = Array.from(e.target.selectedOptions, option => option.value);
+                           await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assignees: selectedIds }) });
+                           if (onRefresh) onRefresh();
+                        }}
+                      >
+                        {liveMembers.map(m => (
+                          <option key={m.id} value={m.id}>{m.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <span style={{color: 'var(--text-secondary)', fontSize: '0.65rem', maxWidth: '150px'}}>Ctrl/Cmd per selezione multipla. Nessuno = Pubblica.</span>
+                  </div>
+                )}
               </li>
             ))}
             {boards.length === 0 && <p className={styles.empty}>Nessuna bacheca creata.</p>}

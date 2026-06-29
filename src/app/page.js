@@ -19,7 +19,10 @@ export default async function Home() {
       }
     }
   });
-  const boards = await prisma.board.findMany({ orderBy: { name: 'asc' } });
+  const boards = await prisma.board.findMany({ 
+    orderBy: { name: 'asc' },
+    include: { assignees: true }
+  });
   const lists = await prisma.list.findMany({ orderBy: { order: 'asc' } });
   const clients = await prisma.client.findMany({ 
     orderBy: { name: 'asc' },

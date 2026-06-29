@@ -28,6 +28,7 @@ model User {
   pendingNotifications PendingNotification[]
   clients        Client[]        @relation("ClientCollaborators")
   projects       Project[]       @relation("ProjectAssignees")
+  boards         Board[]         @relation("BoardAssignees")
   
   // Impostazioni Notifiche
   notifyMentions       Boolean @default(true)
@@ -52,6 +53,9 @@ model Board {
   lists     List[]
   cards     Card[]
   labels    Label[]
+
+  color     String?
+  assignees User[]   @relation("BoardAssignees")
 
   isArchived Boolean @default(false)
 }

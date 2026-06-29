@@ -25,6 +25,26 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   const initialLists = liveLists;
   const initialClients = liveClients;
   const initialCards = liveCards;
+  
+  const [currentUser, setCurrentUser] = useState(null);
+
+  const visibleBoards = React.useMemo(() => {
+    return initialBoards.filter(b => 
+      !currentUser || 
+      currentUser.role === 'admin' || 
+      !b.assignees || b.assignees.length === 0 || 
+      b.assignees.some(u => u.id === currentUser.id)
+    );
+  }, [initialBoards, currentUser]);
+
+  useEffect(() => {
+    const board = visibleBoards.find(b => b.id === selectedBoardId);
+    if (board && board.color) {
+      document.documentElement.style.setProperty('--accent-primary', board.color);
+    } else {
+      document.documentElement.style.removeProperty('--accent-primary');
+    }
+  }, [selectedBoardId, visibleBoards]);
 
   useEffect(() => {
     const syncInterval = setInterval(async () => {
@@ -43,24 +63,23 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   }, []);
   const router = useRouter();
   // Se non c'è una board, mostra settings. Altrimenti kanban.
-  const [view, setView] = useState(initialBoards.length > 0 ? 'kanban' : 'settings'); 
-  const [selectedBoardId, setSelectedBoardId] = useState(initialBoards.length > 0 ? initialBoards[0].id : '');
+  const [view, setView] = useState(visibleBoards.length > 0 ? 'kanban' : 'settings'); 
+  const [selectedBoardId, setSelectedBoardId] = useState(visibleBoards.length > 0 ? visibleBoards[0].id : '');
   
   useEffect(() => {
-    if (typeof window !== 'undefined' && initialBoards.length > 0) {
+    if (typeof window !== 'undefined' && visibleBoards.length > 0) {
       const urlParams = new URLSearchParams(window.location.search);
       const urlBoardId = urlParams.get('boardId');
       const saved = localStorage.getItem('lastSelectedBoardId');
       
-      if (urlBoardId && initialBoards.find(b => b.id === urlBoardId)) {
+      if (urlBoardId && visibleBoards.find(b => b.id === urlBoardId)) {
         setSelectedBoardId(urlBoardId);
         localStorage.setItem('lastSelectedBoardId', urlBoardId);
-        // Ripulisci URL per pulizia (opzionale, ma evitiamo refresh strani)
         window.history.replaceState({}, document.title, window.location.pathname);
-      } else if (saved && initialBoards.find(b => b.id === saved)) {
+      } else if (saved && visibleBoards.find(b => b.id === saved)) {
         setSelectedBoardId(saved);
-      } else {
-        setSelectedBoardId(initialBoards[0].id);
+      } else if (!visibleBoards.find(b => b.id === selectedBoardId)) {
+        setSelectedBoardId(visibleBoards[0].id);
       }
 
       const cardId = urlParams.get('card');
@@ -71,7 +90,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
         window.history.replaceState({}, document.title, url);
       }
     }
-  }, [initialBoards]);
+  }, [visibleBoards]);
 
   useEffect(() => {
     if (selectedBoardId && typeof window !== 'undefined') {
@@ -80,7 +99,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   }, [selectedBoardId]);
   
   const [showImportModal, setShowImportModal] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  // currentUser now declared earlier
   const [zenMode, setZenMode] = useState(false);
   const [currentTime, setCurrentTime] = useState(null);
   const [globalCardId, setGlobalCardId] = useState(null);
@@ -274,20 +293,20 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
                </div>
             )}
             
-            {initialBoards.length > 0 && !zenMode && (
+            {visibleBoards.length > 0 && !zenMode && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <select 
                   value={selectedBoardId} 
                   onChange={(e) => setSelectedBoardId(e.target.value)}
                   style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontWeight: 'bold' }}
                 >
-                  {initialBoards.map(b => (
+                  {visibleBoards.map(b => (
                     <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
                 </select>
                 <button 
                   onClick={async () => {
-                    const board = initialBoards.find(b => b.id === selectedBoardId);
+                    const board = visibleBoards.find(b => b.id === selectedBoardId);
                     if (!board) return;
                     const newName = prompt('Nuovo nome bacheca:', board.name);
                     if (newName && newName.trim() !== '' && newName !== board.name) {
@@ -400,8 +419,8 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
 
             {/* Nav Tabs merged into the same row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <button className={`${styles.navButton} ${view === 'kanban' ? styles.active : ''}`} onClick={() => setView('kanban')} disabled={initialBoards.length === 0} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📋 Kanban</button>
-              <button className={`${styles.navButton} ${view === 'timeline' ? styles.active : ''}`} onClick={() => setView('timeline')} disabled={initialBoards.length === 0} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📊 Timeline</button>
+              <button className={`${styles.navButton} ${view === 'kanban' ? styles.active : ''}`} onClick={() => setView('kanban')} disabled={visibleBoards.length === 0} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📋 Kanban</button>
+              <button className={`${styles.navButton} ${view === 'timeline' ? styles.active : ''}`} onClick={() => setView('timeline')} disabled={visibleBoards.length === 0} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📊 Timeline</button>
               <button className={`${styles.navButton} ${view === 'projects' ? styles.active : ''}`} onClick={() => setView('projects')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🏢 Progetti</button>
               <button className={`${styles.navButton} ${view === 'clients' ? styles.active : ''}`} onClick={() => setView('clients')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>👥 Clienti</button>
               <button className={`${styles.navButton} ${view === 'accesses' ? styles.active : ''}`} onClick={() => setView('accesses')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🔑 Accessi</button>
@@ -510,9 +529,9 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               onRefresh={handleRefresh}
             />
           )}
-          {initialBoards.length === 0 && view !== 'settings' && (
+          {visibleBoards.length === 0 && view !== 'settings' && (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-              Nessuna bacheca creata. Vai in Impostazioni per crearne una.
+              Nessuna bacheca disponibile o creata.
             </div>
           )}
         </section>
