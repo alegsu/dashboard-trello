@@ -44,6 +44,8 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
   const unassignedId = 'unassigned';
   const allClientIds = [unassignedId, ...(clients || []).map(c => c.id)];
 
+  const [forcedVisibleClients, setForcedVisibleClients] = useState([]);
+
   const [localCards, setLocalCards] = useState(cards);
   useEffect(() => {
     setLocalCards(cards);
@@ -343,30 +345,38 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     setEditingListEndDate(friday.toISOString().split('T')[0]);
   };
 
-  const handleCreateClient = async () => {
-    const name = window.prompt("Nome del nuovo cliente:");
+  const handleAddOrShowClient = async () => {
+    const name = window.prompt("Inserisci il nome del cliente per mostrare la sua riga (se non esiste, ti verrà chiesto di crearlo):");
     if (!name || name.trim() === '') return;
     
-    const clientExists = clients && clients.some(c => c.name.toLowerCase() === name.trim().toLowerCase());
-    if (clientExists) {
-      alert(`Il cliente "${name.trim()}" esiste già!`);
+    const searchName = name.trim().toLowerCase();
+    const existingClient = clients && clients.find(c => c.name.toLowerCase() === searchName);
+    
+    if (existingClient) {
+      // Il cliente esiste già, mostriamo semplicemente la sua riga
+      if (!forcedVisibleClients.includes(existingClient.id)) {
+        setForcedVisibleClients(prev => [...prev, existingClient.id]);
+      }
       return;
     }
 
-    try {
-      const res = await fetch('/api/clients', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim() })
-      });
-      if (res.ok) {
-        window.location.reload(); // Forza ricaricamento completo per aggirare la cache di Next.js e mostrare la riga
-      } else {
-        alert("Errore nella creazione del cliente.");
+    // Se non esiste, chiediamo conferma prima di crearlo
+    if (window.confirm(`Il cliente "${name.trim()}" non è presente in anagrafica. Vuoi crearlo ora?`)) {
+      try {
+        const res = await fetch('/api/clients', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name.trim() })
+        });
+        if (res.ok) {
+          window.location.reload(); 
+        } else {
+          alert("Errore nella creazione del cliente.");
+        }
+      } catch (e) {
+        console.error(e);
+        alert("Errore di rete nella creazione del cliente.");
       }
-    } catch (e) {
-      console.error(e);
-      alert("Errore di rete nella creazione del cliente.");
     }
   };
 
@@ -378,7 +388,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
             <div className={styles.kanbanUserCorner} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               Cliente | Stato
               <button 
-                onClick={handleCreateClient}
+                onClick={handleAddOrShowClient}
                 style={{ 
                   background: 'transparent', 
                   border: '1px solid var(--accent-primary)', 
@@ -482,6 +492,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
 
          <div className={styles.kanbanBody}>
             {allClientIds.filter(clientId => {
+              if (forcedVisibleClients.includes(clientId)) return true;
               const hasCards = lists.some(list => (cardsByCell[`${clientId}-${list.id}`] || []).length > 0);
               if (!hasCards && clientId !== filterClientId) {
                 if (clientId === unassignedId && !filterClientId && Object.keys(cardsByCell).length === 0) {

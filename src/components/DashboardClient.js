@@ -14,7 +14,32 @@ import DocumentImportModal from './DocumentImportModal';
 import CardModal from './CardModal';
 import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock } from 'lucide-react';
 
-export default function DashboardClient({ initialBoards, initialLists, initialCards, initialMembers, initialClients }) {
+export default function DashboardClient({ initialBoards: initialBoardsProp, initialLists: initialListsProp, initialCards: initialCardsProp, initialMembers, initialClients: initialClientsProp }) {
+  const [liveBoards, setLiveBoards] = useState(initialBoardsProp);
+  const [liveLists, setLiveLists] = useState(initialListsProp);
+  const [liveClients, setLiveClients] = useState(initialClientsProp);
+  const [liveCards, setLiveCards] = useState(initialCardsProp);
+
+  const initialBoards = liveBoards;
+  const initialLists = liveLists;
+  const initialClients = liveClients;
+  const initialCards = liveCards;
+
+  useEffect(() => {
+    const syncInterval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/sync/state');
+        if (res.ok) {
+          const data = await res.json();
+          setLiveCards(data.cards);
+          setLiveBoards(data.boards);
+          setLiveLists(data.lists);
+          setLiveClients(data.clients);
+        }
+      } catch (err) {}
+    }, 10000);
+    return () => clearInterval(syncInterval);
+  }, []);
   const router = useRouter();
   // Se non c'è una board, mostra settings. Altrimenti kanban.
   const [view, setView] = useState(initialBoards.length > 0 ? 'kanban' : 'settings'); 
@@ -150,10 +175,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
     fetchNotifications();
   };
 
-  const [liveCards, setLiveCards] = useState(initialCards);
-  useEffect(() => {
-    setLiveCards(initialCards);
-  }, [initialCards]);
+
 
   // Filtriamo Liste e Cards per la board selezionata
   const boardLists = useMemo(() => initialLists.filter(l => l.boardId === selectedBoardId), [initialLists, selectedBoardId]);
@@ -211,7 +233,7 @@ export default function DashboardClient({ initialBoards, initialLists, initialCa
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.12.0
+              v2.13.0
             </span>
           </div>
           

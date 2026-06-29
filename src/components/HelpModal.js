@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.13.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>⚡ <strong>Sincronizzazione in Tempo Reale:</strong> La bacheca Kanban e le schede ora si aggiornano automaticamente ogni 10 secondi "dietro le quinte". Vedrai il lavoro dei tuoi colleghi materializzarsi sullo schermo senza mai dover ricaricare la pagina!</li>
+                  <li>🛡️ <strong>Modifiche Sicure:</strong> Quando stai digitando una descrizione o stai compilando una checklist, l'aggiornamento automatico non ti farà perdere il focus né i dati non salvati.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.12.0</h4>
                 <ul style={noteUlStyle}>
                   <li>📅 <strong>Recap Giornaliero Migliorato:</strong> La mail del buongiorno ora include una suddivisione chiara tra le task in scadenza oggi (o già scadute) e quelle in scadenza domani.</li>
