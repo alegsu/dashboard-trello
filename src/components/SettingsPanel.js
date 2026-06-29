@@ -449,8 +449,8 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                                         <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>Team assegnato (carico ripartito):</div>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
                                           {ce.teamMembers.map((tm, tmIdx) => {
-                                            let color = '#eab308';
-                                            if (tm.effort >= 100) color = 'var(--status-success)';
+                                            let color = 'var(--status-success)'; // green
+                                            if (tm.effort >= 100) color = 'var(--status-danger)';
                                             else if (tm.effort >= 50) color = 'var(--status-warning)';
                                             return (
                                               <span key={tmIdx} style={{ background: tm.name.toLowerCase() === m.name.toLowerCase() ? 'var(--accent-primary)' : 'var(--bg-primary)', color: tm.name.toLowerCase() === m.name.toLowerCase() ? 'white' : 'var(--text-secondary)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', border: '1px solid var(--border-color)' }}>
@@ -464,8 +464,8 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
 
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                                       {ce.assignedServices.map((s, i) => {
-                                        let color = '#eab308'; // yellow
-                                        if (s.effort >= 100) color = 'var(--status-success)';
+                                        let color = 'var(--status-success)';
+                                        if (s.effort >= 100) color = 'var(--status-danger)';
                                         else if (s.effort >= 50) color = 'var(--status-warning)';
                                         return (
                                           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
