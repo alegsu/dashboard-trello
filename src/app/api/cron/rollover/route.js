@@ -9,6 +9,9 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // LOGICA SOSPESA TEMPORANEAMENTE (su richiesta)
+    return NextResponse.json({ success: true, message: 'Rollover temporarily suspended' });
+
     const boards = await prisma.board.findMany({ include: { lists: true } });
     let operationsLog = [];
 
