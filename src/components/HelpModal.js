@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.14.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🤖 <strong>Integrazione Claude AI:</strong> Nelle impostazioni dei Clienti (anagrafica) è ora presente un campo per inserire il link diretto al Progetto Claude specifico per quel cliente.</li>
+                  <li>🔗 <strong>Accesso Rapido da Kanban:</strong> Se a un cliente è stato assegnato un link Claude, su tutte le sue schede nel tabellone Kanban apparirà un comodo pulsantino "🤖 Claude" accanto alla data di scadenza. Ti basterà un clic per atterrare istantaneamente nella chat corretta di quell'assistente!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.13.0</h4>
                 <ul style={noteUlStyle}>
                   <li>⚡ <strong>Sincronizzazione in Tempo Reale:</strong> La bacheca Kanban e le schede ora si aggiornano automaticamente ogni 10 secondi "dietro le quinte". Vedrai il lavoro dei tuoi colleghi materializzarsi sullo schermo senza mai dover ricaricare la pagina!</li>
