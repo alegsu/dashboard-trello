@@ -40,10 +40,11 @@ export async function GET(request) {
       return NextResponse.json({ error: 'OpenAI API Key mancante' }, { status: 400 });
     }
 
+    const baseUrlSetting = await prisma.systemSetting.findUnique({ where: { key: 'BASE_URL' } });
+    const baseUrl = baseUrlSetting?.value || process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'));
+
     // 0. Sincronizzazione Automatica Google Sheets
     try {
-      const baseUrlSetting = await prisma.systemSetting.findUnique({ where: { key: 'BASE_URL' } });
-      const baseUrl = baseUrlSetting?.value || process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'));
       const csvUrlSetting = settings.find(s => s.key === 'SHEETS_CSV_URL');
       if (csvUrlSetting && csvUrlSetting.value) {
         console.log("Inizio sincronizzazione automatica Google Sheets...");
