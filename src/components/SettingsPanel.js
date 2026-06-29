@@ -14,6 +14,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
   const [editingUserName, setEditingUserName] = useState('');
   const [editingUserEmail, setEditingUserEmail] = useState('');
   const [expandedUserId, setExpandedUserId] = useState(null);
+  const [openBoardDropdownId, setOpenBoardDropdownId] = useState(null);
 
   const [liveMembers, setLiveMembers] = useState(members || []);
   
@@ -648,32 +649,42 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                       />
                     </label>
                     
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.5rem' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>Membri con Accesso (Nessuno = Pubblica per tutti):</span>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.4rem', background: 'var(--bg-secondary)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-                        {liveMembers.map(m => {
-                          const hasAccess = b.assignees?.some(u => u.id === m.id);
-                          return (
-                            <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', cursor: 'pointer', background: hasAccess ? 'rgba(59, 130, 246, 0.1)' : 'transparent', padding: '0.3rem 0.5rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box' }}>
-                              <input 
-                                type="checkbox" 
-                                checked={hasAccess || false}
-                                onChange={async (e) => {
-                                  const isChecked = e.target.checked;
-                                  let newAssignees = b.assignees ? b.assignees.map(u => u.id) : [];
-                                  if (isChecked) newAssignees.push(m.id);
-                                  else newAssignees = newAssignees.filter(id => id !== m.id);
-                                  
-                                  await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assignees: newAssignees }) });
-                                  if (onRefresh) onRefresh();
-                                }}
-                                style={{ accentColor: 'var(--accent-primary)', width: '14px', height: '14px' }}
-                              />
-                              {m.name}
-                            </label>
-                          );
-                        })}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.5rem', position: 'relative' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Membri con Accesso:</span>
+                      <div 
+                        onClick={() => setOpenBoardDropdownId(openBoardDropdownId === b.id ? null : b.id)}
+                        style={{ padding: '0.4rem 0.6rem', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '4px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}
+                      >
+                        {b.assignees && b.assignees.length > 0 ? `${b.assignees.length} membri selezionati` : 'Pubblica per tutti'}
+                        <span>▼</span>
                       </div>
+                      
+                      {openBoardDropdownId === b.id && (
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '4px', marginTop: '0.2rem', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+                          {liveMembers.map(m => {
+                            const hasAccess = b.assignees?.some(u => u.id === m.id);
+                            return (
+                              <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', cursor: 'pointer', background: hasAccess ? 'rgba(59, 130, 246, 0.1)' : 'transparent', padding: '0.3rem 0.5rem', borderRadius: '4px' }}>
+                                <input 
+                                  type="checkbox" 
+                                  checked={hasAccess || false}
+                                  onChange={async (e) => {
+                                    const isChecked = e.target.checked;
+                                    let newAssignees = b.assignees ? b.assignees.map(u => u.id) : [];
+                                    if (isChecked) newAssignees.push(m.id);
+                                    else newAssignees = newAssignees.filter(id => id !== m.id);
+                                    
+                                    await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assignees: newAssignees }) });
+                                    if (onRefresh) onRefresh();
+                                  }}
+                                  style={{ accentColor: 'var(--accent-primary)', width: '14px', height: '14px' }}
+                                />
+                                {m.name}
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
