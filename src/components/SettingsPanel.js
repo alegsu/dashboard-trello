@@ -209,59 +209,78 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
             <h3>👥 Crea Account Team ({members.length})</h3>
             <p className={styles.subtitle}>Crea le credenziali per i tuoi colleghi (loro non potranno registrarsi da soli).</p>
             
-            <ul className={styles.list}>
-              {liveMembers.map(m => (
-                <li key={m.id} className={styles.listItem} style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 150px' }}>
-                    <div className={styles.avatar}>{m.name.charAt(0).toUpperCase()}</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                      <strong>{m.name}</strong>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{m.email || 'Nessuna email'}</span>
-                    </div>
-                  </div>
-                  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 250px', justifyContent: 'space-between', marginTop: '0.3rem' }}>
-                    <div>
-                      {effectiveCurrentUser?.role === 'admin' && m.id !== effectiveCurrentUser.id ? (
-                        <select 
-                          value={m.role}
-                          onChange={async (e) => {
-                            await fetch(`/api/users/${m.id}`, {
-                              method: 'PUT',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ role: e.target.value })
-                            });
-                            window.location.reload();
-                          }}
-                          style={{ fontSize: '0.75rem', padding: '0.2rem', background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
-                        >
-                          <option value="user">Utente</option>
-                          <option value="admin">Amministratore</option>
-                        </select>
-                      ) : (
-                        <span style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', background: 'var(--bg-elevated)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-                          {m.role === 'admin' ? 'Amministratore' : 'Utente'}
-                        </span>
-                      )}
-                    </div>
-
-                    {effectiveCurrentUser?.role === 'admin' && (
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', background: 'var(--bg-elevated)', padding: '0.2rem 0.5rem', borderRadius: '4px', textAlign: 'right' }}>
+            <div style={{ overflowX: 'auto', marginTop: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                <thead style={{ background: 'var(--bg-elevated)', textAlign: 'left' }}>
+                  <tr>
+                    <th style={{ padding: '0.75rem 0.5rem', borderBottom: '1px solid var(--border-color)' }}>Utente</th>
+                    <th style={{ padding: '0.75rem 0.5rem', borderBottom: '1px solid var(--border-color)' }}>Ruolo</th>
+                    <th style={{ padding: '0.75rem 0.5rem', borderBottom: '1px solid var(--border-color)' }}>Utilizzo</th>
+                    <th style={{ padding: '0.75rem 0.5rem', borderBottom: '1px solid var(--border-color)' }}>Assegnazioni</th>
+                    <th style={{ padding: '0.75rem 0.5rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center' }}>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {liveMembers.map(m => (
+                    <tr key={m.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <div className={styles.avatar} style={{ width: '32px', height: '32px', fontSize: '0.85rem' }}>{m.name.charAt(0).toUpperCase()}</div>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <strong>{m.name}</strong>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{m.email || 'Nessuna email'}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: '0.5rem' }}>
+                        {effectiveCurrentUser?.role === 'admin' && m.id !== effectiveCurrentUser.id ? (
+                          <select 
+                            value={m.role}
+                            onChange={async (e) => {
+                              await fetch(`/api/users/${m.id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ role: e.target.value })
+                              });
+                              window.location.reload();
+                            }}
+                            style={{ fontSize: '0.75rem', padding: '0.3rem', background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                          >
+                            <option value="user">Utente</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        ) : (
+                          <span style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem', background: 'var(--bg-elevated)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                            {m.role === 'admin' ? 'Admin' : 'Utente'}
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
                         <div style={{ marginBottom: '2px' }}><strong>Logins:</strong> {m.loginCount || 0}</div>
-                        <div><strong>Tempo:</strong> {m.totalUsageTime ? Math.round(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m</div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {m.id !== effectiveCurrentUser?.id && effectiveCurrentUser?.role === 'admin' && (
-                    <button onClick={() => handleDeleteUser(m.id)} className={styles.iconBtn} style={{color: 'var(--status-danger)', marginTop: '0.3rem'}} title="Elimina Utente">
-                      ❌
-                    </button>
+                        <div><strong>Durata:</strong> {m.totalUsageTime ? Math.floor(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m</div>
+                      </td>
+                      <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
+                        <div style={{ marginBottom: '2px' }}><strong>Schede:</strong> {m._count?.cards || 0}</div>
+                        <div style={{ marginBottom: '2px' }}><strong>Task (Checklist):</strong> {m._count?.checklistItems || 0}</div>
+                        <div><strong>Liste:</strong> {m._count?.lists || 0}</div>
+                      </td>
+                      <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                        {m.id !== effectiveCurrentUser?.id && effectiveCurrentUser?.role === 'admin' && (
+                          <button onClick={() => handleDeleteUser(m.id)} className={styles.iconBtn} style={{color: 'var(--status-danger)'}} title="Elimina Utente">
+                            ❌
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {liveMembers.length === 0 && (
+                    <tr>
+                      <td colSpan="5" style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Nessun membro. Aggiungine uno!</td>
+                    </tr>
                   )}
-                </li>
-              ))}
-              {liveMembers.length === 0 && <p className={styles.empty}>Nessun membro. Aggiungine uno!</p>}
-            </ul>
+                </tbody>
+              </table>
+            </div>
 
             <div style={{display: 'flex', flexDirection: 'column', gap: '0.3rem', background: 'rgba(0,0,0,0.1)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.5rem'}}>
               <input 
