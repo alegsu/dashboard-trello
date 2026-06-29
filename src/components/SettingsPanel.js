@@ -309,6 +309,16 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                   {liveMembers.map(m => {
                     const clientEfforts = getClientEffortsForUser(m.name);
                     const totalClientEffort = clientEfforts.reduce((acc, c) => acc + c.totalEffort, 0);
+                    
+                    const aggregatedServices = {};
+                    clientEfforts.forEach(ce => {
+                      ce.assignedServices.forEach(s => {
+                        if (!aggregatedServices[s.service]) aggregatedServices[s.service] = 0;
+                        aggregatedServices[s.service]++;
+                      });
+                    });
+                    const serviceEntries = Object.entries(aggregatedServices);
+                    
                     const isExpanded = expandedUserId === m.id;
                     const isEditing = editingUserId === m.id;
                     return (
@@ -359,30 +369,39 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                           <div><strong>Durata:</strong> {m.totalUsageTime ? Math.floor(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m</div>
                         </td>
                         <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem', width: '30%' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                            <span><span style={{color: 'var(--accent-secondary, #a1bdcf)'}}>●</span> Task ({m._count?.cards || 0})</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
+                            <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--accent-secondary, #a1bdcf)'}}>●</span> Task ({m._count?.cards || 0})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                               <div style={{ background: 'var(--accent-secondary, #a1bdcf)', height: '100%', width: `${((m._count?.cards || 0) / maxCards) * 100}%` }}></div>
                             </div>
                           </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                            <span><span style={{color: 'var(--status-warning)'}}>●</span> Sottotask ({m._count?.checklistItems || 0})</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
+                            <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--status-warning)'}}>●</span> Sottotask ({m._count?.checklistItems || 0})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                               <div style={{ background: 'var(--status-warning)', height: '100%', width: `${((m._count?.checklistItems || 0) / maxTasks) * 100}%` }}></div>
                             </div>
                           </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                            <span><span style={{color: 'var(--status-success)'}}>●</span> Bacheche ({m._count?.lists || 0})</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
+                            <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--status-success)'}}>●</span> Bacheche ({m._count?.lists || 0})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                               <div style={{ background: 'var(--status-success)', height: '100%', width: `${((m._count?.lists || 0) / maxLists) * 100}%` }}></div>
                             </div>
                           </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ color: totalClientEffort > 100 ? 'var(--status-danger)' : 'inherit' }}><span style={{color: '#8b5cf6'}}>●</span> Clienti ({clientEfforts.length})</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ whiteSpace: 'nowrap' }}><span style={{color: '#8b5cf6'}}>●</span> Clienti ({clientEfforts.length})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                               <div style={{ background: '#8b5cf6', height: '100%', width: `${(clientEfforts.length / maxClients) * 100}%` }}></div>
                             </div>
                           </div>
+                          {serviceEntries.length > 0 && (
+                            <div style={{ marginTop: '0.6rem', display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                              {serviceEntries.map(([srv, count], idx) => (
+                                <span key={idx} style={{ background: 'var(--bg-elevated)', padding: '0.15rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.65rem' }}>
+                                  {srv}: <strong>{count}</strong>
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </td>
                         <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                           <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'center' }}>
