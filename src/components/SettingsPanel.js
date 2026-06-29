@@ -257,15 +257,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           if (parsed.servicesDetails) {
             let assignedServices = [];
             let totalEffort = 0;
-            let teamEffortMap = {};
             Object.entries(parsed.servicesDetails).forEach(([serviceName, collaborators]) => {
-              collaborators.forEach(c => {
-                 let effNum = 0;
-                 if (c.effort) effNum = parseInt(c.effort.replace(/\D/g, ''), 10) || 0;
-                 if (effNum === 0) effNum = Math.floor(100 / collaborators.length);
-                 if (effNum > 0) teamEffortMap[c.name] = (teamEffortMap[c.name] || 0) + effNum;
-              });
-
               const collab = collaborators.find(c => c.name.toLowerCase() === userName.toLowerCase());
               if (collab) {
                 let effortNum = 0;
@@ -273,13 +265,19 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                   effortNum = parseInt(collab.effort.replace(/\D/g, ''), 10) || 0;
                 }
                 if (effortNum === 0) effortNum = Math.floor(100 / collaborators.length);
-                assignedServices.push({ service: serviceName, effort: effortNum });
-                totalEffort += effortNum;
+
+                let allCollaboratorsForService = collaborators.map(c => {
+                  let e = 0;
+                  if (c.effort) e = parseInt(c.effort.replace(/\D/g, ''), 10) || 0;
+                  if (e === 0) e = Math.floor(100 / collaborators.length);
+                  return { name: c.name, effort: e };
+                }).sort((a,b) => b.effort - a.effort);
+                
+                assignedServices.push({ service: serviceName, effort: effortNum, allCollaborators: allCollaboratorsForService });
               }
             });
             if (assignedServices.length > 0) {
-              const teamMembers = Object.keys(teamEffortMap).map(n => ({ name: n, effort: teamEffortMap[n] })).sort((a,b)=>b.effort - a.effort);
-              clientsData.push({ client, totalEffort, assignedServices, teamMembers });
+              clientsData.push({ client, assignedServices });
             }
           }
         } catch (e) {}
@@ -444,33 +442,24 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                                   <div key={idx} style={{ background: 'var(--bg-elevated)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                                     <strong style={{ display: 'block', marginBottom: '0.3rem', fontSize: '0.85rem' }}>{ce.client.name}</strong>
                                     
-                                    {ce.teamMembers && ce.teamMembers.length > 1 && (
-                                      <div style={{ marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>Team assegnato (carico ripartito):</div>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
-                                          {ce.teamMembers.map((tm, tmIdx) => {
-                                            let color = 'var(--status-success)'; // green
-                                            if (tm.effort >= 100) color = 'var(--status-danger)';
-                                            else if (tm.effort >= 50) color = 'var(--status-warning)';
-                                            return (
-                                              <span key={tmIdx} style={{ background: tm.name.toLowerCase() === m.name.toLowerCase() ? 'var(--accent-primary)' : 'var(--bg-primary)', color: tm.name.toLowerCase() === m.name.toLowerCase() ? 'white' : 'var(--text-secondary)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', border: '1px solid var(--border-color)' }}>
-                                                {tm.name}: <strong style={{ color: tm.name.toLowerCase() === m.name.toLowerCase() ? 'white' : color }}>{tm.effort}%</strong>
-                                              </span>
-                                            );
-                                          })}
-                                        </div>
-                                      </div>
-                                    )}
-
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                                       {ce.assignedServices.map((s, i) => {
-                                        let color = 'var(--status-success)';
-                                        if (s.effort >= 100) color = 'var(--status-danger)';
-                                        else if (s.effort >= 50) color = 'var(--status-warning)';
                                         return (
-                                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                                            <span>• {s.service}</span>
-                                            <strong style={{ color }}>{s.effort}%</strong>
+                                          <div key={i} style={{ marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: i < ce.assignedServices.length - 1 ? '1px dashed rgba(255,255,255,0.1)' : 'none' }}>
+                                            <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '0.3rem' }}>• {s.service}</div>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', paddingLeft: '0.8rem' }}>
+                                              {s.allCollaborators.map((c, cIdx) => {
+                                                let color = 'var(--status-success)';
+                                                if (c.effort >= 100) color = 'var(--status-danger)';
+                                                else if (c.effort >= 50) color = 'var(--status-warning)';
+                                                const isMe = c.name.toLowerCase() === m.name.toLowerCase();
+                                                return (
+                                                  <span key={cIdx} style={{ background: isMe ? 'var(--accent-primary)' : 'var(--bg-primary)', color: isMe ? 'white' : 'var(--text-secondary)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', border: '1px solid var(--border-color)' }}>
+                                                    {c.name}: <strong style={{ color: isMe ? 'white' : color }}>{c.effort}%</strong>
+                                                  </span>
+                                                )
+                                              })}
+                                            </div>
                                           </div>
                                         );
                                       })}
