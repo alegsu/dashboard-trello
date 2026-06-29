@@ -347,6 +347,12 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     const name = window.prompt("Nome del nuovo cliente:");
     if (!name || name.trim() === '') return;
     
+    const clientExists = clients && clients.some(c => c.name.toLowerCase() === name.trim().toLowerCase());
+    if (clientExists) {
+      alert(`Il cliente "${name.trim()}" esiste già!`);
+      return;
+    }
+
     try {
       const res = await fetch('/api/clients', {
         method: 'POST',
@@ -354,7 +360,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
         body: JSON.stringify({ name: name.trim() })
       });
       if (res.ok) {
-        if (onRefresh) onRefresh();
+        window.location.reload(); // Forza ricaricamento completo per aggirare la cache di Next.js e mostrare la riga
       } else {
         alert("Errore nella creazione del cliente.");
       }
@@ -386,7 +392,8 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                   cursor: 'pointer', 
                   fontSize: '14px', 
                   lineHeight: '1',
-                  padding: 0
+                  padding: 0,
+                  flexShrink: 0
                 }}
                 title="Nuovo Cliente"
               >

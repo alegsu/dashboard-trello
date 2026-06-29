@@ -150,6 +150,15 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.12.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>📅 <strong>Recap Giornaliero Migliorato:</strong> La mail del buongiorno ora include una suddivisione chiara tra le task in scadenza oggi (o già scadute) e quelle in scadenza domani.</li>
+                  <li>🏷️ <strong>Dettagli Task nella Mail:</strong> Aggiunte le etichette di priorità, i clienti e le date di scadenza esatte direttamente nella lista delle cose da fare.</li>
+                  <li>⏰ <strong>Orario di Invio:</strong> Il recap mattutino ora viene inviato esattamente alle 9:10 (fuso orario di Roma) per allinearsi perfettamente all'inizio della giornata lavorativa.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.11.0</h4>
                 <ul style={noteUlStyle}>
                   <li>📬 <strong>Rate Limiting Email:</strong> Basta caselle di posta intasate! Il sistema ora raggruppa le notifiche e invia al massimo un'email riassuntiva ogni 3 ore per ciascun utente. Le notifiche intermedie rimangono in coda finché non scade il tempo.</li>
