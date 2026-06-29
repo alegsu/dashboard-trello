@@ -104,6 +104,7 @@ model Card {
   attachments Attachment[]
 
   updatedAt   DateTime @default(now()) @updatedAt
+  createdAt   DateTime @default(now())
   completedAt DateTime? // Traccia storicamente quando è stata completata
   isArchived Boolean @default(false)
 }
