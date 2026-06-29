@@ -131,9 +131,9 @@ export async function GET(request) {
           c.checklists.forEach(cl => {
             const pendingItems = cl.items.filter(i => !i.isCompleted);
             if (pendingItems.length > 0) {
-              checklistsHtml += `<div style="font-size: 12px; color: #475569; margin-top: 6px;"><strong>☑️ ${cl.name}:</strong><ul style="margin-top: 2px; padding-left: 16px; margin-bottom: 2px;">`;
+              checklistsHtml += `<div style="font-size: 12px; color: #475569; margin-top: 6px;"><strong>☑️ ${cl.title}:</strong><ul style="margin-top: 2px; padding-left: 16px; margin-bottom: 2px;">`;
               pendingItems.forEach(i => {
-                checklistsHtml += `<li>${i.name}</li>`;
+                checklistsHtml += `<li>${i.content}</li>`;
               });
               checklistsHtml += `</ul></div>`;
             }
