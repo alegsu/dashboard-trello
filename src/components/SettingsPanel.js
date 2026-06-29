@@ -664,7 +664,6 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
               + Crea
             </button>
           </div>
-          </div>
         </div>
 
         {/* Generatore di Template Operativi */}
