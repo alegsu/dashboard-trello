@@ -168,6 +168,7 @@ model Client {
   notes         String? @db.Text // Quick notes / Contact info
   sheetData     String? @db.Text // Parsed Google Sheet JSON
   color         String? // Hex color code for the client row
+  status        String   @default("CLIENTE") // CLIENTE, OBSOLETO, PROSPECT
   
   projects    Project[]
   cards       Card[]

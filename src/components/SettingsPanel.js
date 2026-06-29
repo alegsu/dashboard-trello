@@ -360,25 +360,25 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                         </td>
                         <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem', width: '30%' }}>
                           <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                            <span>Task ({m._count?.cards || 0})</span>
+                            <span><span style={{color: 'var(--accent-secondary, #a1bdcf)'}}>●</span> Task ({m._count?.cards || 0})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                               <div style={{ background: 'var(--accent-secondary, #a1bdcf)', height: '100%', width: `${((m._count?.cards || 0) / maxCards) * 100}%` }}></div>
                             </div>
                           </div>
                           <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                            <span>Sottotask ({m._count?.checklistItems || 0})</span>
+                            <span><span style={{color: 'var(--status-warning)'}}>●</span> Sottotask ({m._count?.checklistItems || 0})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                               <div style={{ background: 'var(--status-warning)', height: '100%', width: `${((m._count?.checklistItems || 0) / maxTasks) * 100}%` }}></div>
                             </div>
                           </div>
                           <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                            <span>Bacheche ({m._count?.lists || 0})</span>
+                            <span><span style={{color: 'var(--status-success)'}}>●</span> Bacheche ({m._count?.lists || 0})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                               <div style={{ background: 'var(--status-success)', height: '100%', width: `${((m._count?.lists || 0) / maxLists) * 100}%` }}></div>
                             </div>
                           </div>
                           <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ color: totalClientEffort > 100 ? 'var(--status-danger)' : 'inherit' }}>Clienti ({clientEfforts.length})</span>
+                            <span style={{ color: totalClientEffort > 100 ? 'var(--status-danger)' : 'inherit' }}><span style={{color: '#8b5cf6'}}>●</span> Clienti ({clientEfforts.length})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                               <div style={{ background: '#8b5cf6', height: '100%', width: `${(clientEfforts.length / maxClients) * 100}%` }}></div>
                             </div>
