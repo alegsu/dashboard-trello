@@ -62,7 +62,8 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
   const maxTasks = Math.max(...liveMembers.map(m => m._count?.checklistItems || 0), 0);
   const maxLists = Math.max(...liveMembers.map(m => m._count?.lists || 0), 0);
   const maxClientsVal = Math.max(...liveMembers.map(m => getClientEffortsForUser(m.name).length), 0);
-  const globalMax = Math.max(maxCards, maxTasks, maxLists, maxClientsVal, 1);
+  const maxProjects = Math.max(...liveMembers.map(m => m._count?.projects || 0), 0);
+  const globalMax = Math.max(maxCards, maxTasks, maxLists, maxClientsVal, maxProjects, 1);
 
   const effectiveCurrentUser = liveMembers.find(m => m.id === currentUser?.id) || currentUser;
 
@@ -140,10 +141,16 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
                           <div style={{ background: 'var(--status-success)', height: '100%', width: `${((m._count?.lists || 0) / globalMax) * 100}%` }}></div>
                         </div>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
                         <span style={{ whiteSpace: 'nowrap' }}><span style={{color: '#8b5cf6'}}>●</span> Clienti ({clientEfforts.length})</span>
                         <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                           <div style={{ background: '#8b5cf6', height: '100%', width: `${(clientEfforts.length / globalMax) * 100}%` }}></div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ whiteSpace: 'nowrap' }}><span style={{color: '#f97316'}}>●</span> Progetti ({m._count?.projects || 0})</span>
+                        <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
+                          <div style={{ background: '#f97316', height: '100%', width: `${((m._count?.projects || 0) / globalMax) * 100}%` }}></div>
                         </div>
                       </div>
                       {serviceEntries.length > 0 && (
