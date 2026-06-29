@@ -588,16 +588,19 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                                 <div className={styles.kanbanCardName} style={{ color: getContrastYIQ(card.color) }}>{card.name}</div>
                                 {card.due && (() => {
                                   let percent = 0;
-                                  if (card.createdAt) {
-                                    const cDate = new Date(card.createdAt).getTime();
-                                    const dDate = new Date(card.due).getTime();
-                                    const now = Date.now();
-                                    const total = dDate - cDate;
-                                    if (total > 0) {
-                                      const elapsed = now - cDate;
-                                      percent = Math.min(100, Math.max(0, (elapsed / total) * 100));
-                                    } else { percent = 100; }
+                                  const dDate = new Date(card.due).getTime();
+                                  const now = Date.now();
+                                  const daysLeft = (dDate - now) / (1000 * 60 * 60 * 24);
+                                  
+                                  if (daysLeft <= 0) {
+                                    percent = 100;
+                                  } else if (daysLeft >= 30) {
+                                    percent = 5; // Appena visibile
+                                  } else {
+                                    // Proporzionale tra 30 giorni (5%) e 0 giorni (100%)
+                                    percent = Math.max(5, Math.min(100, ((30 - daysLeft) / 30) * 100));
                                   }
+
                                   return (
                                     <div style={{ marginTop: '0.3rem', width: '100%' }}>
                                       <div 
@@ -615,9 +618,9 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                                       >
                                         ⏱ {new Date(card.due).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}
                                       </div>
-                                      {!isDoneList && card.createdAt && (
+                                      {!isDoneList && (
                                         <div style={{ width: '100%', height: '3px', background: 'rgba(128,128,128,0.2)', borderRadius: '2px', overflow: 'hidden' }}>
-                                          <div style={{ width: `${percent}%`, height: '100%', background: isDueApproaching ? 'var(--status-danger)' : (percent > 75 ? 'var(--status-warning)' : 'var(--accent-primary)'), transition: 'width 0.3s' }}></div>
+                                          <div style={{ width: `${percent}%`, height: '100%', background: percent >= 95 || isDueApproaching ? 'var(--status-danger)' : (percent >= 75 ? 'var(--status-warning)' : 'var(--status-success)'), transition: 'width 0.3s' }}></div>
                                         </div>
                                       )}
                                     </div>
