@@ -244,9 +244,9 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
     window.location.reload();
   };
 
-  const maxCards = Math.max(...liveMembers.map(m => m._count?.cards || 0), 1);
-  const maxTasks = Math.max(...liveMembers.map(m => m._count?.checklistItems || 0), 1);
-  const maxLists = Math.max(...liveMembers.map(m => m._count?.lists || 0), 1);
+  const maxCards = Math.max(...liveMembers.map(m => m._count?.cards || 0), 0);
+  const maxTasks = Math.max(...liveMembers.map(m => m._count?.checklistItems || 0), 0);
+  const maxLists = Math.max(...liveMembers.map(m => m._count?.lists || 0), 0);
 
   const getClientEffortsForUser = (userName) => {
     let clientsData = [];
@@ -278,7 +278,8 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
     return clientsData;
   };
 
-  const maxClients = Math.max(...liveMembers.map(m => getClientEffortsForUser(m.name).length), 1);
+  const maxClientsVal = Math.max(...liveMembers.map(m => getClientEffortsForUser(m.name).length), 0);
+  const globalMax = Math.max(maxCards, maxTasks, maxLists, maxClientsVal, 1);
 
   return (
     <div className={styles.container}>
@@ -372,25 +373,25 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
                             <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--accent-secondary, #a1bdcf)'}}>●</span> Task ({m._count?.cards || 0})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
-                              <div style={{ background: 'var(--accent-secondary, #a1bdcf)', height: '100%', width: `${((m._count?.cards || 0) / maxCards) * 100}%` }}></div>
+                              <div style={{ background: 'var(--accent-secondary, #a1bdcf)', height: '100%', width: `${((m._count?.cards || 0) / globalMax) * 100}%` }}></div>
                             </div>
                           </div>
                           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
                             <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--status-warning)'}}>●</span> Sottotask ({m._count?.checklistItems || 0})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
-                              <div style={{ background: 'var(--status-warning)', height: '100%', width: `${((m._count?.checklistItems || 0) / maxTasks) * 100}%` }}></div>
+                              <div style={{ background: 'var(--status-warning)', height: '100%', width: `${((m._count?.checklistItems || 0) / globalMax) * 100}%` }}></div>
                             </div>
                           </div>
                           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
                             <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--status-success)'}}>●</span> Bacheche ({m._count?.lists || 0})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
-                              <div style={{ background: 'var(--status-success)', height: '100%', width: `${((m._count?.lists || 0) / maxLists) * 100}%` }}></div>
+                              <div style={{ background: 'var(--status-success)', height: '100%', width: `${((m._count?.lists || 0) / globalMax) * 100}%` }}></div>
                             </div>
                           </div>
                           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem' }}>
                             <span style={{ whiteSpace: 'nowrap' }}><span style={{color: '#8b5cf6'}}>●</span> Clienti ({clientEfforts.length})</span>
                             <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
-                              <div style={{ background: '#8b5cf6', height: '100%', width: `${(clientEfforts.length / maxClients) * 100}%` }}></div>
+                              <div style={{ background: '#8b5cf6', height: '100%', width: `${(clientEfforts.length / globalMax) * 100}%` }}></div>
                             </div>
                           </div>
                           {serviceEntries.length > 0 && (
