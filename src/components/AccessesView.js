@@ -175,21 +175,26 @@ export default function AccessesView({ clients = [], onRefresh }) {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', gridColumn: '1 / -1' }}>
               <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Clienti Collegati</label>
-              <select 
-                multiple
-                className={styles.input} 
-                style={{ height: '100px' }}
-                value={selectedClientIds}
-                onChange={e => {
-                  const options = Array.from(e.target.selectedOptions);
-                  setSelectedClientIds(options.map(o => o.value));
-                }}
-              >
+              <div className={styles.input} style={{ height: '120px', overflowY: 'auto', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 {clients.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedClientIds.includes(c.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedClientIds([...selectedClientIds, c.id]);
+                        } else {
+                          setSelectedClientIds(selectedClientIds.filter(id => id !== c.id));
+                        }
+                      }}
+                    />
+                    {c.name}
+                  </label>
                 ))}
-              </select>
-              <small style={{ color: 'var(--text-secondary)' }}>Tieni premuto CTRL (o CMD) per selezionare più clienti. I clienti collegati vedranno questo tool nella loro scheda.</small>
+                {clients.length === 0 && <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Nessun cliente disponibile.</span>}
+              </div>
+              <small style={{ color: 'var(--text-secondary)' }}>Puoi anche non selezionare alcun cliente. I clienti collegati vedranno questo tool nella loro scheda.</small>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', gridColumn: '1 / -1' }}>
