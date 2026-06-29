@@ -37,6 +37,9 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
     );
   }, [initialBoards, currentUser]);
 
+  const [view, setView] = useState(visibleBoards.length > 0 ? 'kanban' : 'settings'); 
+  const [selectedBoardId, setSelectedBoardId] = useState(visibleBoards.length > 0 ? visibleBoards[0].id : '');
+
   useEffect(() => {
     const board = visibleBoards.find(b => b.id === selectedBoardId);
     if (board && board.color) {
@@ -63,8 +66,6 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   }, []);
   const router = useRouter();
   // Se non c'è una board, mostra settings. Altrimenti kanban.
-  const [view, setView] = useState(visibleBoards.length > 0 ? 'kanban' : 'settings'); 
-  const [selectedBoardId, setSelectedBoardId] = useState(visibleBoards.length > 0 ? visibleBoards[0].id : '');
   
   useEffect(() => {
     if (typeof window !== 'undefined' && visibleBoards.length > 0) {
