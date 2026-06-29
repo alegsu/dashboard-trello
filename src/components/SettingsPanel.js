@@ -257,7 +257,14 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           if (parsed.servicesDetails) {
             let assignedServices = [];
             let totalEffort = 0;
+            let teamEffortMap = {};
             Object.entries(parsed.servicesDetails).forEach(([serviceName, collaborators]) => {
+              collaborators.forEach(c => {
+                 let effNum = 0;
+                 if (c.effort) effNum = parseInt(c.effort.replace(/\D/g, ''), 10) || 0;
+                 if (effNum > 0) teamEffortMap[c.name] = (teamEffortMap[c.name] || 0) + effNum;
+              });
+
               const collab = collaborators.find(c => c.name.toLowerCase() === userName.toLowerCase());
               if (collab) {
                 let effortNum = 0;
@@ -269,7 +276,8 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
               }
             });
             if (assignedServices.length > 0) {
-              clientsData.push({ client, totalEffort, assignedServices });
+              const teamMembers = Object.keys(teamEffortMap).map(n => ({ name: n, effort: teamEffortMap[n] })).sort((a,b)=>b.effort - a.effort);
+              clientsData.push({ client, totalEffort, assignedServices, teamMembers });
             }
           }
         } catch (e) {}
@@ -430,6 +438,20 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                                 {clientEfforts.map((ce, idx) => (
                                   <div key={idx} style={{ background: 'var(--bg-elevated)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                                     <strong style={{ display: 'block', marginBottom: '0.3rem', fontSize: '0.85rem' }}>{ce.client.name}</strong>
+                                    
+                                    {ce.teamMembers && ce.teamMembers.length > 1 && (
+                                      <div style={{ marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>Team assegnato (carico ripartito):</div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                                          {ce.teamMembers.map((tm, tmIdx) => (
+                                            <span key={tmIdx} style={{ background: tm.name.toLowerCase() === m.name.toLowerCase() ? 'var(--accent-primary)' : 'var(--bg-primary)', color: tm.name.toLowerCase() === m.name.toLowerCase() ? 'white' : 'var(--text-secondary)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', border: '1px solid var(--border-color)' }}>
+                                              {tm.name}: <strong>{tm.effort}%</strong>
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                                       {ce.assignedServices.map((s, i) => (
                                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
@@ -626,23 +648,33 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                       />
                     </label>
                     
-                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>Membri con Accesso (Ctrl/Cmd per selezione multipla. Nessuno = Pubblica):</span>
-                      <select 
-                        multiple 
-                        style={{ width: '100%', fontSize: '0.75rem', padding: '0.4rem', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px', height: '80px' }}
-                        defaultValue={b.assignees?.map(u => u.id) || []}
-                        onChange={async (e) => {
-                           const selectedIds = Array.from(e.target.selectedOptions, option => option.value);
-                           await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assignees: selectedIds }) });
-                           if (onRefresh) onRefresh();
-                        }}
-                      >
-                        {liveMembers.map(m => (
-                          <option key={m.id} value={m.id} style={{ padding: '0.2rem' }}>{m.name}</option>
-                        ))}
-                      </select>
-                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.5rem' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Membri con Accesso (Nessuno = Pubblica per tutti):</span>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', background: 'var(--bg-secondary)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                        {liveMembers.map(m => {
+                          const hasAccess = b.assignees?.some(u => u.id === m.id);
+                          return (
+                            <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', cursor: 'pointer', background: hasAccess ? 'rgba(59, 130, 246, 0.1)' : 'transparent', padding: '0.2rem 0.4rem', borderRadius: '4px' }}>
+                              <input 
+                                type="checkbox" 
+                                checked={hasAccess || false}
+                                onChange={async (e) => {
+                                  const isChecked = e.target.checked;
+                                  let newAssignees = b.assignees ? b.assignees.map(u => u.id) : [];
+                                  if (isChecked) newAssignees.push(m.id);
+                                  else newAssignees = newAssignees.filter(id => id !== m.id);
+                                  
+                                  await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assignees: newAssignees }) });
+                                  if (onRefresh) onRefresh();
+                                }}
+                                style={{ accentColor: 'var(--accent-primary)', width: '14px', height: '14px' }}
+                              />
+                              {m.name}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
               </li>
