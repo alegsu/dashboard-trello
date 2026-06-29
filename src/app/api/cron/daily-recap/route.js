@@ -186,7 +186,7 @@ export async function GET(request) {
 
     return NextResponse.json({ success: true, emailsSent });
   } catch (error) {
-    console.error("Cron Error:", error);
-    return NextResponse.json({ error: 'Errore durante il cronjob' }, { status: 500 });
+    console.error("Errore CRON daily-recap:", error);
+    return NextResponse.json({ error: 'Errore durante il cronjob: ' + error.message, stack: error.stack }, { status: 500 });
   }
 }
