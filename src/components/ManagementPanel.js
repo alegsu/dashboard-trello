@@ -30,17 +30,17 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
           if (parsed.servicesDetails) {
             let assignedServices = [];
             Object.entries(parsed.servicesDetails).forEach(([serviceName, collaborators]) => {
-              const collab = collaborators.find(c => c.name.toLowerCase() === userName.toLowerCase());
+              const collab = collaborators.find(c => (c.name || '').toLowerCase() === (userName || '').toLowerCase());
               if (collab) {
                 let effortNum = 0;
                 if (collab.effort) {
-                  effortNum = parseInt(collab.effort.replace(/\D/g, ''), 10) || 0;
+                  effortNum = parseInt(String(collab.effort).replace(/\D/g, ''), 10) || 0;
                 }
                 if (effortNum === 0) effortNum = Math.floor(100 / collaborators.length);
 
                 let allCollaboratorsForService = collaborators.map(c => {
                   let e = 0;
-                  if (c.effort) e = parseInt(c.effort.replace(/\D/g, ''), 10) || 0;
+                  if (c.effort) e = parseInt(String(c.effort).replace(/\D/g, ''), 10) || 0;
                   if (e === 0) e = Math.floor(100 / collaborators.length);
                   return { name: c.name, effort: e };
                 }).sort((a,b) => b.effort - a.effort);
@@ -107,10 +107,10 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
                   <tr style={{ borderBottom: isExpanded ? 'none' : '1px solid var(--border-color)', background: isExpanded ? 'rgba(0,0,0,0.05)' : 'transparent' }}>
                     <td style={{ padding: '0.5rem', cursor: 'pointer' }} onClick={() => setExpandedUserId(isExpanded ? null : m.id)}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <div className={styles.avatar} style={{ width: '32px', height: '32px', fontSize: '0.85rem' }}>{m.name.charAt(0).toUpperCase()}</div>
+                        <div className={styles.avatar} style={{ width: '32px', height: '32px', fontSize: '0.85rem' }}>{(m.name || '?').charAt(0).toUpperCase()}</div>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                           <strong style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: isExpanded ? 'var(--accent-primary)' : 'inherit' }}>
-                            {m.name} 
+                            {m.name || 'Utente Sconosciuto'} 
                             <span style={{ fontSize: '0.55rem', opacity: 0.7, padding: '0.1rem 0.3rem', background: 'var(--bg-elevated)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>{isExpanded ? '▼ Espanso' : '▶ Dettagli'}</span>
                           </strong>
                           <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{m.email || 'Nessuna email'}</span>
@@ -178,7 +178,7 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
                                             let color = 'var(--status-success)';
                                             if (c.effort >= 100) color = 'var(--status-danger)';
                                             else if (c.effort >= 50) color = 'var(--status-warning)';
-                                            const isMe = c.name.toLowerCase() === m.name.toLowerCase();
+                                            const isMe = (c.name || '').toLowerCase() === (m.name || '').toLowerCase();
                                             return (
                                               <span key={cIdx} style={{ background: isMe ? 'var(--accent-primary)' : 'var(--bg-primary)', color: isMe ? 'white' : 'var(--text-secondary)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', border: '1px solid var(--border-color)' }}>
                                                 {c.name}: <strong style={{ color: isMe ? 'white' : color }}>{c.effort}%</strong>
