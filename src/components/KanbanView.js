@@ -595,14 +595,18 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                                   if (daysLeft <= 0) {
                                     percent = 100;
                                   } else if (daysLeft >= 30) {
-                                    percent = 5; // Appena visibile
+                                    percent = 0;
                                   } else {
-                                    // Proporzionale tra 30 giorni (5%) e 0 giorni (100%)
-                                    percent = Math.max(5, Math.min(100, ((30 - daysLeft) / 30) * 100));
+                                    percent = Math.max(0, Math.min(100, ((30 - daysLeft) / 30) * 100));
                                   }
 
+                                  // Scegliamo un colore di sfondo per il contenitore ben visibile
+                                  const containerBg = 'rgba(0, 0, 0, 0.15)'; 
+                                  // Assicuriamoci che la barra interna sia visibile (minimo 3%)
+                                  const displayPercent = Math.max(3, percent);
+
                                   return (
-                                    <div style={{ marginTop: '0.3rem', width: '100%' }}>
+                                    <div style={{ marginTop: '0.4rem', width: '100%' }}>
                                       <div 
                                         className={`${styles.kanbanCardDue} ${isDueApproaching && !isDoneList ? 'blink-red' : ''}`} 
                                         style={{ 
@@ -610,17 +614,26 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                                           background: isDueApproaching && !isDoneList ? 'var(--status-danger)' : 'transparent',
                                           padding: isDueApproaching && !isDoneList ? '0.1rem 0.3rem' : '0',
                                           borderRadius: '4px',
-                                          fontSize: '0.65rem',
+                                          fontSize: '0.7rem',
+                                          fontWeight: 'bold',
                                           display: 'inline-block',
-                                          marginBottom: '3px'
+                                          marginBottom: '4px'
                                         }}
                                         title={isDueApproaching && !isDoneList ? "Scadenza imminente o superata!" : ""}
                                       >
                                         ⏱ {new Date(card.due).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}
+                                        {!isDoneList && <span style={{ fontSize: '0.6rem', opacity: 0.8, marginLeft: '4px' }}>
+                                          ({daysLeft <= 0 ? 'Scaduto' : `${Math.ceil(daysLeft)} gg`})
+                                        </span>}
                                       </div>
                                       {!isDoneList && (
-                                        <div style={{ width: '100%', height: '3px', background: 'rgba(128,128,128,0.2)', borderRadius: '2px', overflow: 'hidden' }}>
-                                          <div style={{ width: `${percent}%`, height: '100%', background: percent >= 95 || isDueApproaching ? 'var(--status-danger)' : (percent >= 75 ? 'var(--status-warning)' : 'var(--status-success)'), transition: 'width 0.3s' }}></div>
+                                        <div style={{ width: '100%', height: '6px', background: containerBg, borderRadius: '3px', overflow: 'hidden', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' }}>
+                                          <div style={{ 
+                                            width: `${displayPercent}%`, 
+                                            height: '100%', 
+                                            background: percent >= 90 || isDueApproaching ? 'var(--status-danger)' : (percent >= 60 ? 'var(--status-warning)' : 'var(--status-success)'), 
+                                            transition: 'width 0.3s' 
+                                          }}></div>
                                         </div>
                                       )}
                                     </div>
