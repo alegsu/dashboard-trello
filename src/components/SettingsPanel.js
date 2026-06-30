@@ -15,6 +15,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
   const [editingUserEmail, setEditingUserEmail] = useState('');
   const [expandedUserId, setExpandedUserId] = useState(null);
   const [openBoardDropdownId, setOpenBoardDropdownId] = useState(null);
+  const [showAddUserForm, setShowAddUserForm] = useState(false);
 
   const [liveMembers, setLiveMembers] = useState(members || []);
   
@@ -256,8 +257,17 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
       {/* Gestione Team - Moved out of grid for full horizontal width */}
       {effectiveCurrentUser?.role === 'admin' && (
         <div className={styles.card} style={{ marginBottom: '1.5rem' }}>
-          <h3>👥 Gestione Team ({members.length})</h3>
-          <p className={styles.subtitle}>Crea le credenziali per i tuoi colleghi (loro non potranno registrarsi da soli).</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ margin: 0 }}>👥 Gestione Team ({members.length})</h3>
+            <button 
+              onClick={() => setShowAddUserForm(!showAddUserForm)}
+              style={{ background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', lineHeight: '1' }}
+              title="Aggiungi Utente"
+            >
+              +
+            </button>
+          </div>
+          <p className={styles.subtitle}>Gestisci le credenziali per gli utenti (loro non potranno registrarsi da soli).</p>
 
           
           <div style={{ overflowX: 'auto', marginTop: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
@@ -345,31 +355,37 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                 </tbody>
               </table>
             </div>
-
-            <div style={{display: 'flex', flexDirection: 'column', gap: '0.3rem', background: 'rgba(0,0,0,0.1)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.5rem'}}>
-              <input 
-                type="text" 
-                value={newUserName} 
-                onChange={e => setNewUserName(e.target.value)}
-                placeholder="Nome del collega..." 
-                className={styles.input} 
-              />
-              <input 
-                type="email" 
-                value={newUserEmail} 
-                onChange={e => setNewUserEmail(e.target.value)}
-                placeholder="Email aziendale..." 
-                className={styles.input} 
-              />
-              <input 
-                type="password" 
-                value={newUserPassword} 
-                onChange={e => setNewUserPassword(e.target.value)}
-                placeholder="Password temporanea..." 
-                className={styles.input} 
-              />
-              <button onClick={handleAddUser} disabled={loading} className={styles.btnPrimary}>Crea Utente</button>
-            </div>
+            {showAddUserForm && (
+              <div style={{display: 'flex', flexDirection: 'column', gap: '0.3rem', background: 'rgba(0,0,0,0.1)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.5rem'}}>
+                <input 
+                  type="text" 
+                  value={newUserName} 
+                  onChange={e => setNewUserName(e.target.value)} 
+                  placeholder="Nome utente"
+                  className={styles.input}
+                  onKeyDown={e => e.key === 'Enter' && handleAddUser()}
+                />
+                <input 
+                  type="email" 
+                  value={newUserEmail} 
+                  onChange={e => setNewUserEmail(e.target.value)} 
+                  placeholder="Email"
+                  className={styles.input}
+                  onKeyDown={e => e.key === 'Enter' && handleAddUser()}
+                />
+                <input 
+                  type="password" 
+                  value={newUserPassword} 
+                  onChange={e => setNewUserPassword(e.target.value)} 
+                  placeholder="Password"
+                  className={styles.input}
+                  onKeyDown={e => e.key === 'Enter' && handleAddUser()}
+                />
+                <button onClick={handleAddUser} disabled={loading} className={styles.btnPrimary} style={{marginTop: '0.2rem', padding: '0.4rem'}}>
+                  Crea Utente
+                </button>
+              </div>
+            )}
           </div>
         )}
 
