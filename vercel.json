@@ -7,10 +7,6 @@
     {
       "path": "/api/cron/daily-recap",
       "schedule": "10 7 * * 1-5"
-    },
-    {
-      "path": "/api/cron/auto-archive",
-      "schedule": "0 2 * * *"
     }
   ]
 }

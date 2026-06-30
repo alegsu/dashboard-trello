@@ -47,13 +47,12 @@ export async function GET(request) {
     try {
       const csvUrlSetting = settings.find(s => s.key === 'SHEETS_CSV_URL');
       if (csvUrlSetting && csvUrlSetting.value) {
-        console.log("Inizio sincronizzazione automatica Google Sheets...");
-        await fetch(`${baseUrl}/api/sync/sheets`, {
+        console.log("Inizio sincronizzazione automatica Google Sheets in background...");
+        fetch(`${baseUrl}/api/sync/sheets`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ csvUrl: csvUrlSetting.value })
-        });
-        console.log("Sincronizzazione completata.");
+        }).catch(e => console.error(e));
       }
     } catch(e) {
       console.error("Errore durante l'auto-sync di Google Sheets:", e);
@@ -75,9 +74,9 @@ export async function GET(request) {
 
     let emailsSent = 0;
 
-    for (const user of users) {
-      if (!user.email) continue;
-      if (user.notifyDailyRecap === false) continue; // Rispetta l'impostazione utente
+    const promises = users.map(async (user) => {
+      if (!user.email) return;
+      if (user.notifyDailyRecap === false) return; // Rispetta l'impostazione utente
 
       // Calcolo date (Fuso Orario Roma)
       const nowRomeStr = new Date().toLocaleString("en-US", {timeZone: "Europe/Rome"});
@@ -108,7 +107,7 @@ export async function GET(request) {
         }
       });
 
-      if (todayCards.length === 0 && tomorrowCards.length === 0) continue; // Niente da fare
+      if (todayCards.length === 0 && tomorrowCards.length === 0) return; // Niente da fare
 
       const renderCard = (c) => {
         const clientName = c.project?.client?.name ? `<strong style="color: #0f172a;">[${c.project.client.name}]</strong> ` : '';
@@ -178,15 +177,17 @@ export async function GET(request) {
           <img src="https://raw.githubusercontent.com/alegsu/dashboard-trello/main/public/logo.png" alt="ShinyUp" style="height: 40px; margin-bottom: 10px;">
           <h1 style="color: #ffffff; margin: 0; font-size: 24px;"><span style="color: #a1bdcf;">Gestion</span>Ale</h1>
         </div>
-        <div style="padding: 30px; color: #334155; line-height: 1.6;">
-          <div style="font-size: 16px; margin-bottom: 25px; background: #f0f4f8; padding: 15px; border-radius: 8px; font-style: italic; color: #475569;">
-            ${aiGreeting}
-          </div>
-          <h2 style="color: #0f172a; font-size: 18px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px;">Le tue priorità aperte:</h2>
+        <div style="padding: 30px;">
+          <h2 style="color: #0f172a; margin-top: 0;">Buongiorno, ${user.name}! ☕</h2>
+          <p style="color: #475569; font-size: 15px; line-height: 1.6; font-style: italic; background-color: #f1f5f9; padding: 15px; border-radius: 6px;">
+            "${aiGreeting}"
+          </p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+          <h2 style="color: #0f172a; font-size: 18px; margin-bottom: 15px;">Le tue priorità aperte:</h2>
           <ul style="list-style-type: none; padding: 0; margin: 0;">
             ${cardsHtmlList}
           </ul>
-          <div style="margin-top: 30px; text-align: center;">
+          <div style="text-align: center; margin-top: 30px;">
             <a href="${baseUrl}" style="background-color: #a1bdcf; color: #0f172a; font-weight: bold; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Apri GestionAle</a>
           </div>
         </div>
@@ -204,7 +205,9 @@ export async function GET(request) {
       });
 
       emailsSent++;
-    }
+    });
+
+    await Promise.all(promises);
 
     return NextResponse.json({ success: true, emailsSent });
   } catch (error) {
