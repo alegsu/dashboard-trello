@@ -721,10 +721,10 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                     {/* Add SubItem Input */}
                     {!isSubItem && showSubItemInput[item.id] && (
                       <div style={{ marginLeft: '2rem', marginTop: '0.2rem' }}>
-                        <div className={styles.addItemRow} style={{ paddingLeft: '1rem', borderLeft: '2px solid var(--border-color)', marginTop: '0.5rem' }}>
+                        <div className={styles.addItemRow} style={{ paddingLeft: '1rem', borderLeft: '2px solid var(--border-color)', marginTop: '0.5rem', display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
                           <input 
                             className={styles.input} 
-                            style={{ fontSize: '0.8rem', padding: '0.4rem' }} 
+                            style={{ flex: 1, fontSize: '0.8rem', padding: '0.3rem' }} 
                             placeholder="Aggiungi sotto-task..." 
                             value={newItemTexts[item.id] || ''} 
                             onChange={e => setNewItemTexts({...newItemTexts, [item.id]: e.target.value})} 
@@ -737,7 +737,9 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                               if (!newItemTexts[item.id]) setShowSubItemInput(prev => ({ ...prev, [item.id]: false }));
                             }}
                           />
-                          <button onClick={() => addChecklistSubItem(checklist.id, item.id)} className={styles.btnSecondary} style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>Aggiungi</button>
+                          <button onClick={() => addChecklistSubItem(checklist.id, item.id)} className={styles.btnSecondary} style={{ padding: '0.3rem 0.5rem', borderRadius: '4px', background: 'var(--accent-primary)', color: 'white' }} title="Aggiungi Sotto-task">
+                            <Plus size={14} />
+                          </button>
                         </div>
                       </div>
                     )}
@@ -787,64 +789,72 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                   <ul className={styles.checklistItems}>
                     {topLevelItems.map((item, idx) => renderItem(item, false, idx, topLevelItems))}
                   </ul>
-                  <div className={styles.addItemRow} style={{ marginTop: '1rem' }}>
-                    <input className={styles.input} placeholder="Nuova voce principale..." value={newItemTexts[checklist.id] || ''} onChange={e => setNewItemTexts({...newItemTexts, [checklist.id]: e.target.value})} onKeyDown={e => e.key === 'Enter' && addChecklistItem(checklist.id)} />
-                    <button onClick={() => addChecklistItem(checklist.id)} className={styles.btnSecondary}>Aggiungi Voce</button>
+                  <div className={styles.addItemRow} style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <input className={styles.input} style={{ flex: 1, padding: '0.4rem', fontSize: '0.85rem' }} placeholder="Nuova voce principale..." value={newItemTexts[checklist.id] || ''} onChange={e => setNewItemTexts({...newItemTexts, [checklist.id]: e.target.value})} onKeyDown={e => e.key === 'Enter' && addChecklistItem(checklist.id)} />
+                    <button onClick={() => addChecklistItem(checklist.id)} className={styles.btnSecondary} style={{ padding: '0.4rem 0.6rem', borderRadius: '4px', background: 'var(--accent-primary)', color: 'white' }} title="Aggiungi Voce">
+                      <Plus size={16} />
+                    </button>
                   </div>
                 </div>
               );
             })}
 
-            <div className={styles.section}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}><CheckSquare size={16}/> Aggiungi Checklist</h3>
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+            <div className={styles.section} style={{ padding: '0.5rem 0' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <CheckSquare size={16} color="var(--text-secondary)" />
                 <input 
                   className={styles.input} 
-                  placeholder="Titolo checklist manuale..." 
+                  style={{ flex: 1, padding: '0.4rem', fontSize: '0.85rem' }}
+                  placeholder="Titolo per nuova Task (checklist)..." 
                   value={newChecklistTitle} 
                   onChange={e => setNewChecklistTitle(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addChecklist()}
                 />
-                <button className={styles.btnSecondary} onClick={addChecklist}>Aggiungi</button>
+                <button className={styles.btnSecondary} style={{ padding: '0.4rem 0.6rem', borderRadius: '4px', background: 'var(--accent-primary)', color: 'white' }} onClick={addChecklist} title="Aggiungi Checklist">
+                  <Plus size={16} />
+                </button>
               </div>
             </div>
 
             {/* Attachments Section */}
             <div className={styles.section}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Paperclip size={16}/> Allegati Drive / Link</h3>
-              
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
-                {attachments.map(att => (
-                  <a key={att.id} href={att.url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-elevated)', padding: '0.5rem 1rem', borderRadius: '4px', textDecoration: 'none', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
-                    <ExternalLink size={14} color="var(--accent-primary)" />
-                    {att.name}
-                  </a>
-                ))}
-              </div>
+              <details style={{ cursor: 'pointer' }}>
+                <summary style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', outline: 'none', userSelect: 'none' }}>
+                  <Paperclip size={16}/> <strong>Allegati Drive / Link</strong>
+                </summary>
+                
+                <div style={{ marginTop: '1rem', paddingLeft: '1.5rem', cursor: 'default' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                    {attachments.map(att => (
+                      <a key={att.id} href={att.url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-elevated)', padding: '0.5rem 1rem', borderRadius: '4px', textDecoration: 'none', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
+                        <ExternalLink size={14} color="var(--accent-primary)" />
+                        {att.name}
+                      </a>
+                    ))}
+                  </div>
 
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <input 
-                  className={styles.input} 
-                  placeholder="Nome allegato..." 
-                  value={newAttachmentName} 
-                  onChange={e => setNewAttachmentName(e.target.value)}
-                  style={{ flex: 1 }}
-                />
-                <input 
-                  className={styles.input} 
-                  placeholder="https://drive.google.com/..." 
-                  value={newAttachmentUrl} 
-                  onChange={e => setNewAttachmentUrl(e.target.value)}
-                  style={{ flex: 2 }}
-                />
-                <button className={styles.btnSecondary} onClick={addAttachment}>Allega Link</button>
-              </div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                *In futuro, qui comparirà il pulsante "Sfoglia Google Drive" usando le Google Picker API.
-              </p>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input 
+                      className={styles.input} 
+                      placeholder="Nome allegato..." 
+                      value={newAttachmentName} 
+                      onChange={e => setNewAttachmentName(e.target.value)}
+                      style={{ flex: 1 }}
+                    />
+                    <input 
+                      className={styles.input} 
+                      placeholder="https://drive.google.com/..." 
+                      value={newAttachmentUrl} 
+                      onChange={e => setNewAttachmentUrl(e.target.value)}
+                      style={{ flex: 2 }}
+                    />
+                    <button className={styles.btnSecondary} onClick={addAttachment}>Allega Link</button>
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                    *In futuro, qui comparirà il pulsante "Sfoglia Google Drive" usando le Google Picker API.
+                  </p>
+                </div>
+              </details>
             </div>
 
             {/* Comments Section */}
