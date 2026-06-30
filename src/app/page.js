@@ -20,15 +20,20 @@ export default async function Home() {
     }
   });
   const boards = await prisma.board.findMany({ 
+    where: { isArchived: false },
     orderBy: { name: 'asc' },
     include: { assignees: true }
   });
-  const lists = await prisma.list.findMany({ orderBy: { order: 'asc' } });
+  const lists = await prisma.list.findMany({ 
+    where: { isArchived: false },
+    orderBy: { order: 'asc' } 
+  });
   const clients = await prisma.client.findMany({ 
     orderBy: { name: 'asc' },
     include: { collaborators: true, accesses: true }
   });
   const cards = await prisma.card.findMany({ 
+    where: { isArchived: false },
     include: { assignees: true, labels: true },
     orderBy: { order: 'asc' }
   });
