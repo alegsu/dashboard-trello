@@ -21,7 +21,6 @@ export default function ArchiveView({ clients }) {
         setLoading(false);
       });
   }, []);
-  const [activeTab, setActiveTab] = useState('cards');
   
   // Filtri
   const [dateFrom, setDateFrom] = useState('');
