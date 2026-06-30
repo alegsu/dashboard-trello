@@ -427,11 +427,11 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <button className={`${styles.navButton} ${view === 'projects' ? styles.active : ''}`} onClick={() => setView('projects')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🏢 Progetti</button>
               <button className={`${styles.navButton} ${view === 'clients' ? styles.active : ''}`} onClick={() => setView('clients')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>👥 Clienti</button>
               <button className={`${styles.navButton} ${view === 'accesses' ? styles.active : ''}`} onClick={() => setView('accesses')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🔑 Accessi</button>
-              <button className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`} onClick={() => setView('settings')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>⚙️ Imposta</button>
               {currentUser?.role === 'admin' && (
                 <button className={`${styles.navButton} ${view === 'management' ? styles.active : ''}`} onClick={() => setView('management')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-primary)' }}>👑 Management</button>
               )}
               <button className={`${styles.navButton} ${view === 'archive' ? styles.active : ''}`} onClick={() => setView('archive')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🗄️ Arch.</button>
+              <button className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`} onClick={() => setView('settings')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>⚙️ Imposta</button>
               
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}>
                 <button onClick={() => setShowNotificationsModal(!showNotificationsModal)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', position: 'relative', padding: '0.2rem' }}>
