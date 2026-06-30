@@ -18,8 +18,11 @@ export async function GET() {
           }
         },
         cards: {
-          where: { isArchived: false, list: { NOT: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] }, clientId: { not: null } },
-          select: { clientId: true }
+          where: { isArchived: false, list: { NOT: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] } },
+          select: { 
+            clientId: true,
+            _count: { select: { checklists: true } }
+          }
         },
         projects: {
           where: { isArchived: false, status: { not: 'Completato' }, clientId: { not: null } },

@@ -59,7 +59,9 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
   };
 
   const maxCards = Math.max(...liveMembers.map(m => m._count?.cards || 0), 0);
-  const maxTasks = Math.max(...liveMembers.map(m => m._count?.checklistItems || 0), 0);
+  const getTasksCount = (m) => (m.cards || []).reduce((acc, c) => acc + (c._count?.checklists || 0), 0);
+  const maxTasksCount = Math.max(...liveMembers.map(m => getTasksCount(m)), 0);
+  const maxSubtasks = Math.max(...liveMembers.map(m => m._count?.checklistItems || 0), 0);
 
   const getUniqueClientsCount = (m) => {
     const sheetClients = getClientEffortsForUser(m.name).map(c => c.client.id);
@@ -71,7 +73,7 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
 
   const maxClientsVal = Math.max(...liveMembers.map(m => getUniqueClientsCount(m)), 0);
   const maxProjects = Math.max(...liveMembers.map(m => m._count?.projects || 0), 0);
-  const globalMax = Math.max(maxCards, maxTasks, maxClientsVal, maxProjects, 1);
+  const globalMax = Math.max(maxCards, maxTasksCount, maxSubtasks, maxClientsVal, maxProjects, 1);
 
   const effectiveCurrentUser = liveMembers.find(m => m.id === currentUser?.id) || currentUser;
 
@@ -138,7 +140,13 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
                         </div>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                        <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--status-warning)'}}>●</span> Task e Sottotask ({m._count?.checklistItems || 0})</span>
+                        <span style={{ whiteSpace: 'nowrap' }}><span style={{color: '#38bdf8'}}>●</span> Task ({getTasksCount(m)})</span>
+                        <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
+                          <div style={{ background: '#38bdf8', height: '100%', width: `${(getTasksCount(m) / globalMax) * 100}%` }}></div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
+                        <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--status-warning)'}}>●</span> Sottotask ({m._count?.checklistItems || 0})</span>
                         <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                           <div style={{ background: 'var(--status-warning)', height: '100%', width: `${((m._count?.checklistItems || 0) / globalMax) * 100}%` }}></div>
                         </div>
