@@ -14,10 +14,16 @@ export async function GET() {
           select: {
             cards: { where: { isArchived: false, list: { NOT: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] } } },
             checklistItems: { where: { isCompleted: false } },
-            clients: true,
-            lists: { where: { isArchived: false } },
             projects: { where: { isArchived: false, status: { not: 'Completato' } } }
           }
+        },
+        cards: {
+          where: { isArchived: false, list: { NOT: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] }, clientId: { not: null } },
+          select: { clientId: true }
+        },
+        projects: {
+          where: { isArchived: false, status: { not: 'Completato' }, clientId: { not: null } },
+          select: { clientId: true }
         }
       }
     });

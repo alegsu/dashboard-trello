@@ -60,10 +60,18 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
 
   const maxCards = Math.max(...liveMembers.map(m => m._count?.cards || 0), 0);
   const maxTasks = Math.max(...liveMembers.map(m => m._count?.checklistItems || 0), 0);
-  const maxLists = Math.max(...liveMembers.map(m => m._count?.lists || 0), 0);
-  const maxClientsVal = Math.max(...liveMembers.map(m => getClientEffortsForUser(m.name).length), 0);
+
+  const getUniqueClientsCount = (m) => {
+    const sheetClients = getClientEffortsForUser(m.name).map(c => c.client.id);
+    const trelloCardClients = (m.cards || []).map(c => c.clientId);
+    const trelloProjectClients = (m.projects || []).map(p => p.clientId);
+    const allIds = [...sheetClients, ...trelloCardClients, ...trelloProjectClients].filter(Boolean);
+    return new Set(allIds).size;
+  };
+
+  const maxClientsVal = Math.max(...liveMembers.map(m => getUniqueClientsCount(m)), 0);
   const maxProjects = Math.max(...liveMembers.map(m => m._count?.projects || 0), 0);
-  const globalMax = Math.max(maxCards, maxTasks, maxLists, maxClientsVal, maxProjects, 1);
+  const globalMax = Math.max(maxCards, maxTasks, maxClientsVal, maxProjects, 1);
 
   const effectiveCurrentUser = liveMembers.find(m => m.id === currentUser?.id) || currentUser;
 
@@ -124,27 +132,21 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
                     </td>
                     <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem', width: '40%' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                        <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--accent-secondary, #a1bdcf)'}}>●</span> Schede (Task) ({m._count?.cards || 0})</span>
+                        <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--accent-secondary, #a1bdcf)'}}>●</span> Schede ({m._count?.cards || 0})</span>
                         <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                           <div style={{ background: 'var(--accent-secondary, #a1bdcf)', height: '100%', width: `${((m._count?.cards || 0) / globalMax) * 100}%` }}></div>
                         </div>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                        <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--status-warning)'}}>●</span> Sottotask ({m._count?.checklistItems || 0})</span>
+                        <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--status-warning)'}}>●</span> Task e Sottotask ({m._count?.checklistItems || 0})</span>
                         <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                           <div style={{ background: 'var(--status-warning)', height: '100%', width: `${((m._count?.checklistItems || 0) / globalMax) * 100}%` }}></div>
                         </div>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                        <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--status-success)'}}>●</span> Bacheche ({m._count?.lists || 0})</span>
+                        <span style={{ whiteSpace: 'nowrap' }}><span style={{color: '#8b5cf6'}}>●</span> Clienti ({getUniqueClientsCount(m)})</span>
                         <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
-                          <div style={{ background: 'var(--status-success)', height: '100%', width: `${((m._count?.lists || 0) / globalMax) * 100}%` }}></div>
-                        </div>
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                        <span style={{ whiteSpace: 'nowrap' }}><span style={{color: '#8b5cf6'}}>●</span> Clienti ({clientEfforts.length})</span>
-                        <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
-                          <div style={{ background: '#8b5cf6', height: '100%', width: `${(clientEfforts.length / globalMax) * 100}%` }}></div>
+                          <div style={{ background: '#8b5cf6', height: '100%', width: `${(getUniqueClientsCount(m) / globalMax) * 100}%` }}></div>
                         </div>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem' }}>
