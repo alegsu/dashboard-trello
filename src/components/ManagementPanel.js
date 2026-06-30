@@ -8,7 +8,7 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
 
   useEffect(() => {
     const fetchUsers = () => {
-      fetch('/api/users', { cache: 'no-store' })
+      fetch('/api/users?t=' + Date.now(), { cache: 'no-store' })
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -124,7 +124,7 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
                     </td>
                     <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem', width: '40%' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                        <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--accent-secondary, #a1bdcf)'}}>●</span> Task ({m._count?.cards || 0})</span>
+                        <span style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--accent-secondary, #a1bdcf)'}}>●</span> Schede (Task) ({m._count?.cards || 0})</span>
                         <div style={{ background: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', width: '100%', overflow: 'hidden' }}>
                           <div style={{ background: 'var(--accent-secondary, #a1bdcf)', height: '100%', width: `${((m._count?.cards || 0) / globalMax) * 100}%` }}></div>
                         </div>
