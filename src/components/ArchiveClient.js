@@ -171,7 +171,7 @@ export default function ArchiveClient({ initialArchive, clients }) {
                     </td>
                   )}
                   <td style={{ padding: '0.8rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                    {new Date(item.updatedAt || item.createdAt).toLocaleDateString('it-IT')}
+                    {item.updatedAt || item.createdAt ? new Date(item.updatedAt || item.createdAt).toLocaleDateString('it-IT') : '-'}
                   </td>
                   <td style={{ padding: '0.8rem', textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', gap: '0.5rem' }}>

@@ -11,17 +11,17 @@ export default async function ArchivePage() {
 
   const archivedBoards = await prisma.board.findMany({
     where: { isArchived: true },
-    orderBy: { updatedAt: 'desc' }
+    orderBy: { name: 'asc' }
   });
 
   const archivedLists = await prisma.list.findMany({
     where: { isArchived: true },
-    orderBy: { updatedAt: 'desc' }
+    orderBy: { order: 'asc' }
   });
 
   const archivedProjects = await prisma.project.findMany({
     where: { isArchived: true },
-    orderBy: { updatedAt: 'desc' }
+    orderBy: { createdAt: 'desc' }
   });
 
   const clients = await prisma.client.findMany({
