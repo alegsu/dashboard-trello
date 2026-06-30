@@ -800,27 +800,35 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
             })}
 
             <div className={styles.section} style={{ padding: '0.5rem 0' }}>
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <CheckSquare size={16} color="var(--text-secondary)" />
-                <input 
-                  className={styles.input} 
-                  style={{ flex: 1, padding: '0.4rem', fontSize: '0.85rem' }}
-                  placeholder="Titolo per nuova Task (checklist)..." 
-                  value={newChecklistTitle} 
-                  onChange={e => setNewChecklistTitle(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addChecklist()}
-                />
-                <button className={styles.btnSecondary} style={{ padding: '0.4rem 0.6rem', borderRadius: '4px', background: 'var(--accent-primary)', color: 'white' }} onClick={addChecklist} title="Aggiungi Checklist">
-                  <Plus size={16} />
-                </button>
-              </div>
+              <details style={{ cursor: 'pointer' }}>
+                <summary style={{ outline: 'none', userSelect: 'none', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <CheckSquare size={16} color="var(--text-secondary)" /> Nuovo Task (Checklist)
+                  </div>
+                </summary>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '1rem', paddingLeft: '1.5rem', cursor: 'default' }}>
+                  <input 
+                    className={styles.input} 
+                    style={{ flex: 1, padding: '0.4rem', fontSize: '0.85rem' }}
+                    placeholder="Titolo per nuova Task (checklist)..." 
+                    value={newChecklistTitle} 
+                    onChange={e => setNewChecklistTitle(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addChecklist()}
+                  />
+                  <button className={styles.btnSecondary} style={{ padding: '0.4rem 0.6rem', borderRadius: '4px', background: 'var(--accent-primary)', color: 'white' }} onClick={addChecklist} title="Aggiungi Checklist">
+                    <Plus size={16} />
+                  </button>
+                </div>
+              </details>
             </div>
 
             {/* Attachments Section */}
             <div className={styles.section}>
               <details style={{ cursor: 'pointer' }}>
-                <summary style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', outline: 'none', userSelect: 'none' }}>
-                  <Paperclip size={16}/> <strong>Allegati Drive / Link</strong>
+                <summary style={{ outline: 'none', userSelect: 'none', fontWeight: 'bold' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Paperclip size={16}/> Allegati Drive / Link
+                  </div>
                 </summary>
                 
                 <div style={{ marginTop: '1rem', paddingLeft: '1.5rem', cursor: 'default' }}>
