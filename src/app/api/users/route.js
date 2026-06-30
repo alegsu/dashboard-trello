@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
 import bcrypt from 'bcryptjs';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const users = await prisma.user.findMany({
@@ -10,11 +12,11 @@ export async function GET() {
         id: true, name: true, email: true, role: true, avatarUrl: true, loginCount: true, totalUsageTime: true, theme: true,
         _count: {
           select: {
-            cards: true,
-            checklistItems: true,
+            cards: { where: { isArchived: false, list: { NOT: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] } } },
+            checklistItems: { where: { isCompleted: false } },
             clients: true,
-            lists: true,
-            projects: true
+            lists: { where: { isArchived: false } },
+            projects: { where: { isArchived: false, status: { not: 'Completato' } } }
           }
         }
       }
