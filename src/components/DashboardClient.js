@@ -14,6 +14,7 @@ import HelpModal from './HelpModal';
 import MyTasksView from './MyTasksView';
 import DocumentImportModal from './DocumentImportModal';
 import CardModal from './CardModal';
+import ArchiveView from './ArchiveView';
 import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock } from 'lucide-react';
 
 export default function DashboardClient({ initialBoards: initialBoardsProp, initialLists: initialListsProp, initialCards: initialCardsProp, initialMembers, initialClients: initialClientsProp }) {
@@ -430,7 +431,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               {currentUser?.role === 'admin' && (
                 <button className={`${styles.navButton} ${view === 'management' ? styles.active : ''}`} onClick={() => setView('management')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-primary)' }}>👑 Management</button>
               )}
-              <a href="/archive" className={styles.navButton} style={{ textDecoration: 'none', padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🗄️ Arch.</a>
+              <button className={`${styles.navButton} ${view === 'archive' ? styles.active : ''}`} onClick={() => setView('archive')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🗄️ Arch.</button>
               
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}>
                 <button onClick={() => setShowNotificationsModal(!showNotificationsModal)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', position: 'relative', padding: '0.2rem' }}>
@@ -541,7 +542,10 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               currentUser={currentUser}
             />
           )}
-          {visibleBoards.length === 0 && view !== 'settings' && (
+          {view === 'archive' && (
+            <ArchiveView clients={initialClients} />
+          )}
+          {visibleBoards.length === 0 && view !== 'settings' && view !== 'archive' && (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
               Nessuna bacheca disponibile o creata.
             </div>

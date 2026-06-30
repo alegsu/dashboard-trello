@@ -1,10 +1,26 @@
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function ArchiveClient({ initialArchive, clients }) {
+export default function ArchiveView({ clients }) {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState('cards');
+  const [initialArchive, setInitialArchive] = useState({ cards: [], boards: [], lists: [], projects: [] });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/archive')
+      .then(res => res.json())
+      .then(data => {
+        setInitialArchive(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching archive:', err);
+        setLoading(false);
+      });
+  }, []);
   const [activeTab, setActiveTab] = useState('cards');
   
   // Filtri
@@ -65,102 +81,10 @@ export default function ArchiveClient({ initialArchive, clients }) {
   }, [initialArchive, activeTab, clientId, search, dateFrom, dateTo]);
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
-      {/* Header */}
-      <header className="glass-panel" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem', padding: '1rem 1.5rem', borderTop: '3px solid var(--accent-primary)', marginBottom: '1.5rem', borderRadius: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <img src="/logo.png" alt="ShinyUp Logo" style={{ height: '32px', objectFit: 'contain' }} />
-              <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
-            </div>
-            <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.16.0
-            </span>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <Link href="/">
-              <button 
-                style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.3s' }}
-                title="Guida e Automazioni"
-              >
-                <span style={{fontSize: '20px'}}>❓</span>
-              </button>
-            </Link>
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <button 
-                style={{ background: 'rgba(161, 189, 207, 0.05)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '20px', padding: '0.4rem 1rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.3s' }}
-              >
-                🎯 La Mia Giornata
-              </button>
-            </Link>
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <button 
-                style={{ background: 'rgba(161, 189, 207, 0.05)', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)', borderRadius: '20px', padding: '0.4rem 1rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.3s' }}
-              >
-                🧘‍♂️ Zen Mode
-              </button>
-            </Link>
-            
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <button 
-                style={{ background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '20px', padding: '0.4rem 1rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.3s' }}
-              >
-                ✨ Importa Documento
-              </button>
-            </Link>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <select 
-                style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontWeight: 'bold' }}
-                disabled
-              >
-                <option>Archivio Storico</option>
-              </select>
-            </div>
-            
-            <div style={{ color: 'var(--text-secondary)', marginLeft: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', lineHeight: '1.2' }}>
-              <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                {new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
-              </div>
-              <div style={{ fontSize: '0.75rem' }}>
-                {new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-glass)', padding: '0.4rem', borderRadius: '8px', flexWrap: 'nowrap', overflowX: 'auto', alignItems: 'center', border: '1px solid var(--border-color)', backdropFilter: 'blur(12px)' }}>
-          <div style={{ flex: 1 }}></div>
-
-          {/* Nav Tabs */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <button style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', padding: '0.3rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>📋 Kanban</button>
-            </Link>
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <button style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', padding: '0.3rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>📊 Timeline</button>
-            </Link>
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <button style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', padding: '0.3rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>🏢 Progetti</button>
-            </Link>
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <button style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', padding: '0.3rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>👥 Clienti</button>
-            </Link>
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <button style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', padding: '0.3rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>🔑 Accessi</button>
-            </Link>
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <button style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', padding: '0.3rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>⚙️ Imposta</button>
-            </Link>
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <button style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', padding: '0.3rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>👑 Management</button>
-            </Link>
-            <button style={{ background: 'var(--bg-elevated)', color: 'var(--accent-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.3rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>🗄️ Arch.</button>
-          </div>
-        </div>
-      </header>
+    <div style={{ padding: '1rem', fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
+      {loading && <p>Caricamento archivio in corso...</p>}
+      {!loading && (
+        <>
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
@@ -261,6 +185,8 @@ export default function ArchiveClient({ initialArchive, clients }) {
           </tbody>
         </table>
       </div>
+        </>
+      )}
     </div>
   );
 }
