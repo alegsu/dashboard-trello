@@ -30,6 +30,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
   const [editingItemId, setEditingItemId] = useState(null);
   const [editingItemText, setEditingItemText] = useState('');
   const [showSubItemInput, setShowSubItemInput] = useState({});
+  const [showChecklistItemInput, setShowChecklistItemInput] = useState({});
   const [showAssigneesDropdown, setShowAssigneesDropdown] = useState(false);
 
 
@@ -789,12 +790,33 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                   <ul className={styles.checklistItems}>
                     {topLevelItems.map((item, idx) => renderItem(item, false, idx, topLevelItems))}
                   </ul>
-                  <div className={styles.addItemRow} style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <input className={styles.input} style={{ flex: 1, padding: '0.4rem', fontSize: '0.85rem' }} placeholder="Nuova voce principale..." value={newItemTexts[checklist.id] || ''} onChange={e => setNewItemTexts({...newItemTexts, [checklist.id]: e.target.value})} onKeyDown={e => e.key === 'Enter' && addChecklistItem(checklist.id)} />
-                    <button onClick={() => addChecklistItem(checklist.id)} className={styles.btnSecondary} style={{ padding: '0.4rem 0.6rem', borderRadius: '4px', background: 'var(--accent-primary)', color: 'white' }} title="Aggiungi Voce">
-                      <Plus size={16} />
+                  {!showChecklistItemInput[checklist.id] ? (
+                    <button 
+                      onClick={() => setShowChecklistItemInput(prev => ({ ...prev, [checklist.id]: true }))} 
+                      className={styles.btnSecondary} 
+                      style={{ marginTop: '0.5rem', background: 'transparent', color: 'var(--text-secondary)', border: '1px dashed var(--border-color)', width: '100%', display: 'flex', justifyContent: 'flex-start', padding: '0.4rem', borderRadius: '4px', fontSize: '0.85rem' }}
+                    >
+                      <Plus size={16} style={{ marginRight: '0.3rem' }} /> Nuovo task...
                     </button>
-                  </div>
+                  ) : (
+                    <div className={styles.addItemRow} style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <input 
+                        className={styles.input} 
+                        style={{ flex: 1, padding: '0.4rem', fontSize: '0.85rem' }} 
+                        placeholder="Nuovo task..." 
+                        value={newItemTexts[checklist.id] || ''} 
+                        onChange={e => setNewItemTexts({...newItemTexts, [checklist.id]: e.target.value})} 
+                        onKeyDown={e => e.key === 'Enter' && addChecklistItem(checklist.id)} 
+                        autoFocus
+                        onBlur={() => {
+                          if (!newItemTexts[checklist.id]) setShowChecklistItemInput(prev => ({ ...prev, [checklist.id]: false }));
+                        }}
+                      />
+                      <button onClick={() => addChecklistItem(checklist.id)} className={styles.btnSecondary} style={{ padding: '0.4rem 0.6rem', borderRadius: '4px', background: 'var(--accent-primary)', color: 'white' }} title="Aggiungi">
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
