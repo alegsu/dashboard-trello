@@ -47,7 +47,7 @@ export async function POST(request, { params }) {
 
       // Create Vector Store if missing
       if (!openaiVectorStoreId) {
-        const vectorStore = await openai.beta.vectorStores.create({
+        const vectorStore = await openai.vectorStores.create({
           name: `Client_${clientId}_VectorStore`
         });
         openaiVectorStoreId = vectorStore.id;
@@ -91,7 +91,7 @@ export async function POST(request, { params }) {
       openaiFileId = file.id;
 
       // Attach file to Vector Store
-      await openai.beta.vectorStores.files.create(
+      await openai.vectorStores.files.create(
         openaiVectorStoreId,
         { file_id: file.id }
       );
