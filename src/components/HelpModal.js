@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.18.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>✨ <strong>Estrazione Automatica Checklist:</strong> Nel dettaglio delle schede, accanto al titolo "Descrizione", è comparso un nuovo pulsante magico. Cliccandolo, l'Intelligenza Artificiale leggerà la descrizione (es. appunti di una call presi al volo) ed estrarrà in automatico una lista pulita di azioni da svolgere, creando una Checklist pronta all'uso!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.17.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🧠 <strong>Brain (Knowledge Base AI):</strong> Nuovo sistema "Brain" per ogni cliente. Una memoria virtuale alimentata dall'IA che archivia in modo permanente appunti, testi e meeting. Cliccando sull'icona potrai chattare con l'assistente che risponderà alle tue domande basandosi esclusivamente sulla conoscenza caricata (no allucinazioni).</li>
