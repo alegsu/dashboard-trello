@@ -325,7 +325,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
           alert('Nessun task operativo trovato nella descrizione.');
         }
       } else {
-        alert(data.error || 'Errore durante l\\'estrazione');
+        alert(data.error || "Errore durante l'estrazione");
       }
     } catch (e) {
       console.error(e);
