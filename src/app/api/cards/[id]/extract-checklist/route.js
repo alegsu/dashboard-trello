@@ -80,6 +80,8 @@ Il tuo compito è individuare tutte le azioni da svolgere presenti nel testo ed 
       include: {
         list: true,
         labels: true,
+        assignees: true,
+        attachments: true,
         project: { include: { client: true } },
         checklists: {
           include: {
