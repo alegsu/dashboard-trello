@@ -22,6 +22,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
   
   const [description, setDescription] = useState('');
   const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [extractingChecklist, setExtractingChecklist] = useState(false);
   const [newChecklistTitle, setNewChecklistTitle] = useState('');
   const [newItemTexts, setNewItemTexts] = useState({});
   const [newComment, setNewComment] = useState('');
@@ -310,6 +311,30 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
     setOpenNotes(prev => ({ ...prev, [itemId]: !prev[itemId] }));
   };
 
+  const extractChecklist = async () => {
+    if (!description || description.trim() === '') return;
+    setExtractingChecklist(true);
+    try {
+      const res = await fetch(`/api/cards/${card.id}/extract-checklist`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCard(data.card);
+        if (data.tasks && data.tasks.length === 0) {
+          alert('Nessun task operativo trovato nella descrizione.');
+        }
+      } else {
+        alert(data.error || 'Errore durante l\\'estrazione');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Errore di connessione');
+    } finally {
+      setExtractingChecklist(false);
+    }
+  };
+
   const addChecklist = async () => {
     if (!newChecklistTitle.trim()) return;
     await fetch('/api/checklists', {
@@ -594,7 +619,19 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
             )}
 
             <div className={styles.section}>
-              <h3>Descrizione</h3>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <h3 style={{ margin: 0 }}>Descrizione</h3>
+                {description && description.trim() !== '' && (
+                  <button 
+                    onClick={extractChecklist} 
+                    disabled={extractingChecklist}
+                    style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.3rem 0.6rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: extractingChecklist ? 'not-allowed' : 'pointer', color: 'var(--text-primary)', opacity: extractingChecklist ? 0.6 : 1, transition: 'all 0.2s' }}
+                    title="L'IA leggerà la descrizione per creare automaticamente una checklist di cose da fare"
+                  >
+                    {extractingChecklist ? '✨ Estrazione in corso...' : '✨ Estrai Task'}
+                  </button>
+                )}
+              </div>
               <div style={{ position: 'relative' }}>
                 {isEditingDescription || !description ? (
                   <>
