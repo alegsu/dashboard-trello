@@ -154,7 +154,7 @@ export default function ClientNotebookModal({ client, onClose }) {
                       <span>{note.source === 'EMAIL' ? '📧 Da Email' : '📝 Manuale'}</span>
                       <span>{new Date(note.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <div style={{ whiteSpace: 'pre-wrap', maxHeight: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ whiteSpace: 'pre-wrap', maxHeight: '150px', overflowY: 'auto', fontSize: '0.8rem' }}>
                       {note.text}
                     </div>
                   </div>
