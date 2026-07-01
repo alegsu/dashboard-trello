@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, User, CheckSquare, Clock, Tag, MessageSquare, Paperclip, ExternalLink, Copy, Archive, Trash2, Plus } from 'lucide-react';
+import { X, Calendar, User, CheckSquare, Clock, Tag, MessageSquare, Paperclip, ExternalLink, Copy, Archive, Trash2, Plus, Brain } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import styles from './CardModal.module.css';
 
-export default function CardModal({ cardId, members, onClose, onRefresh, onDeleteCard, currentUser }) {
+export default function CardModal({ cardId, members, onClose, onRefresh, onDeleteCard, currentUser, onOpenNotebook }) {
   const [card, setCard] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -503,6 +503,17 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
               const visibleAccesses = currentClient?.accesses?.filter(a => a.showInCard) || [];
               return (
                 <div style={{ display: 'flex', gap: '0.3rem' }}>
+                  {currentClient && (
+                    <button 
+                      onClick={() => { if (onOpenNotebook) onOpenNotebook(currentClient); }} 
+                      title={`Apri Notebook: ${currentClient.name}`}
+                      style={{ background: 'var(--accent-primary)', border: 'none', color: 'white', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', fontSize: '0.9rem', cursor: 'pointer', transition: 'transform 0.2s' }}
+                      onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                      onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                    >
+                      🧠
+                    </button>
+                  )}
                   {currentClient?.claudeUrl && (
                     <a 
                       href={currentClient.claudeUrl} 

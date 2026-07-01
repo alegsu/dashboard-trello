@@ -18,7 +18,7 @@ function getContrastYIQ(hexcolor){
   return (yiq >= 128) ? '#000000' : '#ffffff';
 }
 
-export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh, onCardUpdate, currentUser, zenMode, filterClientId, onCardClick }) {
+export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh, onCardUpdate, currentUser, zenMode, filterClientId, onCardClick, onOpenNotebook }) {
   const [isMounted, setIsMounted] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(100);
 
@@ -544,8 +544,19 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
 
               return (
                 <div key={clientId} className={styles.kanbanSwimlane} style={{ background: bgColor }}>
-                  <div className={styles.kanbanUserHeader} style={{ background: bgColor === 'transparent' ? 'var(--bg-primary)' : bgColor }}>
+                  <div className={styles.kanbanUserHeader} style={{ background: bgColor === 'transparent' ? 'var(--bg-primary)' : bgColor, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                      {client?.name}
+                     {clientId !== unassignedId && client && (
+                       <button 
+                         onClick={() => { if (onOpenNotebook) onOpenNotebook(client); }}
+                         style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: '0', transition: 'transform 0.2s', display: 'flex', alignItems: 'center' }}
+                         title={`Apri Notebook: ${client.name}`}
+                         onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                         onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                       >
+                         🧠
+                       </button>
+                     )}
                   </div>
                   <div className={styles.kanbanSwimlaneCells}>
                     {lists.map(list => {

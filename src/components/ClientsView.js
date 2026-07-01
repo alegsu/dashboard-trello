@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ProjectsView.module.css'; // Possiamo riusare questo CSS per comodità
-import { FaSync, FaGoogle, FaBrain, FaTrash } from 'react-icons/fa';
-import ClientNotebookModal from './ClientNotebookModal';
+import { FaSync, FaGoogle, FaTrash } from 'react-icons/fa';
 
-export default function ClientsView({ clients: initialClients, cards = [], onRefresh }) {
+export default function ClientsView({ clients: initialClients, cards = [], onRefresh, onOpenNotebook }) {
   const [clients, setClients] = useState(initialClients);
   const [selectedClient, setSelectedClient] = useState(null);
   const [notebookModalClient, setNotebookModalClient] = useState(null);
@@ -225,7 +224,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
               >
                 <span>{c.name}</span>
                 <button 
-                  onClick={(e) => { e.stopPropagation(); setNotebookModalClient(c); }}
+                  onClick={(e) => { e.stopPropagation(); if (onOpenNotebook) onOpenNotebook(c); }}
                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem', transition: 'transform 0.2s' }}
                   title="Apri Notebook (IA)"
                   onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
@@ -420,13 +419,6 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
           </div>
         )}
       </div>
-
-      {notebookModalClient && (
-        <ClientNotebookModal 
-          client={notebookModalClient} 
-          onClose={() => setNotebookModalClient(null)} 
-        />
-      )}
     </div>
   );
 }

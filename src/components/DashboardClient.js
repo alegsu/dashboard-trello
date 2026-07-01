@@ -13,6 +13,7 @@ import PomodoroTimer from './PomodoroTimer';
 import HelpModal from './HelpModal';
 import MyTasksView from './MyTasksView';
 import DocumentImportModal from './DocumentImportModal';
+import ClientNotebookModal from './ClientNotebookModal';
 import CardModal from './CardModal';
 import ArchiveView from './ArchiveView';
 import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock } from 'lucide-react';
@@ -106,6 +107,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   const [zenMode, setZenMode] = useState(false);
   const [currentTime, setCurrentTime] = useState(null);
   const [globalCardId, setGlobalCardId] = useState(null);
+  const [globalNotebookClient, setGlobalNotebookClient] = useState(null);
 
   useEffect(() => {
     setCurrentTime(new Date());
@@ -483,6 +485,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               zenMode={zenMode}
               filterClientId={filterClientId}
               onCardClick={setGlobalCardId}
+              onOpenNotebook={setGlobalNotebookClient}
             />
           )}
           {view === 'timeline' && selectedBoardId && (
@@ -507,7 +510,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             />
           )}
           {view === 'clients' && (
-            <ClientsView clients={initialClients} cards={liveCards} onRefresh={handleRefresh} />
+            <ClientsView clients={initialClients} cards={liveCards} onRefresh={handleRefresh} onOpenNotebook={setGlobalNotebookClient} />
           )}
           {view === 'accesses' && (
             <AccessesView clients={initialClients} onRefresh={handleRefresh} />
@@ -523,6 +526,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               onCardUpdate={handleCardUpdate} 
               onRefresh={handleRefresh}
               onCardClick={setGlobalCardId}
+              onOpenNotebook={setGlobalNotebookClient}
             />
           )}
           {view === 'settings' && (
@@ -576,6 +580,13 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             url.searchParams.delete('card');
             window.history.replaceState({}, '', url);
           }} 
+          onOpenNotebook={setGlobalNotebookClient}
+        />
+      )}
+      {globalNotebookClient && (
+        <ClientNotebookModal 
+          client={globalNotebookClient} 
+          onClose={() => setGlobalNotebookClient(null)} 
         />
       )}
     </main>
