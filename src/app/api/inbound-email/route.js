@@ -130,7 +130,9 @@ Regole:
         aiResult.action = "CREATE_TASK";
       } else {
         // Chiama la nostra Knowledge Base API
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (request.headers.get("origin") || `http://${request.headers.get("host")}`);
+        const protocol = request.headers.get("x-forwarded-proto") || "http";
+        const host = request.headers.get("host");
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`;
         const kbResponse = await fetch(`${baseUrl}/api/clients/${aiResult.clientId}/knowledge`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
