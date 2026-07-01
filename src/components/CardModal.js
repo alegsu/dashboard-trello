@@ -1125,12 +1125,12 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
             </div>
 
             {/* Labels */}
-            <div className={styles.widget} style={{ padding: '0.5rem' }}>
+            <div className={styles.widget} style={{ padding: '0.5rem', position: 'relative' }}>
               <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0', fontSize: '0.8rem' }}><Tag size={14}/> Etichette</h4>
               
               <div 
                 className={styles.input} 
-                style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', padding: '0.2rem', cursor: 'pointer', minHeight: '26px', alignItems: 'center', fontSize: '0.8rem', position: 'relative' }}
+                style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', padding: '0.2rem', cursor: 'pointer', minHeight: '26px', alignItems: 'center', fontSize: '0.8rem' }}
                 onClick={(e) => {
                   const dropdown = e.currentTarget.nextElementSibling;
                   dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
@@ -1141,7 +1141,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                   <span key={l.id} style={{ backgroundColor: l.color, color: '#fff', padding: '0.1rem 0.3rem', borderRadius: '4px', fontSize: '0.75rem' }}>{l.name}</span>
                 ))}
               </div>
-              <div style={{ display: 'none', position: 'absolute', right: '1rem', width: '220px', zIndex: 10, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem', marginTop: '0.2rem', maxHeight: '250px', overflowY: 'auto', boxShadow: '0 4px 6px rgba(0,0,0,0.5)' }}>
+              <div style={{ display: 'none', position: 'absolute', right: '0.5rem', bottom: '100%', marginBottom: '0.5rem', width: '220px', zIndex: 10, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem', maxHeight: '250px', overflowY: 'auto', boxShadow: '0 4px 6px rgba(0,0,0,0.5)' }}>
                 <div className={styles.labelsList} style={{ gap: '0.2rem' }}>
                   {boardLabels.map(label => {
                     const isAssigned = card.labels.some(l => l.id === label.id);
