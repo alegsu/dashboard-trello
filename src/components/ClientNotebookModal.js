@@ -110,7 +110,7 @@ export default function ClientNotebookModal({ client, onClose }) {
         <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-glass)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
             <span style={{ fontSize: '1.5rem' }}>🧠</span>
-            <h2 style={{ margin: 0 }}>NotebookLM: {client.name}</h2>
+            <h2 style={{ margin: 0 }}>CervellAle: {client.name}</h2>
           </div>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={24} /></button>
         </div>

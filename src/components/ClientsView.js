@@ -226,7 +226,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                 <button 
                   onClick={(e) => { e.stopPropagation(); if (onOpenNotebook) onOpenNotebook(c); }}
                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem', transition: 'transform 0.2s' }}
-                  title="Apri Notebook (IA)"
+                  title="Apri CervellAle (IA)"
                   onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
                   onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
                 >

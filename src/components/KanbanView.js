@@ -550,7 +550,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                        <button 
                          onClick={() => { if (onOpenNotebook) onOpenNotebook(client); }}
                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: '0', transition: 'transform 0.2s', display: 'flex', alignItems: 'center' }}
-                         title={`Apri Notebook: ${client.name}`}
+                         title={`Apri CervellAle: ${client.name}`}
                          onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
                          onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
                        >

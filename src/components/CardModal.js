@@ -506,7 +506,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                   {currentClient && (
                     <button 
                       onClick={() => { if (onOpenNotebook) onOpenNotebook(currentClient); }} 
-                      title={`Apri Notebook: ${currentClient.name}`}
+                      title={`Apri CervellAle: ${currentClient.name}`}
                       style={{ background: 'var(--accent-primary)', border: 'none', color: 'white', padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center', fontSize: '0.9rem', cursor: 'pointer', transition: 'transform 0.2s' }}
                       onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
                       onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
