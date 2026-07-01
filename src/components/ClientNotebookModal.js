@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, FileText, Bot, X } from 'lucide-react';
+import { Send, FileText, Bot, X, Trash2 } from 'lucide-react';
 
 export default function ClientNotebookModal({ client, onClose }) {
   const [notes, setNotes] = useState([]);
@@ -55,6 +55,24 @@ export default function ClientNotebookModal({ client, onClose }) {
       alert('Errore di rete');
     }
     setSavingNote(false);
+  };
+
+  const handleDeleteNote = async (noteId) => {
+    if (!window.confirm("Sei sicuro di voler eliminare questa nota? Verrà rimossa anche dalla conoscenza dell'IA.")) return;
+
+    try {
+      const res = await fetch(`/api/clients/${client.id}/knowledge/${noteId}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNotes(notes.filter(n => n.id !== noteId));
+      } else {
+        alert(data.error || 'Errore eliminazione nota');
+      }
+    } catch (err) {
+      alert('Errore di rete');
+    }
   };
 
   const handleSendMessage = async (e) => {
@@ -124,7 +142,14 @@ export default function ClientNotebookModal({ client, onClose }) {
               {loadingNotes && <p style={{ fontSize: '0.8rem' }}>Caricamento note...</p>}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                 {notes.map(note => (
-                  <div key={note.id} style={{ padding: '0.8rem', background: 'var(--bg-elevated)', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
+                  <div key={note.id} style={{ padding: '0.8rem', background: 'var(--bg-elevated)', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.85rem', position: 'relative', paddingRight: '2rem' }}>
+                    <button 
+                      onClick={() => handleDeleteNote(note.id)}
+                      style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'transparent', border: 'none', color: 'var(--status-danger)', cursor: 'pointer', padding: '0.2rem' }}
+                      title="Elimina nota"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', color: 'var(--text-secondary)', fontSize: '0.75rem', fontWeight: 'bold' }}>
                       <span>{note.source === 'EMAIL' ? '📧 Da Email' : '📝 Manuale'}</span>
                       <span>{new Date(note.createdAt).toLocaleDateString()}</span>
