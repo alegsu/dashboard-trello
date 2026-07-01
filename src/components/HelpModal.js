@@ -150,6 +150,15 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.17.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🧠 <strong>Brain (Knowledge Base AI):</strong> Nuovo sistema "Brain" per ogni cliente. Una memoria virtuale alimentata dall'IA che archivia in modo permanente appunti, testi e meeting. Cliccando sull'icona potrai chattare con l'assistente che risponderà alle tue domande basandosi esclusivamente sulla conoscenza caricata (no allucinazioni).</li>
+                  <li>📬 <strong>Integrazione Email-to-Brain:</strong> Qualsiasi testo, appunti o riassunto di call (anche da bot come Gemini) inviato via email a GestionAle verrà analizzato dalla nostra IA generale che, riconoscendo il riassunto, lo inietterà automaticamente e silenziosamente nel Brain del cliente giusto!</li>
+                  <li>🗂️ <strong>Accesso Rapido UI:</strong> Aggiunta l'icona "🧠 Brain" in posizioni strategiche per arrivarci in un clic senza perdere tempo: a fianco del nome cliente nella vista Kanban, in alto a destra nel dettaglio delle singole task, e ovviamente nell'anagrafica Clienti.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.16.0</h4>
                 <ul style={noteUlStyle}>
                   <li>👑 <strong>Dashboard Management:</strong> Nuova scheda riservata esclusivamente agli amministratori, dedicata al monitoraggio delle prestazioni, dei login e del carico di lavoro del team (Task, Sottotask, Bacheche, Clienti e Progetti).</li>
