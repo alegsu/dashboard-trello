@@ -10,7 +10,7 @@ const renderTextWithLinks = (text) => {
   const parts = text.split(urlRegex);
   return parts.map((part, i) => {
     if (part.match(urlRegex)) {
-      return <a key={i} href={part} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: 'var(--accent-primary)', textDecoration: 'underline', wordBreak: 'break-all' }}>{part}</a>;
+      return <a key={i} href={part} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: 'var(--accent-primary)', textDecoration: 'underline', wordBreak: 'break-all', fontSize: '0.6em' }}>{part}</a>;
     }
     return part;
   });
