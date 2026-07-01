@@ -7,7 +7,7 @@ import path from 'path';
 
 export async function GET(request, { params }) {
   try {
-    const clientId = params.id;
+    const { id: clientId } = await params;
     const notes = await prisma.knowledgeNote.findMany({
       where: { clientId },
       orderBy: { createdAt: 'desc' }
@@ -21,7 +21,7 @@ export async function GET(request, { params }) {
 
 export async function POST(request, { params }) {
   try {
-    const clientId = params.id;
+    const { id: clientId } = await params;
     const { text, source = "MANUAL" } = await request.json();
 
     if (!text || text.trim() === '') {

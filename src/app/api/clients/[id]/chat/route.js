@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 
 export async function POST(request, { params }) {
   try {
-    const clientId = params.id;
+    const { id: clientId } = await params;
     const { message } = await request.json();
 
     if (!message || message.trim() === '') {
