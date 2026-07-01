@@ -13,6 +13,13 @@ export async function middleware(request) {
   const sessionCookie = request.cookies.get('session')?.value;
   const session = sessionCookie ? await decrypt(sessionCookie) : null;
 
+  // Permetti chiamate interne server-to-server autorizzate
+  const internalToken = request.headers.get('x-internal-token');
+  const expectedToken = process.env.INBOUND_WEBHOOK_SECRET || 'gestionale-ai-token-123';
+  if (internalToken === expectedToken) {
+    return NextResponse.next();
+  }
+
   // Proteggi le rotte API
   if (path.startsWith('/api/')) {
     if (!session) {

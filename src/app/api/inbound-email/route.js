@@ -135,7 +135,10 @@ Regole:
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`;
         const kbResponse = await fetch(`${baseUrl}/api/clients/${aiResult.clientId}/knowledge`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-internal-token': process.env.INBOUND_WEBHOOK_SECRET || 'gestionale-ai-token-123'
+          },
           body: JSON.stringify({ 
             text: `[${aiResult.title}]\n\n${aiResult.description}`,
             source: 'EMAIL'
