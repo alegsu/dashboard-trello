@@ -4,11 +4,24 @@ import { X, Calendar, User, CheckSquare, Clock, Tag, MessageSquare, Paperclip, E
 import confetti from 'canvas-confetti';
 import styles from './CardModal.module.css';
 
+const renderTextWithLinks = (text) => {
+  if (!text) return text;
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) => {
+    if (part.match(urlRegex)) {
+      return <a key={i} href={part} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: 'var(--accent-primary)', textDecoration: 'underline', wordBreak: 'break-all' }}>{part}</a>;
+    }
+    return part;
+  });
+};
+
 export default function CardModal({ cardId, members, onClose, onRefresh, onDeleteCard, currentUser, onOpenNotebook }) {
   const [card, setCard] = useState(null);
   const [loading, setLoading] = useState(true);
   
   const [description, setDescription] = useState('');
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [newChecklistTitle, setNewChecklistTitle] = useState('');
   const [newItemTexts, setNewItemTexts] = useState({});
   const [newComment, setNewComment] = useState('');
@@ -583,16 +596,30 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
             <div className={styles.section}>
               <h3>Descrizione</h3>
               <div style={{ position: 'relative' }}>
-                <textarea 
-                  id="textarea-description"
-                  value={description} 
-                  onChange={e => handleMentionChange(e.target.value, 'description', setDescription)} 
-                  onBlur={handleSaveDescription}
-                  className={styles.textarea} 
-                  placeholder="Aggiungi una descrizione più dettagliata... (usa @ per menzionare)" 
-                  rows={4}
-                />
-                {renderMentionDropdown('description', description, setDescription)}
+                {isEditingDescription || !description ? (
+                  <>
+                    <textarea 
+                      id="textarea-description"
+                      value={description} 
+                      onChange={e => handleMentionChange(e.target.value, 'description', setDescription)} 
+                      onBlur={() => { handleSaveDescription(); setIsEditingDescription(false); }}
+                      className={styles.textarea} 
+                      placeholder="Aggiungi una descrizione più dettagliata... (usa @ per menzionare)" 
+                      rows={4}
+                      autoFocus={isEditingDescription}
+                    />
+                    {renderMentionDropdown('description', description, setDescription)}
+                  </>
+                ) : (
+                  <div 
+                    onClick={() => setIsEditingDescription(true)}
+                    style={{ whiteSpace: 'pre-wrap', cursor: 'text', minHeight: '60px', padding: '0.8rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid transparent', fontSize: '0.95rem', color: 'var(--text-primary)' }}
+                    onMouseOver={e => e.currentTarget.style.border = '1px solid var(--border-color)'}
+                    onMouseOut={e => e.currentTarget.style.border = '1px solid transparent'}
+                  >
+                    {renderTextWithLinks(description)}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -633,7 +660,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                               }}
                             />
                           ) : (
-                            <span style={{ textDecoration: item.isCompleted ? 'line-through' : 'none', flex: 1, cursor: 'text' }} onClick={() => { setEditingItemId(item.id); setEditingItemText(item.text); }}>{item.text}</span>
+                            <span style={{ textDecoration: item.isCompleted ? 'line-through' : 'none', flex: 1, cursor: 'text' }} onClick={() => { setEditingItemId(item.id); setEditingItemText(item.text); }}>{renderTextWithLinks(item.text)}</span>
                           )}
                         </div>
                         <div className={styles.itemActions} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
@@ -922,7 +949,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                     <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--accent-primary)', marginBottom: '0.2rem' }}>
                       {c.author?.name || 'Sconosciuto'} <span style={{ color: 'var(--text-secondary)', fontWeight: 'normal' }}>- {new Date(c.createdAt).toLocaleString()}</span>
                     </div>
-                    <div style={{ fontSize: '0.9rem' }}>{c.text}</div>
+                    <div style={{ fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>{renderTextWithLinks(c.text)}</div>
                   </div>
                 ))}
                 {card.comments?.length === 0 && <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Nessun commento.</p>}
