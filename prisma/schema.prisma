@@ -178,7 +178,21 @@ model Client {
   projects    Project[]
   cards       Card[]
   collaborators User[]  @relation("ClientCollaborators")
+  knowledgeNotes KnowledgeNote[]
+  
+  openaiAssistantId   String?
+  openaiVectorStoreId String?
   accesses    Access[]  @relation("ClientAccesses")
+}
+
+model KnowledgeNote {
+  id           String   @id @default(cuid())
+  text         String   @db.Text
+  source       String   @default("MANUAL") // MANUAL, EMAIL
+  createdAt    DateTime @default(now())
+  clientId     String
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  openaiFileId String?
 }
 
 model Access {

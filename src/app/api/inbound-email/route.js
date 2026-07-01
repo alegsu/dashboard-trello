@@ -94,18 +94,19 @@ ${contextProjects || 'Nessun progetto'}
 Analizza il seguente Oggetto e Testo dell'email.
 Devi estrarre i dati in formato JSON strettamente aderente a questa struttura:
 {
-  "action": "CREATE_TASK",
+  "action": "CREATE_TASK" | "ADD_NOTE",
   "clientId": "id_del_cliente_oppure_null",
   "projectId": "id_del_progetto_oppure_null",
   "title": "Titolo breve per la scheda o la nota",
   "description": "Testo descrittivo o corpo dell'email ripulito",
-  "checklists": ["voce 1", "voce 2"] // opzionale, array di stringhe se trovi una lista di cose da fare
+  "checklists": ["voce 1", "voce 2"] // opzionale
 }
 
 Regole:
-1. Crea sempre un "CREATE_TASK" per ogni email ricevuta, indipendentemente che sia un appunto o una cosa da fare.
-2. Se riconosci chiaramente il cliente o il progetto dal testo o dall'oggetto, inserisci i relativi ID. Se sei in dubbio o il cliente non esiste, lascia i campi a null.
-3. Nel campo description inserisci le informazioni rilevanti ripulite (togli saluti inutili o le firme delle mail inoltrate).
+1. Se il testo dell'email sembra chiaramente un "riassunto di un meeting" (es. generato da Gemini o Google Meet), appunti di una call, o informazioni generiche da conservare nella Knowledge Base del cliente, usa l'azione "ADD_NOTE".
+2. Altrimenti (se è una richiesta, una cosa da fare, un problema da risolvere, task), usa "CREATE_TASK".
+3. Se riconosci chiaramente il cliente dal testo o dall'oggetto, inserisci il suo clientId. È FONDAMENTALE per "ADD_NOTE".
+4. Nel campo description inserisci le informazioni rilevanti ripulite (togli saluti inutili o le firme).
 `;
 
     const openai = new OpenAI({ apiKey });
@@ -123,77 +124,104 @@ Regole:
     console.log("=== AI DECISION ===", aiResult);
 
     // Esegui l'azione sul Database
-    // Trova la board principale e la lista TO DO
-      const board = await prisma.board.findFirst({
-        where: { name: { contains: 'CLIENTI', mode: 'insensitive' } },
-        include: { lists: true }
-      });
-
-      if (!board) {
-        console.error("Nessuna board trovata.");
-        return NextResponse.json({ error: 'Nessuna board trovata' }, { status: 500 });
-      }
-
-      let todoList = board.lists.find(l => l.name.toLowerCase().includes('to do') || l.name.toLowerCase().includes('da fare'));
-      
-      if (!todoList) {
-        // Fallback alla prima lista se TO DO non esiste
-        todoList = board.lists[0];
-      }
-
-      // Calcola l'ordine (mettila in fondo)
-      const lastCard = await prisma.card.findFirst({
-        where: { listId: todoList.id, boardId: board.id },
-        orderBy: { order: 'desc' }
-      });
-      const newOrder = lastCard ? lastCard.order + 1000 : 1000;
-
-      // Find or create "DA MAIL" label
-      let mailLabel = await prisma.label.findFirst({
-        where: { boardId: board.id, name: { equals: 'DA MAIL', mode: 'insensitive' } }
-      });
-      if (!mailLabel) {
-        mailLabel = await prisma.label.create({
-          data: {
-            name: 'DA MAIL',
-            color: '#3498db', // Blue color for email
-            boardId: board.id
-          }
+    if (aiResult.action === "ADD_NOTE") {
+      if (!aiResult.clientId) {
+        console.warn("Ricevuto ADD_NOTE ma nessun cliente identificato. Fallback a CREATE_TASK.");
+        aiResult.action = "CREATE_TASK";
+      } else {
+        // Chiama la nostra Knowledge Base API
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (request.headers.get("origin") || `http://${request.headers.get("host")}`);
+        const kbResponse = await fetch(`${baseUrl}/api/clients/${aiResult.clientId}/knowledge`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            text: `[${aiResult.title}]\n\n${aiResult.description}`,
+            source: 'EMAIL'
+          })
         });
-      }
-
-      // Crea la Card
-      const newCard = await prisma.card.create({
-        data: {
-          name: aiResult.title || subject || "Task da Email",
-          description: aiResult.description || textBody,
-          order: newOrder,
-          listId: todoList.id,
-          boardId: board.id,
-          clientId: aiResult.clientId || null,
-          projectId: aiResult.projectId || null,
-          labels: {
-            connect: [{ id: mailLabel.id }]
-          }
+        
+        if (!kbResponse.ok) {
+          const errData = await kbResponse.text();
+          console.error("Errore nell'inserimento della nota nella Knowledge Base:", errData);
+        } else {
+          console.log("Nota inserita con successo nella Knowledge Base del cliente:", aiResult.clientId);
         }
-      });
+      }
+    }
 
-      // Se ci sono checklist
-      if (aiResult.checklists && Array.isArray(aiResult.checklists) && aiResult.checklists.length > 0) {
-        await prisma.checklist.create({
+    if (aiResult.action === "CREATE_TASK") {
+      // Trova la board principale e la lista TO DO
+        const board = await prisma.board.findFirst({
+          where: { name: { contains: 'CLIENTI', mode: 'insensitive' } },
+          include: { lists: true }
+        });
+
+        if (!board) {
+          console.error("Nessuna board trovata.");
+          return NextResponse.json({ error: 'Nessuna board trovata' }, { status: 500 });
+        }
+
+        let todoList = board.lists.find(l => l.name.toLowerCase().includes('to do') || l.name.toLowerCase().includes('da fare'));
+        
+        if (!todoList) {
+          // Fallback alla prima lista se TO DO non esiste
+          todoList = board.lists[0];
+        }
+
+        // Calcola l'ordine (mettila in fondo)
+        const lastCard = await prisma.card.findFirst({
+          where: { listId: todoList.id, boardId: board.id },
+          orderBy: { order: 'desc' }
+        });
+        const newOrder = lastCard ? lastCard.order + 1000 : 1000;
+
+        // Find or create "DA MAIL" label
+        let mailLabel = await prisma.label.findFirst({
+          where: { boardId: board.id, name: { equals: 'DA MAIL', mode: 'insensitive' } }
+        });
+        if (!mailLabel) {
+          mailLabel = await prisma.label.create({
+            data: {
+              name: 'DA MAIL',
+              color: '#3498db', // Blue color for email
+              boardId: board.id
+            }
+          });
+        }
+
+        // Crea la Card
+        const newCard = await prisma.card.create({
           data: {
-            title: "To-Do List (da Email)",
-            cardId: newCard.id,
-            items: {
-              create: aiResult.checklists.map((itemTesto, index) => ({
-                text: itemTesto,
-                isCompleted: false,
-                order: (index + 1) * 1000
-              }))
+            name: aiResult.title || subject || "Task da Email",
+            description: aiResult.description || textBody,
+            order: newOrder,
+            listId: todoList.id,
+            boardId: board.id,
+            clientId: aiResult.clientId || null,
+            projectId: aiResult.projectId || null,
+            labels: {
+              connect: [{ id: mailLabel.id }]
             }
           }
         });
-      }
+
+        // Se ci sono checklist
+        if (aiResult.checklists && Array.isArray(aiResult.checklists) && aiResult.checklists.length > 0) {
+          await prisma.checklist.create({
+            data: {
+              title: "To-Do List (da Email)",
+              cardId: newCard.id,
+              items: {
+                create: aiResult.checklists.map((itemTesto, index) => ({
+                  text: itemTesto,
+                  isCompleted: false,
+                  order: (index + 1) * 1000
+                }))
+              }
+            }
+          });
+        }
+    }
 
     return NextResponse.json({ success: true, aiResult, debugInfo, textBodyEmpty: !textBody });
   } catch (err) {

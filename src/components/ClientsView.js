@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ProjectsView.module.css'; // Possiamo riusare questo CSS per comodità
-import { FaSync, FaGoogle } from 'react-icons/fa';
+import { FaSync, FaGoogle, FaBrain, FaTrash } from 'react-icons/fa';
+import ClientNotebookModal from './ClientNotebookModal';
 
 export default function ClientsView({ clients: initialClients, cards = [], onRefresh }) {
   const [clients, setClients] = useState(initialClients);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [notebookModalClient, setNotebookModalClient] = useState(null);
   
   // Campi Form
   const [name, setName] = useState('');
@@ -215,10 +217,22 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                   borderBottom: '1px solid var(--border-color)', 
                   cursor: 'pointer',
                   background: selectedClient?.id === c.id ? 'var(--bg-elevated)' : (index % 2 === 0 ? 'transparent' : 'rgba(161, 189, 207, 0.05)'),
-                  fontWeight: selectedClient?.id === c.id ? 'bold' : 'normal'
+                  fontWeight: selectedClient?.id === c.id ? 'bold' : 'normal',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
                 }}
               >
-                {c.name}
+                <span>{c.name}</span>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setNotebookModalClient(c); }}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem', transition: 'transform 0.2s' }}
+                  title="Apri Notebook (IA)"
+                  onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                  onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  🧠
+                </button>
               </li>
             ))}
             {clients.length === 0 && <p style={{color: 'var(--text-secondary)'}}>Nessun cliente presente.</p>}
@@ -406,6 +420,13 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
           </div>
         )}
       </div>
+
+      {notebookModalClient && (
+        <ClientNotebookModal 
+          client={notebookModalClient} 
+          onClose={() => setNotebookModalClient(null)} 
+        />
+      )}
     </div>
   );
 }
