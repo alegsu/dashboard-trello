@@ -286,8 +286,14 @@ export default function SocialCalendar({ clients, users = [] }) {
                     const isSkipped = item.status === 'SKIPPED';
                     
                     let bgColor = 'rgba(0,0,0,0.2)';
-                    if (isScheduled) bgColor = 'rgba(16, 185, 129, 0.15)';
                     if (isSkipped) bgColor = 'rgba(249, 115, 22, 0.15)';
+                    
+                    let borderStyle = `none`;
+                    let borderLeftStyle = `4px solid ${item.client?.color || 'white'}`;
+                    
+                    if (isScheduled) {
+                      borderStyle = `1px solid #10b981`;
+                    }
                     
                     return (
                       <div 
@@ -298,7 +304,8 @@ export default function SocialCalendar({ clients, users = [] }) {
                         className={isApproval ? 'pulse-purple' : ''}
                         style={{ 
                           background: bgColor, 
-                          borderLeft: `4px solid ${item.client?.color || 'white'}`,
+                          border: borderStyle,
+                          borderLeft: isScheduled ? `4px solid #10b981` : borderLeftStyle,
                           padding: '0.4rem', 
                           borderRadius: '4px',
                           fontSize: '0.75rem',
