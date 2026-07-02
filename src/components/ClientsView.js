@@ -14,6 +14,17 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
   const [notes, setNotes] = useState('');
   const [color, setColor] = useState('');
   const [mergeTargetId, setMergeTargetId] = useState('');
+
+  const defaultPlan = {
+    monday: { post: 0, reel: 0, video: 0, stories: 0 },
+    tuesday: { post: 0, reel: 0, video: 0, stories: 0 },
+    wednesday: { post: 0, reel: 0, video: 0, stories: 0 },
+    thursday: { post: 0, reel: 0, video: 0, stories: 0 },
+    friday: { post: 0, reel: 0, video: 0, stories: 0 },
+    saturday: { post: 0, reel: 0, video: 0, stories: 0 },
+    sunday: { post: 0, reel: 0, video: 0, stories: 0 }
+  };
+  const [socialPlan, setSocialPlan] = useState(defaultPlan);
   
   // Google Sheets Sync
   const [csvUrl, setCsvUrl] = useState('');
@@ -39,6 +50,11 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
     setNotes(c.notes || '');
     setColor(c.color || '');
     setMergeTargetId('');
+    try {
+      setSocialPlan(c.socialPlan ? JSON.parse(c.socialPlan) : defaultPlan);
+    } catch {
+      setSocialPlan(defaultPlan);
+    }
   };
 
   const handleSave = async (e) => {
@@ -54,14 +70,15 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
           notebookLmUrl,
           claudeUrl,
           notes,
-          color
+          color,
+          socialPlan: JSON.stringify(socialPlan)
         })
       });
 
       if (res.ok) {
         if (onRefresh) onRefresh();
         alert('Dati cliente salvati con successo!');
-        setSelectedClient({ ...selectedClient, name, notebookLmUrl, claudeUrl, notes, color });
+        setSelectedClient({ ...selectedClient, name, notebookLmUrl, claudeUrl, notes, color, socialPlan: JSON.stringify(socialPlan) });
       } else {
         alert('Errore durante il salvataggio.');
       }
@@ -313,6 +330,33 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                   <button type="button" onClick={() => setColor('')} style={{ padding: '0.2rem 0.5rem', background: 'var(--bg-secondary)', color: 'var(--text-primary)', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.75rem', cursor: 'pointer' }}>
                     Reset Colore
                   </button>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.5rem' }}>
+                <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Piano Editoriale Social</label>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Imposta quanti contenuti al giorno sono previsti. Compariranno automaticamente nel Calendario Social.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', marginTop: '0.3rem' }}>
+                  {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
+                    const itDays = { monday: 'Lunedì', tuesday: 'Martedì', wednesday: 'Mercoledì', thursday: 'Giovedì', friday: 'Venerdì', saturday: 'Sabato', sunday: 'Domenica' };
+                    return (
+                      <div key={day} style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem', borderRadius: '4px' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 'bold', textAlign: 'center', marginBottom: '0.3rem' }}>{itDays[day]}</div>
+                        {['post', 'reel', 'video', 'stories'].map(type => (
+                          <div key={type} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem' }}>
+                            <span style={{textTransform: 'capitalize'}}>{type}</span>
+                            <input 
+                              type="number" 
+                              min="0" 
+                              value={socialPlan?.[day]?.[type] || 0} 
+                              onChange={e => setSocialPlan(prev => ({...prev, [day]: {...(prev?.[day] || {}), [type]: parseInt(e.target.value) || 0}}))}
+                              style={{ width: '40px', padding: '0.1rem', fontSize: '0.75rem', background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '2px', textAlign: 'center' }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 

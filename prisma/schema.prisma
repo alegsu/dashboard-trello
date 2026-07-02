@@ -172,6 +172,7 @@ model Client {
   claudeUrl     String? // Link to Claude Project/Chat
   notes         String? @db.Text // Quick notes / Contact info
   sheetData     String? @db.Text // Parsed Google Sheet JSON
+  socialPlan    String? @db.Text // JSON for weekly social media calendar plan
   color         String? // Hex color code for the client row
   status        String   @default("CLIENTE") // CLIENTE, OBSOLETO, PROSPECT
   

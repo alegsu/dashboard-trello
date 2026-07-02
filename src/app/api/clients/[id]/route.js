@@ -13,7 +13,8 @@ export async function PUT(request, { params }) {
         ...(body.notebookLmUrl !== undefined && { notebookLmUrl: body.notebookLmUrl }),
         ...(body.claudeUrl !== undefined && { claudeUrl: body.claudeUrl }),
         ...(body.notes !== undefined && { notes: body.notes }),
-        ...(body.color !== undefined && { color: body.color })
+        ...(body.color !== undefined && { color: body.color }),
+        ...(body.socialPlan !== undefined && { socialPlan: body.socialPlan })
       }
     });
 

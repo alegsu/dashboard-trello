@@ -15,6 +15,7 @@ import MyTasksView from './MyTasksView';
 import DocumentImportModal from './DocumentImportModal';
 import ClientNotebookModal from './ClientNotebookModal';
 import CardModal from './CardModal';
+import SocialCalendar from './SocialCalendar';
 import ArchiveView from './ArchiveView';
 import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock } from 'lucide-react';
 
@@ -428,6 +429,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <button className={`${styles.navButton} ${view === 'timeline' ? styles.active : ''}`} onClick={() => setView('timeline')} disabled={visibleBoards.length === 0} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📊 Timeline</button>
               <button className={`${styles.navButton} ${view === 'projects' ? styles.active : ''}`} onClick={() => setView('projects')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🏢 Progetti</button>
               <button className={`${styles.navButton} ${view === 'clients' ? styles.active : ''}`} onClick={() => setView('clients')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>👥 Clienti</button>
+              <button className={`${styles.navButton} ${view === 'social' ? styles.active : ''}`} onClick={() => setView('social')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📅 Social</button>
               <button className={`${styles.navButton} ${view === 'accesses' ? styles.active : ''}`} onClick={() => setView('accesses')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🔑 Accessi</button>
               {currentUser?.role === 'admin' && (
                 <button className={`${styles.navButton} ${view === 'management' ? styles.active : ''}`} onClick={() => setView('management')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-primary)' }}>👑 Management</button>
@@ -511,6 +513,9 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
           )}
           {view === 'clients' && (
             <ClientsView clients={initialClients} cards={liveCards} onRefresh={handleRefresh} onOpenNotebook={setGlobalNotebookClient} />
+          )}
+          {view === 'social' && (
+            <SocialCalendar clients={initialClients} />
           )}
           {view === 'accesses' && (
             <AccessesView clients={initialClients} onRefresh={handleRefresh} />
