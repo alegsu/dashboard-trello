@@ -109,41 +109,52 @@ export async function syncClientPedForMonth(clientId, monthKey, sheetUrl) {
               }
             }
 
-            // Find posts for networks
-            for (const net of networks) {
-              let foundRowIdx = -1;
-              let typeText = "";
-              for (let i = 0; i < nextRows.length; i++) {
-                 const rowLabel = (nextRows[i][0] || "").trim().toUpperCase();
-                 if (rowLabel.includes(net.label) && !rowLabel.includes("STATUS")) {
-                    typeText = (nextRows[i][c] || "").trim();
-                    foundRowIdx = i;
-                    break;
-                 }
-              }
+            const ignoredLabels = ['EVENTI', 'TOPIC', 'FOTO', 'CONTENUTO', 'NOTE', 'STATUS'];
 
-              if (typeText && typeText.toUpperCase() !== "NO" && typeText !== "") {
-                 let statusText = "TODO";
-                 if (foundRowIdx !== -1 && foundRowIdx + 1 < nextRows.length) {
-                     const nextLabel = (nextRows[foundRowIdx+1][0] || "").trim().toUpperCase();
-                     if (nextLabel.includes("STATUS")) {
-                         statusText = (nextRows[foundRowIdx+1][c] || "").trim().toUpperCase();
-                     }
-                 }
-                 
-                 let dbStatus = "TODO";
-                 if (statusText.includes("PROGRAMMATO")) dbStatus = "SCHEDULED";
-                 else if (statusText.includes("APPROVAZIONE") || statusText.includes("BOZZA PRONTA")) dbStatus = "APPROVAL";
-                 else if (statusText.includes("SALTATO")) dbStatus = "SKIPPED";
-                 
-                 postsData.push({
-                     date: dateObj,
-                     network: net.key,
-                     type: typeText,
-                     notes: contenuto,
-                     status: dbStatus
-                 });
-              }
+            for (let i = 0; i < nextRows.length; i++) {
+                let rowLabel = (nextRows[i][0] || "").trim().toUpperCase();
+                // Pulizia label da eventuali numeri o roba strana se necessario, ma di solito è "Social", "Linkedin" ecc.
+                if (!rowLabel || ignoredLabels.some(ig => rowLabel.includes(ig)) || rowLabel.match(/^[0-9]/)) continue;
+                
+                // Trovata una riga potenziale di Social (es. Social, Linkedin, Stories, TikTok)
+                const typeText = (nextRows[i][c] || "").trim();
+                
+                if (typeText && typeText.toUpperCase() !== "NO" && typeText !== "") {
+                    let statusText = "TODO";
+                    if (i + 1 < nextRows.length) {
+                        const nextLabel = (nextRows[i+1][0] || "").trim().toUpperCase();
+                        if (nextLabel.includes("STATUS")) {
+                            statusText = (nextRows[i+1][c] || "").trim().toUpperCase();
+                        }
+                    }
+                    
+                    let dbStatus = "TODO";
+                    if (statusText.includes("PROGRAMMATO")) dbStatus = "SCHEDULED";
+                    else if (statusText.includes("APPROVAZIONE") || statusText.includes("BOZZA PRONTA")) dbStatus = "APPROVAL";
+                    else if (statusText.includes("SALTATO")) dbStatus = "SKIPPED";
+                    
+                    // Determina il network dal label o dal contenuto
+                    let network = "IG/FB";
+                    if (rowLabel.includes("LINKEDIN")) network = "Linkedin";
+                    else if (rowLabel.includes("STORIES")) network = "Stories";
+                    else if (rowLabel.includes("TIK") || rowLabel.includes("TOK") || typeText.toUpperCase().includes("TIK")) network = "TikTok";
+                    else if (rowLabel.includes("BLOG") || rowLabel.includes("DEM")) network = "BLOG e DEM";
+                    else if (rowLabel.includes("SOCIAL")) {
+                       if (typeText.toUpperCase().includes("TIK")) network = "TikTok";
+                       else if (typeText.toUpperCase().includes("LINKEDIN")) network = "Linkedin";
+                       else network = "IG/FB";
+                    } else if (rowLabel.includes("IG") || rowLabel.includes("FB")) {
+                       network = "IG/FB";
+                    }
+
+                    postsData.push({
+                         date: dateObj,
+                         network: network,
+                         type: typeText,
+                         notes: contenuto,
+                         status: dbStatus
+                    });
+                }
             }
         }
     }
