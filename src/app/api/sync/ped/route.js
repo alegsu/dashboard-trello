@@ -130,7 +130,8 @@ export async function syncClientPedForMonth(clientId, monthKey, sheetUrl) {
                     
                     let dbStatus = "TODO";
                     if (statusText.includes("PROGRAMMATO")) dbStatus = "SCHEDULED";
-                    else if (statusText.includes("APPROVAZIONE") || statusText.includes("BOZZA PRONTA")) dbStatus = "APPROVAL";
+                    else if (statusText.includes("APPROVAZIONE")) dbStatus = "APPROVAL";
+                    else if (statusText.includes("BOZZA PRONTA")) dbStatus = "DRAFT";
                     else if (statusText.includes("SALTATO")) dbStatus = "SKIPPED";
                     
                     // Determina il network dal label o dal contenuto

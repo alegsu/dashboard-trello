@@ -338,11 +338,13 @@ export default function SocialCalendar({ clients, users = [] }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1, overflowY: 'auto' }}>
                   {contents.map((item, i) => {
                     const isApproval = item.status === 'APPROVAL';
+                    const isDraft = item.status === 'DRAFT';
                     const isScheduled = item.status === 'SCHEDULED';
                     const isSkipped = item.status === 'SKIPPED';
                     
                     let bgColor = 'rgba(0,0,0,0.2)';
                     if (isSkipped) bgColor = 'rgba(249, 115, 22, 0.15)';
+                    if (isDraft) bgColor = 'rgba(59, 130, 246, 0.15)'; // Blue for Draft
                     
                     let borderStyle = `none`;
                     let borderLeftStyle = `4px solid ${item.client?.color || 'white'}`;
@@ -361,7 +363,7 @@ export default function SocialCalendar({ clients, users = [] }) {
                         style={{ 
                           background: bgColor, 
                           border: borderStyle,
-                          borderLeft: isScheduled ? `4px solid #10b981` : borderLeftStyle,
+                          borderLeft: isScheduled ? `4px solid #10b981` : (isDraft ? `4px solid #3b82f6` : borderLeftStyle),
                           padding: '0.4rem', 
                           borderRadius: '4px',
                           fontSize: '0.75rem',
