@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.22.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🗑️ <strong>Rimozione Timeline:</strong> La scheda Timeline è stata dismessa per semplificare l'interfaccia e concentrare l'attenzione sul nuovo Calendario Social e sulla vista Kanban.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.21.0</h4>
                 <ul style={noteUlStyle}>
                   <li>✨ <strong>Modale Social Post:</strong> I post social non sono più semplici riquadri! Cliccando su un post nel calendario (senza trascinarlo) si aprirà un nuovo Modale dove potrai impostarne lo stato, scrivere note/copy ed entrare in discussione con il team tramite commenti, proprio come per le schede Kanban.</li>

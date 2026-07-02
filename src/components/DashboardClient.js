@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '@/app/page.module.css';
 import KanbanView from './KanbanView';
-import TimelineView from './TimelineView';
+
 import SettingsPanel from './SettingsPanel';
 import ManagementPanel from './ManagementPanel';
 import ProjectsView from './ProjectsView';
@@ -259,7 +259,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.21.0
+              v2.22.0
             </span>
           </div>
           
@@ -427,7 +427,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <button className={`${styles.navButton} ${view === 'kanban' ? styles.active : ''}`} onClick={() => setView('kanban')} disabled={visibleBoards.length === 0} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📋 Kanban</button>
               <button className={`${styles.navButton} ${view === 'social' ? styles.active : ''}`} onClick={() => setView('social')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📅 Social</button>
-              <button className={`${styles.navButton} ${view === 'timeline' ? styles.active : ''}`} onClick={() => setView('timeline')} disabled={visibleBoards.length === 0} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📊 Timeline</button>
+
               <button className={`${styles.navButton} ${view === 'projects' ? styles.active : ''}`} onClick={() => setView('projects')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🏢 Progetti</button>
               <button className={`${styles.navButton} ${view === 'clients' ? styles.active : ''}`} onClick={() => setView('clients')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>👥 Clienti</button>
               <button className={`${styles.navButton} ${view === 'accesses' ? styles.active : ''}`} onClick={() => setView('accesses')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🔑 Accessi</button>
@@ -490,14 +490,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               onOpenNotebook={setGlobalNotebookClient}
             />
           )}
-          {view === 'timeline' && selectedBoardId && (
-            <TimelineView 
-              lists={boardLists} 
-              cards={boardCards} 
-              members={initialMembers} 
-              onCardClick={setGlobalCardId}
-            />
-          )}
+
           {view === 'projects' && (
             <ProjectsView 
               clients={initialClients || []} 
