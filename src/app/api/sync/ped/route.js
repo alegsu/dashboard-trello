@@ -49,7 +49,23 @@ export async function syncClientPedForMonth(clientId, monthKey, sheetUrl) {
     { label: 'BLOG E DEM', key: 'BLOG e DEM' },
   ];
 
-  let state = "PREV"; // PREV, CURRENT, NEXT
+  let monthOffset = 0;
+  let firstDay = -1;
+  if (rows.length > 0) {
+      for (let r=0; r<rows.length; r++) {
+         if (rows[r].length >= 8) {
+            const nums = rows[r].slice(1, 8).map(x => parseInt(x, 10)).filter(x => !isNaN(x) && x >= 1 && x <= 31);
+            if (nums.length >= 4) {
+                firstDay = nums[0];
+                break;
+            }
+         }
+      }
+  }
+  if (firstDay > 20) {
+      monthOffset = -1;
+  }
+
   let lastDaySeen = 0;
   
   let postsData = [];
@@ -85,21 +101,18 @@ export async function syncClientPedForMonth(clientId, monthKey, sheetUrl) {
             const dayNum = parseInt(dayStr, 10);
             if (isNaN(dayNum)) continue;
             
-            // Determine exact date
-            if (state === "PREV") {
-              if (dayNum === 1) state = "CURRENT";
-            } else if (state === "CURRENT") {
-              if (dayNum === 1 && lastDaySeen >= 28) state = "NEXT";
+            // Determine exact date natively handling infinite consecutive months
+            if (lastDaySeen >= 28 && dayNum === 1) {
+                 monthOffset++;
             }
+            lastDaySeen = dayNum;
 
-            let m = targetMonth;
+            let m = targetMonth + monthOffset;
             let y = targetYear;
-            if (state === "PREV") { m = targetMonth - 1; }
-            else if (state === "NEXT") { m = targetMonth + 1; }
             
             // Fix year wraparound
-            if (m < 0) { m = 11; y--; }
-            if (m > 11) { m = 0; y++; }
+            while (m < 0) { m += 12; y--; }
+            while (m > 11) { m -= 12; y++; }
 
             const dateObj = new Date(Date.UTC(y, m, dayNum, 12, 0, 0)); 
             lastDaySeen = dayNum;
