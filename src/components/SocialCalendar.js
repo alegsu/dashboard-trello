@@ -254,14 +254,14 @@ export default function SocialCalendar({ clients, users = [] }) {
             <button onClick={handleGenerate} disabled={isGenerating} style={{ padding: '0.4rem 1rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               {isGenerating ? <Loader size={14} className="spin" /> : '✨ Genera mese'}
             </button>
-            <button onClick={handleBulkDelete} disabled={isGenerating} title="Svuota mese" style={{ padding: '0.4rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', borderRadius: '6px', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <button onClick={handleBulkDelete} disabled={isGenerating} title="Elimina i post della settimana, mese o cliente selezionato" style={{ padding: '0.4rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', borderRadius: '6px', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {isGenerating ? <Loader size={14} className="spin" /> : <Trash2 size={16} />}
             </button>
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <h3 style={{ margin: 0, minWidth: '150px', textAlign: 'center' }}>
+          <h3 style={{ margin: 0, minWidth: '220px', textAlign: 'center', whiteSpace: 'nowrap', fontSize: '1.1rem' }}>
             {viewMode === 'weekly' 
               ? `${days[0].getDate()} ${monthNames[days[0].getMonth()]} - ${days[6].getDate()} ${monthNames[days[6].getMonth()]}`
               : `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`
