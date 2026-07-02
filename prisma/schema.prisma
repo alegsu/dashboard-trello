@@ -29,6 +29,7 @@ model User {
   clients        Client[]        @relation("ClientCollaborators")
   projects       Project[]       @relation("ProjectAssignees")
   boards         Board[]         @relation("BoardAssignees")
+  socialPosts    SocialPost[]    @relation("SocialPostAssignees")
   
   // Impostazioni Notifiche
   notifyMentions       Boolean @default(true)
@@ -180,6 +181,7 @@ model Client {
   cards       Card[]
   collaborators User[]  @relation("ClientCollaborators")
   knowledgeNotes KnowledgeNote[]
+  socialPosts SocialPost[]
   
   openaiAssistantId   String?
   openaiVectorStoreId String?
@@ -295,4 +297,15 @@ model PendingNotification {
   message   String
   link      String?
   createdAt DateTime @default(now())
+}
+
+model SocialPost {
+  id        String   @id @default(cuid())
+  date      DateTime
+  type      String   // "post", "reel", "video", "stories"
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  assignees User[]   @relation("SocialPostAssignees")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }

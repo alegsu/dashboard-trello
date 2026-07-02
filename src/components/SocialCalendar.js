@@ -1,15 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-
-const itDaysMap = {
-  1: 'monday',
-  2: 'tuesday',
-  3: 'wednesday',
-  4: 'thursday',
-  5: 'friday',
-  6: 'saturday',
-  0: 'sunday'
-};
+import React, { useState, useMemo, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Calendar, Loader } from 'lucide-react';
 
 const typeColors = {
   post: '#3b82f6',
@@ -21,45 +11,10 @@ const typeColors = {
 export default function SocialCalendar({ clients }) {
   const [viewMode, setViewMode] = useState('weekly'); // 'weekly' or 'monthly'
   const [currentDate, setCurrentDate] = useState(new Date());
-
-  // Parse all clients' social plans
-  const socialClients = useMemo(() => {
-    return clients
-      .filter(c => c.socialPlan && c.status === 'CLIENTE')
-      .map(c => {
-        try {
-          return { ...c, plan: JSON.parse(c.socialPlan) };
-        } catch {
-          return null;
-        }
-      })
-      .filter(Boolean);
-  }, [clients]);
-
-  // Navigate dates
-  const handlePrev = () => {
-    const newDate = new Date(currentDate);
-    if (viewMode === 'weekly') {
-      newDate.setDate(newDate.getDate() - 7);
-    } else {
-      newDate.setMonth(newDate.getMonth() - 1);
-    }
-    setCurrentDate(newDate);
-  };
-
-  const handleNext = () => {
-    const newDate = new Date(currentDate);
-    if (viewMode === 'weekly') {
-      newDate.setDate(newDate.getDate() + 7);
-    } else {
-      newDate.setMonth(newDate.getMonth() + 1);
-    }
-    setCurrentDate(newDate);
-  };
-
-  const handleToday = () => {
-    setCurrentDate(new Date());
-  };
+  
+  const [posts, setPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Generate days based on view mode
   const days = useMemo(() => {
@@ -68,39 +23,30 @@ export default function SocialCalendar({ clients }) {
     date.setHours(0,0,0,0);
 
     if (viewMode === 'weekly') {
-      // Find Monday
       const day = date.getDay();
       const diff = date.getDate() - day + (day === 0 ? -6 : 1);
       const startOfWeek = new Date(date.setDate(diff));
-      
       for (let i = 0; i < 7; i++) {
         const d = new Date(startOfWeek);
         d.setDate(d.getDate() + i);
         list.push(d);
       }
     } else {
-      // Find start of month
       const y = date.getFullYear();
       const m = date.getMonth();
       const startOfMonth = new Date(y, m, 1);
       const endOfMonth = new Date(y, m + 1, 0);
       
-      // Pad beginning to start on Monday
       const startDay = startOfMonth.getDay();
       let padDays = startDay === 0 ? 6 : startDay - 1;
-      
       for (let i = padDays; i > 0; i--) {
         const d = new Date(startOfMonth);
         d.setDate(d.getDate() - i);
         list.push(d);
       }
-      
-      // Month days
       for (let i = 1; i <= endOfMonth.getDate(); i++) {
         list.push(new Date(y, m, i));
       }
-      
-      // Pad end to complete week
       const endDay = endOfMonth.getDay();
       let padEnd = endDay === 0 ? 0 : 7 - endDay;
       for (let i = 1; i <= padEnd; i++) {
@@ -112,31 +58,109 @@ export default function SocialCalendar({ clients }) {
     return list;
   }, [currentDate, viewMode]);
 
-  const monthNames = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-  const dayNames = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+  // Fetch posts when days change
+  useEffect(() => {
+    if (days.length === 0) return;
+    const fetchPosts = async () => {
+      setIsLoading(true);
+      try {
+        const start = days[0].toISOString();
+        const end = days[days.length - 1].toISOString();
+        const res = await fetch(`/api/social-posts?start=${start}&end=${end}`);
+        if (res.ok) {
+          const data = await res.json();
+          setPosts(data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      setIsLoading(false);
+    };
+    fetchPosts();
+  }, [days]);
+
+  // Navigate dates
+  const handlePrev = () => {
+    const newDate = new Date(currentDate);
+    if (viewMode === 'weekly') newDate.setDate(newDate.getDate() - 7);
+    else newDate.setMonth(newDate.getMonth() - 1);
+    setCurrentDate(newDate);
+  };
+
+  const handleNext = () => {
+    const newDate = new Date(currentDate);
+    if (viewMode === 'weekly') newDate.setDate(newDate.getDate() + 7);
+    else newDate.setMonth(newDate.getMonth() + 1);
+    setCurrentDate(newDate);
+  };
+
+  const handleToday = () => setCurrentDate(new Date());
+
+  const handleGenerate = async () => {
+    if (!confirm(`Vuoi generare automaticamente i post previsti dai piani editoriali per il mese di ${monthNames[currentDate.getMonth()]}?`)) return;
+    setIsGenerating(true);
+    try {
+      const res = await fetch('/api/social-posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          year: currentDate.getFullYear(),
+          month: currentDate.getMonth()
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        alert(`Generati ${data.generatedCount} post con successo!`);
+        // Trigger re-fetch
+        setCurrentDate(new Date(currentDate)); 
+      }
+    } catch(err) {
+      console.error(err);
+      alert('Errore durante la generazione');
+    }
+    setIsGenerating(false);
+  };
+
+  // Drag & Drop Handlers
+  const handleDragStart = (e, post) => {
+    e.dataTransfer.setData('postId', post.id);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (e, date) => {
+    e.preventDefault();
+    const postId = e.dataTransfer.getData('postId');
+    if (!postId) return;
+
+    // Ottimistic update
+    setPosts(prev => prev.map(p => {
+      if (p.id === postId) {
+        return { ...p, date: date.toISOString() };
+      }
+      return p;
+    }));
+
+    try {
+      await fetch(`/api/social-posts/${postId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: date.toISOString() })
+      });
+    } catch (err) {
+      console.error('Error updating post date', err);
+      // Ideally rollback on error
+    }
+  };
 
   const getDayContents = (date) => {
-    const dayOfWeek = date.getDay();
-    const dayKey = itDaysMap[dayOfWeek];
-    
-    const contents = [];
-    socialClients.forEach(client => {
-      const dayPlan = client.plan[dayKey];
-      if (dayPlan) {
-        ['post', 'reel', 'video', 'stories'].forEach(type => {
-          if (dayPlan[type] > 0) {
-            contents.push({
-              clientName: client.name,
-              color: client.color || '#333',
-              type,
-              count: dayPlan[type]
-            });
-          }
-        });
-      }
-    });
-    return contents;
+    return posts.filter(p => new Date(p.date).toDateString() === date.toDateString());
   };
+
+  const monthNames = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  const dayNames = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -156,6 +180,10 @@ export default function SocialCalendar({ clients }) {
               Mese
             </button>
           </div>
+
+          <button onClick={handleGenerate} disabled={isGenerating} style={{ padding: '0.4rem 1rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {isGenerating ? <Loader size={14} className="spin" /> : '✨ Genera mese in corso'}
+          </button>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -174,7 +202,13 @@ export default function SocialCalendar({ clients }) {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', position: 'relative' }}>
+        {isLoading && (
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10 }}>
+            <Loader size={30} className="spin" />
+          </div>
+        )}
+        
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(7, 1fr)', 
@@ -182,30 +216,33 @@ export default function SocialCalendar({ clients }) {
           height: viewMode === 'weekly' ? '100%' : 'auto',
           minHeight: viewMode === 'monthly' ? '600px' : 'auto'
         }}>
-          {/* Header Giorni della settimana */}
           {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(d => (
             <div key={d} style={{ textAlign: 'center', fontWeight: 'bold', padding: '0.5rem', background: 'var(--bg-glass)', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
               {d}
             </div>
           ))}
 
-          {/* Celle Calendario */}
           {days.map((date, index) => {
             const isToday = new Date().toDateString() === date.toDateString();
             const isCurrentMonth = date.getMonth() === currentDate.getMonth();
             const contents = getDayContents(date);
 
             return (
-              <div key={index} style={{ 
-                background: isToday ? 'var(--bg-elevated)' : 'var(--bg-glass)', 
-                border: isToday ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
-                borderRadius: '6px',
-                padding: '0.5rem',
-                opacity: (viewMode === 'monthly' && !isCurrentMonth) ? 0.4 : 1,
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: viewMode === 'weekly' ? '200px' : '100px'
-              }}>
+              <div 
+                key={index}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, date)}
+                style={{ 
+                  background: isToday ? 'var(--bg-elevated)' : 'var(--bg-glass)', 
+                  border: isToday ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                  borderRadius: '6px',
+                  padding: '0.5rem',
+                  opacity: (viewMode === 'monthly' && !isCurrentMonth) ? 0.4 : 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  minHeight: viewMode === 'weekly' ? '200px' : '100px',
+                  transition: 'background 0.2s'
+                }}>
                 <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
                   <span>{date.getDate()}</span>
                   {viewMode === 'monthly' && <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{dayNames[date.getDay()]}</span>}
@@ -213,20 +250,34 @@ export default function SocialCalendar({ clients }) {
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1, overflowY: 'auto' }}>
                   {contents.map((item, i) => (
-                    <div key={i} style={{ 
-                      background: 'rgba(0,0,0,0.2)', 
-                      borderLeft: `4px solid ${item.color || 'white'}`,
-                      padding: '0.3rem', 
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      display: 'flex',
-                      flexDirection: 'column'
-                    }}>
-                      <span style={{ fontWeight: 'bold', color: item.color || 'var(--text-primary)' }}>{item.clientName}</span>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem' }}>
-                        <span style={{ color: typeColors[item.type] || 'white', textTransform: 'capitalize' }}>{item.type}</span>
-                        <span style={{ background: 'var(--bg-primary)', padding: '0.1rem 0.3rem', borderRadius: '10px', fontWeight: 'bold' }}>x{item.count}</span>
+                    <div 
+                      key={item.id} 
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, item)}
+                      style={{ 
+                        background: 'rgba(0,0,0,0.2)', 
+                        borderLeft: `4px solid ${item.client?.color || 'white'}`,
+                        padding: '0.4rem', 
+                        borderRadius: '4px',
+                        fontSize: '0.75rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        cursor: 'grab'
+                      }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 'bold', color: item.client?.color || 'var(--text-primary)' }}>{item.client?.name}</span>
+                        <span style={{ color: typeColors[item.type] || 'white', textTransform: 'capitalize', fontSize: '0.7rem' }}>{item.type}</span>
                       </div>
+                      
+                      {item.assignees && item.assignees.length > 0 && (
+                        <div style={{ display: 'flex', gap: '0.2rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
+                          {item.assignees.map(a => (
+                            <div key={a.id} title={a.name} style={{ width: '18px', height: '18px', borderRadius: '50%', background: a.color || '#555', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', fontWeight: 'bold', color: 'white' }}>
+                              {a.name.substring(0, 2).toUpperCase()}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
