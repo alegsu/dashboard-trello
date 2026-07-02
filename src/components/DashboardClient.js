@@ -146,6 +146,10 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
       fetchNotifications();
       fetch('/api/cron/process-queue?force=true').catch(() => {});
     }, 60000);
+
+    const pedSyncInterval = setInterval(() => {
+      fetch('/api/cron/sync-peds').catch(() => {});
+    }, 30 * 60 * 1000); // 30 minutes
     
     // Auth and Tracking
     const storedUserId = localStorage.getItem('userId');
@@ -165,6 +169,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
       }, 60000);
       return () => {
         clearInterval(interval);
+        clearInterval(pedSyncInterval);
         clearInterval(trackInterval);
       };
     } else {

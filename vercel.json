@@ -7,10 +7,6 @@
     {
       "path": "/api/cron/daily-recap",
       "schedule": "10 7 * * 1-5"
-    },
-    {
-      "path": "/api/cron/sync-peds",
-      "schedule": "*/30 * * * *"
     }
   ]
 }
