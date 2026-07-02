@@ -166,6 +166,20 @@ export default function AccessesView({ clients = [], onRefresh }) {
               <input type="text" className={styles.input} value={name} onChange={e => setName(e.target.value)} required style={{ fontSize: '1.1rem', fontWeight: 'bold' }} />
             </div>
 
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Classificazione Accesso</label>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: type === 'CLIENT' ? 'var(--accent-primary)' : 'var(--bg-primary)', color: type === 'CLIENT' ? 'black' : 'var(--text-primary)', border: `1px solid ${type === 'CLIENT' ? 'var(--accent-primary)' : 'var(--border-color)'}`, borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', flex: 1, justifyContent: 'center', transition: 'all 0.2s' }}>
+                  <input type="radio" name="accessType" value="CLIENT" checked={type === 'CLIENT'} onChange={() => setType('CLIENT')} style={{ display: 'none' }} />
+                  <span style={{ fontSize: '1.2rem' }}>👤</span> Cliente
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: type === 'SUPPLIER' ? 'var(--accent-primary)' : 'var(--bg-primary)', color: type === 'SUPPLIER' ? 'black' : 'var(--text-primary)', border: `1px solid ${type === 'SUPPLIER' ? 'var(--accent-primary)' : 'var(--border-color)'}`, borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', flex: 1, justifyContent: 'center', transition: 'all 0.2s' }}>
+                  <input type="radio" name="accessType" value="SUPPLIER" checked={type === 'SUPPLIER'} onChange={() => setType('SUPPLIER')} style={{ display: 'none' }} />
+                  <span style={{ fontSize: '1.2rem' }}>🛠️</span> Fornitore / Tool Agenzia
+                </label>
+              </div>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
               <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Appunti e Testo</label>
               <textarea className={styles.input} rows={12} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Scrivi liberamente qui..." style={{ resize: 'vertical' }} />
@@ -180,13 +194,7 @@ export default function AccessesView({ clients = [], onRefresh }) {
               {showFormCreds && (
                 <div style={{ padding: '0.8rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', borderTop: '1px solid var(--border-color)' }}>
                   
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Tipo</label>
-                    <select className={styles.input} value={type} onChange={e => setType(e.target.value)}>
-                      <option value="SUPPLIER">Fornitore / Tool Agenzia</option>
-                      <option value="CLIENT">Speciale Cliente</option>
-                    </select>
-                  </div>
+
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                     <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>URL Login</label>
