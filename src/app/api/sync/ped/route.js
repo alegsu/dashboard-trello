@@ -83,6 +83,36 @@ export async function syncClientPedForMonth(clientId, monthKey, sheetUrl) {
     }
 
     if (isDaysRow) {
+        // Check if the month is explicitly written in column I (index 8) or beyond
+        let rowMonth = null;
+        for (let col = 8; col < row.length; col++) {
+            const colText = (row[col] || "").toUpperCase();
+            for (let i = 0; i < monthNames.length; i++) {
+                if (colText.includes(monthNames[i])) {
+                    rowMonth = i;
+                    break;
+                }
+            }
+            if (rowMonth !== null) break;
+        }
+
+        if (rowMonth !== null) {
+            let baseM = targetMonth + monthOffset;
+            let currentM = baseM % 12;
+            if (currentM < 0) currentM += 12;
+            
+            let diff = rowMonth - currentM;
+            if (diff < -6) diff += 12;
+            if (diff > 6) diff -= 12;
+            monthOffset += diff;
+            
+            const daysInRow = row.slice(1, 8).map(x => parseInt(x, 10)).filter(x => !isNaN(x));
+            if (daysInRow.includes(1) && daysInRow[0] > 20) {
+                monthOffset -= 1;
+            }
+            lastDaySeen = daysInRow[0] - 1;
+        }
+
         let nextRows = [];
         let nextIdx = r + 1;
         while (nextIdx < rows.length) {
