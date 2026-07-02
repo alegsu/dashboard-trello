@@ -150,6 +150,15 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.19.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>✨ <strong>Calendario Social Unificato:</strong> È nata una nuova area! Nel menu principale troverai la nuova scheda "Social". Si tratta di un calendario (Mensile/Settimanale) dove atterrano in automatico le scadenze ricorrenti di tutti i clienti.</li>
+                  <li>✨ <strong>Piano Editoriale per Cliente:</strong> Ora nella scheda <em>Clienti</em> puoi impostare quante volte a settimana un cliente pubblica (Post, Reel, Storie, Video) distribuendoli nei giorni dal Lunedì alla Domenica. Il Calendario Social leggerà questi dati e posizionerà da solo i riquadri riepilogativi!</li>
+                  <li>🐛 <strong>Fix Recap Giornaliero:</strong> Risolto il problema che impediva l'invio corretto della mail riepilogativa mattutina su Vercel. Ora le scadenze orfane e i task sprovvisti di assegnatario non bloccheranno l'invio.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.18.0</h4>
                 <ul style={noteUlStyle}>
                   <li>✨ <strong>Estrazione Automatica Checklist:</strong> Nel dettaglio delle schede, accanto al titolo "Descrizione", è comparso un nuovo pulsante magico. Cliccandolo, l'Intelligenza Artificiale leggerà la descrizione (es. appunti di una call presi al volo) ed estrarrà in automatico una lista pulita di azioni da svolgere, creando una Checklist pronta all'uso!</li>
