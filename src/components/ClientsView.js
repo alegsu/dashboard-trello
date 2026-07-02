@@ -33,6 +33,10 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
   // Filtri
   const [filterActive, setFilterActive] = useState(true);
 
+  // Expandables
+  const [showAI, setShowAI] = useState(false);
+  const [showDanger, setShowDanger] = useState(false);
+
   useEffect(() => {
     setClients(initialClients);
 
@@ -270,40 +274,31 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                   style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 'bold' }}
                 />
               </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Progetto NotebookLM</label>
-                <div style={{ display: 'flex', gap: '0.4rem' }}>
-                  <input 
-                    type="url" 
-                    value={notebookLmUrl} 
-                    onChange={e => setNotebookLmUrl(e.target.value)} 
-                    placeholder="https://notebooklm.google.com/..." 
-                    style={{ flex: 1, padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
-                  />
-                  {notebookLmUrl && (
-                    <a href={notebookLmUrl} target="_blank" rel="noreferrer" style={{ padding: '0.4rem 0.8rem', background: 'var(--status-in-progress, #3b82f6)', color: 'white', borderRadius: '4px', textDecoration: 'none', display: 'flex', alignItems: 'center', fontSize: '0.85rem' }}>
-                      Apri
-                    </a>
-                  )}
-                </div>
-              </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Progetto Claude</label>
-                <div style={{ display: 'flex', gap: '0.4rem' }}>
-                  <input 
-                    type="url" 
-                    value={claudeUrl} 
-                    onChange={e => setClaudeUrl(e.target.value)} 
-                    placeholder="https://claude.ai/project/..." 
-                    style={{ flex: 1, padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
-                  />
-                  {claudeUrl && (
-                    <a href={claudeUrl} target="_blank" rel="noreferrer" style={{ padding: '0.4rem 0.8rem', background: '#d97757', color: 'white', borderRadius: '4px', textDecoration: 'none', display: 'flex', alignItems: 'center', fontSize: '0.85rem' }}>
-                      Apri
-                    </a>
-                  )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.5rem' }}>
+                <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Piano Editoriale Social</label>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Imposta quanti contenuti al giorno sono previsti. Compariranno automaticamente nel Calendario Social.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', marginTop: '0.3rem' }}>
+                  {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
+                    const itDays = { monday: 'Lunedì', tuesday: 'Martedì', wednesday: 'Mercoledì', thursday: 'Giovedì', friday: 'Venerdì', saturday: 'Sabato', sunday: 'Domenica' };
+                    return (
+                      <div key={day} style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem', borderRadius: '4px' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 'bold', textAlign: 'center', marginBottom: '0.3rem' }}>{itDays[day]}</div>
+                        {['post', 'reel', 'video', 'stories'].map(type => (
+                          <div key={type} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem' }}>
+                            <span style={{textTransform: 'capitalize'}}>{type}</span>
+                            <input 
+                              type="number" 
+                              min="0" 
+                              value={socialPlan?.[day]?.[type] || 0} 
+                              onChange={e => setSocialPlan(prev => ({...prev, [day]: {...(prev?.[day] || {}), [type]: parseInt(e.target.value) || 0}}))}
+                              style={{ width: '40px', padding: '0.1rem', fontSize: '0.75rem', background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '2px', textAlign: 'center' }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -333,35 +328,55 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.5rem' }}>
-                <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Piano Editoriale Social</label>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Imposta quanti contenuti al giorno sono previsti. Compariranno automaticamente nel Calendario Social.</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', marginTop: '0.3rem' }}>
-                  {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
-                    const itDays = { monday: 'Lunedì', tuesday: 'Martedì', wednesday: 'Mercoledì', thursday: 'Giovedì', friday: 'Venerdì', saturday: 'Sabato', sunday: 'Domenica' };
-                    return (
-                      <div key={day} style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem', borderRadius: '4px' }}>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 'bold', textAlign: 'center', marginBottom: '0.3rem' }}>{itDays[day]}</div>
-                        {['post', 'reel', 'video', 'stories'].map(type => (
-                          <div key={type} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem' }}>
-                            <span style={{textTransform: 'capitalize'}}>{type}</span>
-                            <input 
-                              type="number" 
-                              min="0" 
-                              value={socialPlan?.[day]?.[type] || 0} 
-                              onChange={e => setSocialPlan(prev => ({...prev, [day]: {...(prev?.[day] || {}), [type]: parseInt(e.target.value) || 0}}))}
-                              style={{ width: '40px', padding: '0.1rem', fontSize: '0.75rem', background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '2px', textAlign: 'center' }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })}
+              <div style={{ marginTop: '0.5rem', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'rgba(255,255,255,0.02)' }}>
+                <div onClick={() => setShowAI(!showAI)} style={{ padding: '0.6rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                  <span>{showAI ? '−' : '+'}</span>
+                  Link Esterni AI
                 </div>
+                
+                {showAI && (
+                  <div style={{ padding: '0 0.8rem 0.8rem 0.8rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                      <label style={{ fontWeight: 'bold', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Progetto NotebookLM</label>
+                      <div style={{ display: 'flex', gap: '0.4rem' }}>
+                        <input 
+                          type="url" 
+                          value={notebookLmUrl} 
+                          onChange={e => setNotebookLmUrl(e.target.value)} 
+                          placeholder="https://notebooklm.google.com/..." 
+                          style={{ flex: 1, padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
+                        />
+                        {notebookLmUrl && (
+                          <a href={notebookLmUrl} target="_blank" rel="noreferrer" style={{ padding: '0.4rem 0.8rem', background: 'var(--status-in-progress, #3b82f6)', color: 'white', borderRadius: '4px', textDecoration: 'none', display: 'flex', alignItems: 'center', fontSize: '0.85rem' }}>
+                            Apri
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                      <label style={{ fontWeight: 'bold', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Progetto Claude</label>
+                      <div style={{ display: 'flex', gap: '0.4rem' }}>
+                        <input 
+                          type="url" 
+                          value={claudeUrl} 
+                          onChange={e => setClaudeUrl(e.target.value)} 
+                          placeholder="https://claude.ai/project/..." 
+                          style={{ flex: 1, padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
+                        />
+                        {claudeUrl && (
+                          <a href={claudeUrl} target="_blank" rel="noreferrer" style={{ padding: '0.4rem 0.8rem', background: '#d97757', color: 'white', borderRadius: '4px', textDecoration: 'none', display: 'flex', alignItems: 'center', fontSize: '0.85rem' }}>
+                            Apri
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                <button type="submit" style={{ padding: '0.5rem 1rem', background: 'var(--accent-primary)', color: 'black', borderRadius: '4px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <button type="submit" style={{ padding: '0.5rem 1.5rem', background: 'var(--accent-primary)', color: 'black', borderRadius: '4px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.9rem' }}>
                   Salva Modifiche
                 </button>
               </div>
@@ -369,44 +384,51 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
 
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '1.5rem 0' }} />
             
-            <h3 style={{ color: 'var(--status-danger)', fontSize: '1rem', marginTop: 0 }}>Zona Pericolosa</h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', background: 'rgba(255,0,0,0.05)', padding: '0.8rem', border: '1px solid rgba(255,0,0,0.2)', borderRadius: '8px' }}>
-              
-              <div>
-                <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '0.9rem' }}>Converti in Fornitore/Tool</h4>
-                <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Questo non era un vero cliente? Spostalo nella rubrica degli Accessi ed eliminalo dalla lista clienti.</p>
-                <button onClick={handleConvertToSupplier} style={{ padding: '0.4rem 0.8rem', background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderRadius: '4px', border: '1px solid var(--border-color)', cursor: 'pointer', fontSize: '0.8rem' }}>
-                  Converti in Fornitore
-                </button>
+            <div style={{ background: 'rgba(255,0,0,0.02)', border: '1px solid rgba(255,0,0,0.1)', borderRadius: '6px' }}>
+              <div onClick={() => setShowDanger(!showDanger)} style={{ padding: '0.6rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--status-danger)' }}>
+                <span>{showDanger ? '−' : '+'}</span>
+                Zona Pericolosa
               </div>
+              
+              {showDanger && (
+                <div style={{ padding: '0 0.8rem 0.8rem 0.8rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                  
+                  <div>
+                    <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '0.9rem' }}>Converti in Fornitore/Tool</h4>
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Questo non era un vero cliente? Spostalo nella rubrica degli Accessi ed eliminalo dalla lista clienti.</p>
+                    <button onClick={handleConvertToSupplier} style={{ padding: '0.4rem 0.8rem', background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderRadius: '4px', border: '1px solid var(--border-color)', cursor: 'pointer', fontSize: '0.8rem' }}>
+                      Converti in Fornitore
+                    </button>
+                  </div>
 
-              <hr style={{ border: 'none', borderTop: '1px solid rgba(255,0,0,0.1)' }} />
+                  <hr style={{ border: 'none', borderTop: '1px solid rgba(255,0,0,0.1)' }} />
 
-              <div>
-                <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '0.9rem' }}>Unisci a un altro cliente</h4>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <select value={mergeTargetId} onChange={e => setMergeTargetId(e.target.value)} style={{ flex: 1, padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}>
-                    <option value="">-- Seleziona destinazione --</option>
-                    {clients.filter(c => c.id !== selectedClient.id).map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                  <button onClick={handleMerge} disabled={!mergeTargetId} style={{ padding: '0.4rem 0.8rem', background: 'var(--status-warning)', color: 'white', borderRadius: '4px', border: 'none', cursor: mergeTargetId ? 'pointer' : 'not-allowed', fontWeight: 'bold', fontSize: '0.8rem' }}>
-                    Unisci
-                  </button>
+                  <div>
+                    <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '0.9rem' }}>Unisci a un altro cliente</h4>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <select value={mergeTargetId} onChange={e => setMergeTargetId(e.target.value)} style={{ flex: 1, padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}>
+                        <option value="">-- Seleziona destinazione --</option>
+                        {clients.filter(c => c.id !== selectedClient.id).map(c => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                      <button onClick={handleMerge} disabled={!mergeTargetId} style={{ padding: '0.4rem 0.8rem', background: 'var(--status-warning)', color: 'white', borderRadius: '4px', border: 'none', cursor: mergeTargetId ? 'pointer' : 'not-allowed', fontWeight: 'bold', fontSize: '0.8rem' }}>
+                        Unisci
+                      </button>
+                    </div>
+                  </div>
+
+                  <hr style={{ border: 'none', borderTop: '1px solid rgba(255,0,0,0.1)' }} />
+                  
+                  <div>
+                    <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '0.9rem' }}>Elimina Cliente</h4>
+                    <button onClick={handleDelete} style={{ padding: '0.4rem 0.8rem', background: 'var(--status-danger)', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem' }}>
+                      Elimina Definitivamente
+                    </button>
+                  </div>
+
                 </div>
-              </div>
-
-              <hr style={{ border: 'none', borderTop: '1px solid rgba(255,0,0,0.1)' }} />
-              
-              <div>
-                <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '0.9rem' }}>Elimina Cliente</h4>
-                <button onClick={handleDelete} style={{ padding: '0.4rem 0.8rem', background: 'var(--status-danger)', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem' }}>
-                  Elimina Definitivamente
-                </button>
-              </div>
-
+              )}
             </div>
 
             {/* Mostriamo i dati sincronizzati da Google Sheets se presenti */}
