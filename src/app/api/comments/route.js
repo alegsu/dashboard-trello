@@ -10,12 +10,17 @@ export async function POST(request) {
     if (!sessionToken) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     const session = await decrypt(sessionToken);
 
-    const { text, cardId } = await request.json();
-    if (!text || !cardId) return NextResponse.json({ error: 'Text and cardId required' }, { status: 400 });
+    const { text, cardId, socialPostId } = await request.json();
+    if (!text || (!cardId && !socialPostId)) return NextResponse.json({ error: 'Text and cardId or socialPostId required' }, { status: 400 });
 
     const newComment = await prisma.comment.create({
-      data: { text, cardId, authorId: session.id },
-      include: { author: true, card: true }
+      data: { 
+        text, 
+        authorId: session.id,
+        ...(cardId ? { cardId } : {}),
+        ...(socialPostId ? { socialPostId } : {})
+      },
+      include: { author: true, card: true, socialPost: true }
     });
 
     // Notifiche Mentions

@@ -5,16 +5,18 @@ export async function PUT(request, { params }) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const { date } = body;
+    const { date, status, notes, type } = body;
 
-    if (!date) {
-      return NextResponse.json({ error: 'Missing date' }, { status: 400 });
-    }
+    const dataToUpdate = {};
+    if (date) dataToUpdate.date = new Date(date);
+    if (status) dataToUpdate.status = status;
+    if (notes !== undefined) dataToUpdate.notes = notes;
+    if (type) dataToUpdate.type = type;
 
     const updatedPost = await prisma.socialPost.update({
       where: { id },
-      data: { date: new Date(date) },
-      include: { client: true, assignees: true }
+      data: dataToUpdate,
+      include: { client: true, assignees: true, comments: { include: { author: true } } }
     });
 
     return NextResponse.json(updatedPost);

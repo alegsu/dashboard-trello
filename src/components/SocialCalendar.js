@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, Loader } from 'lucide-react';
+import SocialPostModal from './SocialPostModal';
 
 const typeColors = {
   post: '#3b82f6',
@@ -18,6 +19,8 @@ export default function SocialCalendar({ clients, users = [] }) {
 
   const [filterClient, setFilterClient] = useState('');
   const [filterUser, setFilterUser] = useState('');
+  
+  const [selectedPost, setSelectedPost] = useState(null);
 
   // Generate days based on view mode
   const days = useMemo(() => {
@@ -154,8 +157,16 @@ export default function SocialCalendar({ clients, users = [] }) {
       });
     } catch (err) {
       console.error('Error updating post date', err);
-      // Ideally rollback on error
     }
+  };
+
+  const handleUpdatePost = (updatedPost) => {
+    setPosts(prev => prev.map(p => p.id === updatedPost.id ? updatedPost : p));
+  };
+
+  const handleDeletePost = (postId) => {
+    setPosts(prev => prev.filter(p => p.id !== postId));
+    setSelectedPost(null);
   };
 
   const getDayContents = (date) => {
@@ -269,25 +280,37 @@ export default function SocialCalendar({ clients, users = [] }) {
                 </div>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1, overflowY: 'auto' }}>
-                  {contents.map((item, i) => (
-                    <div 
-                      key={item.id} 
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, item)}
-                      style={{ 
-                        background: 'rgba(0,0,0,0.2)', 
-                        borderLeft: `4px solid ${item.client?.color || 'white'}`,
-                        padding: '0.4rem', 
-                        borderRadius: '4px',
-                        fontSize: '0.75rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        cursor: 'grab'
-                      }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 'bold', color: item.client?.color || 'var(--text-primary)' }}>{item.client?.name}</span>
-                        <span style={{ color: typeColors[item.type] || 'white', textTransform: 'capitalize', fontSize: '0.7rem' }}>{item.type}</span>
-                      </div>
+                  {contents.map((item, i) => {
+                    const isApproval = item.status === 'APPROVAL';
+                    const isScheduled = item.status === 'SCHEDULED';
+                    const isSkipped = item.status === 'SKIPPED';
+                    
+                    let bgColor = 'rgba(0,0,0,0.2)';
+                    if (isScheduled) bgColor = 'rgba(16, 185, 129, 0.15)';
+                    if (isSkipped) bgColor = 'rgba(249, 115, 22, 0.15)';
+                    
+                    return (
+                      <div 
+                        key={item.id} 
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, item)}
+                        onClick={() => setSelectedPost(item)}
+                        className={isApproval ? 'pulse-purple' : ''}
+                        style={{ 
+                          background: bgColor, 
+                          borderLeft: `4px solid ${item.client?.color || 'white'}`,
+                          padding: '0.4rem', 
+                          borderRadius: '4px',
+                          fontSize: '0.75rem',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          cursor: 'pointer',
+                          opacity: isSkipped ? 0.6 : 1
+                        }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 'bold', color: item.client?.color || 'var(--text-primary)', textDecoration: isSkipped ? 'line-through' : 'none' }}>{item.client?.name}</span>
+                          <span style={{ color: typeColors[item.type] || 'white', textTransform: 'capitalize', fontSize: '0.7rem' }}>{item.type}</span>
+                        </div>
                       
                       {item.assignees && item.assignees.length > 0 && (
                         <div style={{ display: 'flex', gap: '0.2rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
@@ -299,13 +322,22 @@ export default function SocialCalendar({ clients, users = [] }) {
                         </div>
                       )}
                     </div>
-                  ))}
+                  );})}
                 </div>
               </div>
             );
           })}
         </div>
       </div>
+      
+      {selectedPost && (
+        <SocialPostModal 
+          post={selectedPost} 
+          onClose={() => setSelectedPost(null)}
+          onUpdate={handleUpdatePost}
+          onDelete={handleDeletePost}
+        />
+      )}
     </div>
   );
 }

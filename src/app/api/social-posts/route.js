@@ -20,7 +20,8 @@ export async function GET(request) {
       },
       include: {
         client: true,
-        assignees: true
+        assignees: true,
+        comments: { include: { author: true } }
       },
       orderBy: { date: 'asc' }
     });

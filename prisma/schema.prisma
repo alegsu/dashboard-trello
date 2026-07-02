@@ -126,8 +126,11 @@ model Comment {
   text      String
   createdAt DateTime @default(now())
   
-  cardId    String
-  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId    String?
+  card      Card?    @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  
+  socialPostId String?
+  socialPost   SocialPost? @relation(fields: [socialPostId], references: [id], onDelete: Cascade)
   
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
@@ -306,6 +309,11 @@ model SocialPost {
   clientId  String
   client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   assignees User[]   @relation("SocialPostAssignees")
+  
+  status    String   @default("TODO") // TODO, APPROVAL, SCHEDULED, SKIPPED
+  notes     String?  @db.Text
+  comments  Comment[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }

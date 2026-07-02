@@ -426,10 +426,10 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             {/* Nav Tabs merged into the same row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <button className={`${styles.navButton} ${view === 'kanban' ? styles.active : ''}`} onClick={() => setView('kanban')} disabled={visibleBoards.length === 0} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📋 Kanban</button>
+              <button className={`${styles.navButton} ${view === 'social' ? styles.active : ''}`} onClick={() => setView('social')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📅 Social</button>
               <button className={`${styles.navButton} ${view === 'timeline' ? styles.active : ''}`} onClick={() => setView('timeline')} disabled={visibleBoards.length === 0} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📊 Timeline</button>
               <button className={`${styles.navButton} ${view === 'projects' ? styles.active : ''}`} onClick={() => setView('projects')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🏢 Progetti</button>
               <button className={`${styles.navButton} ${view === 'clients' ? styles.active : ''}`} onClick={() => setView('clients')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>👥 Clienti</button>
-              <button className={`${styles.navButton} ${view === 'social' ? styles.active : ''}`} onClick={() => setView('social')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>📅 Social</button>
               <button className={`${styles.navButton} ${view === 'accesses' ? styles.active : ''}`} onClick={() => setView('accesses')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🔑 Accessi</button>
               {currentUser?.role === 'admin' && (
                 <button className={`${styles.navButton} ${view === 'management' ? styles.active : ''}`} onClick={() => setView('management')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-primary)' }}>👑 Management</button>
