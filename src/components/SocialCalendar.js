@@ -298,13 +298,13 @@ export default function SocialCalendar({ clients, users = [] }) {
         
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(7, 1fr)', 
+          gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', 
           gap: '0.5rem', 
           height: viewMode === 'weekly' ? '100%' : 'auto',
           minHeight: viewMode === 'monthly' ? '600px' : 'auto'
         }}>
           {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(d => (
-            <div key={d} style={{ textAlign: 'center', fontWeight: 'bold', padding: '0.5rem', background: 'var(--bg-glass)', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+            <div key={d} style={{ textAlign: 'center', fontWeight: 'bold', padding: '0.5rem', background: 'var(--bg-glass)', borderRadius: '6px', border: '1px solid var(--border-color)', minWidth: 0 }}>
               {d}
             </div>
           ))}
@@ -328,14 +328,15 @@ export default function SocialCalendar({ clients, users = [] }) {
                   display: 'flex',
                   flexDirection: 'column',
                   minHeight: viewMode === 'weekly' ? '200px' : '100px',
-                  transition: 'background 0.2s'
+                  transition: 'background 0.2s',
+                  minWidth: 0
                 }}>
-                <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', minWidth: 0 }}>
                   <span>{date.getDate()}</span>
                   {viewMode === 'monthly' && <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{dayNames[date.getDay()]}</span>}
                 </div>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1, overflowY: 'auto' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1, overflowY: 'auto', minWidth: 0 }}>
                   {contents.map((item, i) => {
                     const isApproval = item.status === 'APPROVAL';
                     const isDraft = item.status === 'DRAFT';
