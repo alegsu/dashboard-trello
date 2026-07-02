@@ -117,3 +117,35 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Failed to generate social posts' }, { status: 500 });
   }
 }
+
+export async function DELETE(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const yearStr = searchParams.get('year');
+    const monthStr = searchParams.get('month');
+
+    if (!yearStr || !monthStr) {
+      return NextResponse.json({ error: 'Missing year or month' }, { status: 400 });
+    }
+
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10);
+
+    const startOfMonth = new Date(year, month, 1);
+    const endOfMonth = new Date(year, month + 1, 0);
+
+    const result = await prisma.socialPost.deleteMany({
+      where: {
+        date: {
+          gte: startOfMonth,
+          lte: endOfMonth
+        }
+      }
+    });
+
+    return NextResponse.json({ success: true, deletedCount: result.count });
+  } catch (error) {
+    console.error('Error deleting social posts:', error);
+    return NextResponse.json({ error: 'Failed to delete social posts' }, { status: 500 });
+  }
+}

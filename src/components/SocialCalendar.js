@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Loader } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Loader, Trash2 } from 'lucide-react';
 import SocialPostModal from './SocialPostModal';
 
 const typeColors = {
@@ -127,6 +127,25 @@ export default function SocialCalendar({ clients, users = [] }) {
     setIsGenerating(false);
   };
 
+  const handleBulkDelete = async () => {
+    if (!confirm(`Sei sicuro di voler ELIMINARE TUTTI I POST del mese di ${monthNames[currentDate.getMonth()]}? Questa azione non può essere annullata.`)) return;
+    setIsGenerating(true); // Using same loading state
+    try {
+      const res = await fetch(`/api/social-posts?year=${currentDate.getFullYear()}&month=${currentDate.getMonth()}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        alert(`Eliminati ${data.deletedCount} post con successo.`);
+        setCurrentDate(new Date(currentDate)); // Trigger re-fetch
+      }
+    } catch(err) {
+      console.error(err);
+      alert('Errore durante l\'eliminazione');
+    }
+    setIsGenerating(false);
+  };
+
   // Drag & Drop Handlers
   const handleDragStart = (e, post) => {
     e.dataTransfer.setData('postId', post.id);
@@ -212,9 +231,14 @@ export default function SocialCalendar({ clients, users = [] }) {
             {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
 
-          <button onClick={handleGenerate} disabled={isGenerating} style={{ padding: '0.4rem 1rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            {isGenerating ? <Loader size={14} className="spin" /> : '✨ Genera mese'}
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button onClick={handleGenerate} disabled={isGenerating} style={{ padding: '0.4rem 1rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {isGenerating ? <Loader size={14} className="spin" /> : '✨ Genera mese'}
+            </button>
+            <button onClick={handleBulkDelete} disabled={isGenerating} title="Svuota mese" style={{ padding: '0.4rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', borderRadius: '6px', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {isGenerating ? <Loader size={14} className="spin" /> : <Trash2 size={16} />}
+            </button>
+          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
