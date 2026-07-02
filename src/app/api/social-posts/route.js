@@ -87,23 +87,30 @@ export async function POST(request) {
           for (const type of ['post', 'reel', 'video', 'stories']) {
             if (dayPlan[type] > 0) {
               // Generate N posts for this type
-              for (let i = 0; i < dayPlan[type]; i++) {
-                // Check if a post of this exact type already exists for this client on this day to avoid duplicates when regenerating
-                // Actually, the simplest approach for "Generate month" is to just delete existing and recreate, OR just create if we don't care about duplicates.
-                // It's safer to check for existence or just warn the user. 
-                // Let's check for existence of at least the same amount.
-                
-                await prisma.socialPost.create({
-                  data: {
+              if (dayPlan[type] > 0) {
+                const existingCount = await prisma.socialPost.count({
+                  where: {
                     date: currentDate,
-                    type,
-                    clientId: client.id,
-                    assignees: {
-                      connect: client.collaborators.map(c => ({ id: c.id }))
-                    }
+                    type: type,
+                    clientId: client.id
                   }
                 });
-                generatedCount++;
+
+                const toGenerate = dayPlan[type] - existingCount;
+
+                for (let i = 0; i < toGenerate; i++) {
+                  await prisma.socialPost.create({
+                    data: {
+                      date: currentDate,
+                      type,
+                      clientId: client.id,
+                      assignees: {
+                        connect: client.collaborators.map(c => ({ id: c.id }))
+                      }
+                    }
+                  });
+                  generatedCount++;
+                }
               }
             }
           }
