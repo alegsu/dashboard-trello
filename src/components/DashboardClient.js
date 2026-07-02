@@ -259,7 +259,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.19.0
+              v2.20.0
             </span>
           </div>
           
@@ -515,7 +515,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             <ClientsView clients={initialClients} cards={liveCards} onRefresh={handleRefresh} onOpenNotebook={setGlobalNotebookClient} />
           )}
           {view === 'social' && (
-            <SocialCalendar clients={initialClients} />
+            <SocialCalendar clients={initialClients} users={initialMembers} />
           )}
           {view === 'accesses' && (
             <AccessesView clients={initialClients} onRefresh={handleRefresh} />

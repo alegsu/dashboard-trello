@@ -8,13 +8,16 @@ const typeColors = {
   stories: '#10b981'
 };
 
-export default function SocialCalendar({ clients }) {
+export default function SocialCalendar({ clients, users = [] }) {
   const [viewMode, setViewMode] = useState('weekly'); // 'weekly' or 'monthly'
   const [currentDate, setCurrentDate] = useState(new Date());
   
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const [filterClient, setFilterClient] = useState('');
+  const [filterUser, setFilterUser] = useState('');
 
   // Generate days based on view mode
   const days = useMemo(() => {
@@ -156,7 +159,14 @@ export default function SocialCalendar({ clients }) {
   };
 
   const getDayContents = (date) => {
-    return posts.filter(p => new Date(p.date).toDateString() === date.toDateString());
+    let dayPosts = posts.filter(p => new Date(p.date).toDateString() === date.toDateString());
+    if (filterClient) {
+      dayPosts = dayPosts.filter(p => p.clientId === filterClient);
+    }
+    if (filterUser) {
+      dayPosts = dayPosts.filter(p => p.assignees?.some(a => a.id === filterUser));
+    }
+    return dayPosts;
   };
 
   const monthNames = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
@@ -165,7 +175,7 @@ export default function SocialCalendar({ clients }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <div style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-glass)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Calendar size={20} /> Calendario Social</h2>
           
           <div style={{ display: 'flex', background: 'var(--bg-primary)', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
@@ -181,8 +191,18 @@ export default function SocialCalendar({ clients }) {
             </button>
           </div>
 
+          <select value={filterClient} onChange={e => setFilterClient(e.target.value)} style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.4rem' }}>
+            <option value="">Tutti i clienti</option>
+            {clients.filter(c => c.status === 'CLIENTE').map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+
+          <select value={filterUser} onChange={e => setFilterUser(e.target.value)} style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.4rem' }}>
+            <option value="">Tutti gli utenti</option>
+            {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+          </select>
+
           <button onClick={handleGenerate} disabled={isGenerating} style={{ padding: '0.4rem 1rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            {isGenerating ? <Loader size={14} className="spin" /> : '✨ Genera mese in corso'}
+            {isGenerating ? <Loader size={14} className="spin" /> : '✨ Genera mese'}
           </button>
         </div>
 

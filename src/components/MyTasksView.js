@@ -1,6 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 export default function MyTasksView({ cards, currentUser, clients, boards, allMembers, onCardUpdate, lists, onRefresh, onCardClick }) {
+  const [socialPosts, setSocialPosts] = useState([]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    const start = new Date(Date.now() - 30 * 86400000).toISOString();
+    const end = new Date(Date.now() + 60 * 86400000).toISOString();
+    fetch(`/api/social-posts?start=${start}&end=${end}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const myPosts = data.filter(p => p.assignees?.some(a => a.id === currentUser.id));
+          setSocialPosts(myPosts);
+        }
+      })
+      .catch(err => console.error(err));
+  }, [currentUser]);
 
   if (!currentUser) return <div>Caricamento...</div>;
 
@@ -19,12 +35,24 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
+  const mappedSocialPosts = socialPosts.map(sp => ({
+    id: sp.id,
+    name: `Pubblicazione Social: ${sp.type.toUpperCase()}`,
+    due: sp.date,
+    listId: 'social',
+    isSocial: true,
+    assignees: sp.assignees,
+    client: sp.client,
+  }));
+
+  const allItems = [...myCards, ...mappedSocialPosts];
+
   const overdue = [];
   const todayOrTomorrow = [];
   const upcoming = [];
   const noDate = [];
 
-  myCards.forEach(c => {
+  allItems.forEach(c => {
     if (!c.due) {
       noDate.push(c);
       return;
@@ -55,11 +83,11 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
         </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
           {list.map(card => {
-            const clientName = card.project?.client?.name || 'Progetto Interno';
+            const clientName = card.isSocial ? card.client?.name : (card.project?.client?.name || 'Progetto Interno');
             return (
               <div 
                 key={card.id} 
-                onClick={() => { if (onCardClick) onCardClick(card.id); }}
+                onClick={() => { if (!card.isSocial && onCardClick) onCardClick(card.id); }}
                 style={{ 
                   background: 'var(--bg-glass)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1rem', 
                   cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'transform 0.2s, box-shadow 0.2s' 
@@ -69,7 +97,7 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
               >
                 <div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    {clientName} • {(lists || []).find(l => l.id === card.listId)?.name || 'Lista'}
+                    {clientName} • {card.isSocial ? 'Calendario Social' : ((lists || []).find(l => l.id === card.listId)?.name || 'Lista')}
                   </div>
                   <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{card.name}</strong>
                   {card.due && (
@@ -81,9 +109,9 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (onCardClick) onCardClick(card.id);
+                    if (!card.isSocial && onCardClick) onCardClick(card.id);
                   }}
-                  style={{ background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                  style={{ background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: card.isSocial ? 'default' : 'pointer', color: 'var(--text-secondary)' }}
                 >
                   <CheckCircle size={18} />
                 </button>

@@ -150,6 +150,15 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.20.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>✨ <strong>Filtri Calendario Social:</strong> Aggiunti filtri per Cliente e per Utente nel Calendario Social per una visualizzazione mirata dei post!</li>
+                  <li>✨ <strong>Sincronizzazione Social su "La mia giornata":</strong> Ora i post social assegnati a te compaiono direttamente nella vista "La mia giornata" se sono previsti per la data odierna.</li>
+                  <li>✨ <strong>Drag & Drop Social Calendario:</strong> Trasforma i piani editoriali in post effettivi generandoli mese per mese, dopodiché potrai trascinarli liberamente nel calendario per riprogrammarli!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.19.0</h4>
                 <ul style={noteUlStyle}>
                   <li>✨ <strong>Calendario Social Unificato:</strong> È nata una nuova area! Nel menu principale troverai la nuova scheda "Social". Si tratta di un calendario (Mensile/Settimanale) dove atterrano in automatico le scadenze ricorrenti di tutti i clienti.</li>
