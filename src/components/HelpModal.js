@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.23.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>📊 <strong>Tracciamento Attività Utenti:</strong> Nel pannello "Management" le statistiche dei collaboratori sono state potenziate. Ora è possibile vedere, oltre agli accessi totali e al tempo complessivo speso, anche il <strong>tempo di utilizzo specifico di "Oggi"</strong> per capire meglio l'utilizzo quotidiano della piattaforma.</li>
+                  <li>💅 <strong>UI Impostazioni Cliente:</strong> Ridisegnato il layout della scheda impostazioni Cliente. I link di intelligenza artificiale (Claude e NotebookLM) e la "Zona Pericolosa" sono stati raggruppati in sezioni espandibili per evitare clic accidentali e mantenere un'interfaccia più pulita. Il Piano Editoriale Social è stato spostato più in alto per un accesso più rapido.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.22.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🗑️ <strong>Rimozione Timeline:</strong> La scheda Timeline è stata dismessa per semplificare l'interfaccia e concentrare l'attenzione sul nuovo Calendario Social e sulla vista Kanban.</li>

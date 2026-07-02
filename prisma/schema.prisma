@@ -14,9 +14,11 @@ model User {
   passwordHash String?
   role         String   @default("user")
   avatarUrl    String?
-  loginCount   Int      @default(0)
-  totalUsageTime Int    @default(0) // in minuti
-  theme        String   @default("dark")
+  loginCount     Int      @default(0)
+  totalUsageTime Int      @default(0) // in minuti
+  usageTimeToday Int      @default(0) // in minuti oggi
+  lastActiveAt   DateTime? // ultima attività per resettare usageTimeToday
+  theme          String   @default("dark")
   
   // Relazioni
   cards          Card[]          @relation("CardAssignees")

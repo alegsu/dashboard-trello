@@ -129,8 +129,9 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
                       </div>
                     </td>
                     <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
-                      <div style={{ marginBottom: '2px' }}><strong>Logins:</strong> {m.loginCount || 0}</div>
-                      <div><strong>Durata:</strong> {m.totalUsageTime ? Math.floor(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m</div>
+                      <div style={{ marginBottom: '2px' }}><strong>Accessi:</strong> {m.loginCount || 0}</div>
+                      <div style={{ marginBottom: '2px' }}><strong>Totale:</strong> {m.totalUsageTime ? Math.floor(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m</div>
+                      <div><strong>Oggi:</strong> {m.usageTimeToday ? Math.floor(m.usageTimeToday / 60) : 0}h {m.usageTimeToday ? m.usageTimeToday % 60 : 0}m</div>
                     </td>
                     <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem', width: '40%' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
