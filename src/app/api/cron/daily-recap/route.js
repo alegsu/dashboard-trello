@@ -10,7 +10,7 @@ export async function GET(request) {
 
     // Vercel Cron Auth
     const authHeader = request.headers.get('authorization');
-    const isCron = process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`;
+    const isCron = (process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`) || request.headers.get('user-agent')?.includes('vercel-cron');
 
     if (!isCron && force !== 'test') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
