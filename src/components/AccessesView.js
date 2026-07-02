@@ -6,6 +6,7 @@ export default function AccessesView({ clients = [], onRefresh }) {
   const [accesses, setAccesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('ALL'); // ALL, CLIENT, SUPPLIER
+  const [searchTerm, setSearchTerm] = useState('');
   
   const [showForm, setShowForm] = useState(false);
   const [showFormCreds, setShowFormCreds] = useState(false);
@@ -114,8 +115,15 @@ export default function AccessesView({ clients = [], onRefresh }) {
   };
 
   const filteredAccesses = accesses.filter(a => {
-    if (filterType === 'ALL') return true;
-    return a.type === filterType;
+    if (filterType !== 'ALL' && a.type !== filterType) return false;
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      const matchName = a.name.toLowerCase().includes(q);
+      const matchNotes = a.notes?.toLowerCase().includes(q) || false;
+      const matchClient = a.clients?.some(c => c.name.toLowerCase().includes(q)) || false;
+      if (!matchName && !matchNotes && !matchClient) return false;
+    }
+    return true;
   });
 
   return (
@@ -130,10 +138,22 @@ export default function AccessesView({ clients = [], onRefresh }) {
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-        <button className={filterType === 'ALL' ? styles.btnPrimary : styles.btnSecondary} onClick={() => setFilterType('ALL')}>Tutti</button>
-        <button className={filterType === 'CLIENT' ? styles.btnPrimary : styles.btnSecondary} onClick={() => setFilterType('CLIENT')}>Solo Clienti</button>
-        <button className={filterType === 'SUPPLIER' ? styles.btnPrimary : styles.btnSecondary} onClick={() => setFilterType('SUPPLIER')}>Solo Fornitori/Tool</button>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className={filterType === 'ALL' ? styles.btnPrimary : styles.btnSecondary} onClick={() => setFilterType('ALL')}>Tutti</button>
+          <button className={filterType === 'CLIENT' ? styles.btnPrimary : styles.btnSecondary} onClick={() => setFilterType('CLIENT')}>Solo Clienti</button>
+          <button className={filterType === 'SUPPLIER' ? styles.btnPrimary : styles.btnSecondary} onClick={() => setFilterType('SUPPLIER')}>Solo Fornitori/Tool</button>
+        </div>
+        <div style={{ display: 'flex', flex: 1, minWidth: '200px', maxWidth: '400px', justifyContent: 'flex-end' }}>
+          <input 
+            type="text" 
+            placeholder="🔍 Cerca per nome, note o cliente..." 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+            className={styles.input} 
+            style={{ width: '100%', borderRadius: '20px', padding: '0.5rem 1rem' }} 
+          />
+        </div>
       </div>
 
       {showForm ? (
