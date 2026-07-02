@@ -150,6 +150,16 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.21.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>✨ <strong>Modale Social Post:</strong> I post social non sono più semplici riquadri! Cliccando su un post nel calendario (senza trascinarlo) si aprirà un nuovo Modale dove potrai impostarne lo stato, scrivere note/copy ed entrare in discussione con il team tramite commenti, proprio come per le schede Kanban.</li>
+                  <li>🎨 <strong>Stati e Colori Intelligenti:</strong> Assegnando uno stato al post (es. In Approvazione, Programmato, Saltato) la schedina nel calendario assumerà colorazioni o animazioni specifiche per darti un feedback visivo immediato a colpo d'occhio.</li>
+                  <li>🗑️ <strong>Eliminazione di Massa Intelligente:</strong> Di fianco al pulsante "Genera mese" è stato inserito un cestino rosso. Questo pulsante è in grado di leggere i filtri attivi in quel momento: svuoterà solo i post della settimana corrente, dell'intero mese o del singolo cliente selezionato, chiedendo sempre conferma prima!</li>
+                  <li>⬆️ <strong>Menu di Navigazione:</strong> Il pulsante Social è stato promosso in seconda posizione, subito dopo Kanban, per facilitarne l'accesso.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.20.0</h4>
                 <ul style={noteUlStyle}>
                   <li>✨ <strong>Filtri Calendario Social:</strong> Aggiunti filtri per Cliente e per Utente nel Calendario Social per una visualizzazione mirata dei post!</li>
