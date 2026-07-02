@@ -8,6 +8,7 @@ export default function AccessesView({ clients = [], onRefresh }) {
   const [filterType, setFilterType] = useState('ALL'); // ALL, CLIENT, SUPPLIER
   
   const [showForm, setShowForm] = useState(false);
+  const [showFormCreds, setShowFormCreds] = useState(false);
   const [editingId, setEditingId] = useState(null);
   
   const [name, setName] = useState('');
@@ -138,73 +139,82 @@ export default function AccessesView({ clients = [], onRefresh }) {
       {showForm ? (
         <div className={styles.card} style={{ marginBottom: '1rem' }}>
           <h3 style={{ marginTop: 0 }}>{editingId ? 'Modifica Accesso' : 'Nuovo Accesso'}</h3>
-          <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Nome (es. Aruba, Canva)</label>
-              <input type="text" className={styles.input} value={name} onChange={e => setName(e.target.value)} required />
+              <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Titolo / Nome Accesso</label>
+              <input type="text" className={styles.input} value={name} onChange={e => setName(e.target.value)} required style={{ fontSize: '1.1rem', fontWeight: 'bold' }} />
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Tipo</label>
-              <select className={styles.input} value={type} onChange={e => setType(e.target.value)}>
-                <option value="SUPPLIER">Fornitore / Tool Agenzia</option>
-                <option value="CLIENT">Speciale Cliente</option>
-              </select>
+              <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Appunti e Testo</label>
+              <textarea className={styles.input} rows={12} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Scrivi liberamente qui..." style={{ resize: 'vertical' }} />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>URL Login</label>
-              <input type="url" className={styles.input} value={url} onChange={e => setUrl(e.target.value)} />
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Username / Email</label>
-              <input type="text" className={styles.input} value={username} onChange={e => setUsername(e.target.value)} />
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Password</label>
-              <input type="text" className={styles.input} value={password} onChange={e => setPassword(e.target.value)} />
-            </div>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
-              <input type="checkbox" checked={showInCard} onChange={e => setShowInCard(e.target.checked)} id="showInCardToggle" />
-              <label htmlFor="showInCardToggle" style={{ fontSize: '0.85rem', cursor: 'pointer' }}>Mostra nella Scheda Cliente (se collegato)</label>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', gridColumn: '1 / -1' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Clienti Collegati</label>
-              <div className={styles.input} style={{ height: '120px', overflowY: 'auto', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {clients.map(c => (
-                  <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={selectedClientIds.includes(c.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedClientIds([...selectedClientIds, c.id]);
-                        } else {
-                          setSelectedClientIds(selectedClientIds.filter(id => id !== c.id));
-                        }
-                      }}
-                    />
-                    {c.name}
-                  </label>
-                ))}
-                {clients.length === 0 && <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Nessun cliente disponibile.</span>}
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+              <div onClick={() => setShowFormCreds(!showFormCreds)} style={{ padding: '0.6rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                <span>{showFormCreds ? '−' : '+'}</span>
+                Credenziali e Impostazioni Avanzate
               </div>
-              <small style={{ color: 'var(--text-secondary)' }}>Puoi anche non selezionare alcun cliente. I clienti collegati vedranno questo tool nella loro scheda.</small>
+              
+              {showFormCreds && (
+                <div style={{ padding: '0.8rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', borderTop: '1px solid var(--border-color)' }}>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Tipo</label>
+                    <select className={styles.input} value={type} onChange={e => setType(e.target.value)}>
+                      <option value="SUPPLIER">Fornitore / Tool Agenzia</option>
+                      <option value="CLIENT">Speciale Cliente</option>
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>URL Login</label>
+                    <input type="url" className={styles.input} value={url} onChange={e => setUrl(e.target.value)} />
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Username / Email</label>
+                    <input type="text" className={styles.input} value={username} onChange={e => setUsername(e.target.value)} />
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Password</label>
+                    <input type="text" className={styles.input} value={password} onChange={e => setPassword(e.target.value)} />
+                  </div>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem', gridColumn: '1 / -1' }}>
+                    <input type="checkbox" checked={showInCard} onChange={e => setShowInCard(e.target.checked)} id="showInCardToggle" />
+                    <label htmlFor="showInCardToggle" style={{ fontSize: '0.85rem', cursor: 'pointer' }}>Mostra nella Scheda Cliente (se collegato)</label>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', gridColumn: '1 / -1' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Clienti Collegati</label>
+                    <div className={styles.input} style={{ height: '120px', overflowY: 'auto', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      {clients.map(c => (
+                        <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={selectedClientIds.includes(c.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) setSelectedClientIds([...selectedClientIds, c.id]);
+                              else setSelectedClientIds(selectedClientIds.filter(id => id !== c.id));
+                            }}
+                          />
+                          {c.name}
+                        </label>
+                      ))}
+                      {clients.length === 0 && <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Nessun cliente disponibile.</span>}
+                    </div>
+                  </div>
+
+                </div>
+              )}
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', gridColumn: '1 / -1' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Note Aggiuntive</label>
-              <textarea className={styles.input} rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
-            </div>
-
-            <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
               <button type="button" className={styles.btnSecondary} onClick={() => setShowForm(false)}>Annulla</button>
-              <button type="submit" className={styles.btnPrimary}>Salva</button>
+              <button type="submit" className={styles.btnPrimary}>Salva Modifiche</button>
             </div>
           </form>
         </div>
@@ -255,7 +265,7 @@ export default function AccessesView({ clients = [], onRefresh }) {
                   </div>
                 </div>
 
-                {acc.notes && <p style={{ fontSize: '0.8rem', margin: '0.5rem 0 0 0', color: 'var(--text-secondary)' }}>{acc.notes}</p>}
+                {acc.notes && <p style={{ fontSize: '0.75rem', margin: '0.5rem 0 0 0', color: 'var(--text-secondary)', fontStyle: 'italic', cursor: 'pointer' }} onClick={() => handleOpenForm(acc)}>📝 {acc.notes.length > 50 ? 'Clicca su modifica per leggere gli appunti e le note intere...' : 'Clicca su modifica per gli appunti'}</p>}
 
                 {acc.clients && acc.clients.length > 0 && (
                   <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
