@@ -5,7 +5,12 @@ import { parse } from 'csv-parse/sync';
 async function fetchAndParsePedSheet(csvUrl) {
   if (csvUrl.includes('/edit')) {
     const urlObj = new URL(csvUrl);
-    const gid = urlObj.searchParams.get('gid') || '0';
+    let gid = '0';
+    if (urlObj.searchParams.has('gid')) {
+        gid = urlObj.searchParams.get('gid');
+    } else if (urlObj.hash && urlObj.hash.includes('gid=')) {
+        gid = urlObj.hash.split('gid=')[1].split('&')[0];
+    }
     csvUrl = csvUrl.split('/edit')[0] + `/export?format=csv&gid=${gid}`;
   }
 
