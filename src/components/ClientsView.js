@@ -265,19 +265,23 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
             
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Nome Cliente</label>
-                <input 
-                  type="text" 
-                  value={name} 
-                  onChange={e => setName(e.target.value)} 
-                  style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 'bold' }}
-                />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1 }}>
+                  <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Nome Cliente</label>
+                  <input 
+                    type="text" 
+                    value={name} 
+                    onChange={e => setName(e.target.value)} 
+                    style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 'bold' }}
+                  />
+                </div>
+                <button type="submit" style={{ padding: '0.5rem 1.5rem', background: 'var(--accent-primary)', color: 'black', borderRadius: '4px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.9rem', whiteSpace: 'nowrap', marginTop: '1.2rem' }}>
+                  Salva Modifiche
+                </button>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.5rem' }}>
                 <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Piano Editoriale Social</label>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Imposta quanti contenuti al giorno sono previsti. Compariranno automaticamente nel Calendario Social.</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', marginTop: '0.3rem' }}>
                   {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
                     const itDays = { monday: 'Lunedì', tuesday: 'Martedì', wednesday: 'Mercoledì', thursday: 'Giovedì', friday: 'Venerdì', saturday: 'Sabato', sunday: 'Domenica' };
@@ -292,7 +296,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                               min="0" 
                               value={socialPlan?.[day]?.[type] || 0} 
                               onChange={e => setSocialPlan(prev => ({...prev, [day]: {...(prev?.[day] || {}), [type]: parseInt(e.target.value) || 0}}))}
-                              style={{ width: '40px', padding: '0.1rem', fontSize: '0.75rem', background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '2px', textAlign: 'center' }}
+                              style={{ width: '30px', padding: '0.1rem', fontSize: '0.75rem', background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '2px', textAlign: 'center' }}
                             />
                           </div>
                         ))}
@@ -300,17 +304,6 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                     );
                   })}
                 </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Appunti Veloci / Referenti</label>
-                <textarea 
-                  value={notes} 
-                  onChange={e => setNotes(e.target.value)} 
-                  rows={4} 
-                  placeholder="Scrivi qui i contatti, gli accordi principali..."
-                  style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', resize: 'vertical', fontSize: '0.85rem' }}
-                />
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
@@ -374,16 +367,50 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                   </div>
                 )}
               </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                <button type="submit" style={{ padding: '0.5rem 1.5rem', background: 'var(--accent-primary)', color: 'black', borderRadius: '4px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.9rem' }}>
-                  Salva Modifiche
-                </button>
-              </div>
             </form>
 
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '1.5rem 0' }} />
-            
+
+            {/* Mostriamo i dati sincronizzati da Google Sheets se presenti */}
+            {selectedClient.sheetData && (
+              <div style={{ marginBottom: '1.5rem', padding: '0.8rem', background: 'rgba(66, 133, 244, 0.05)', borderRadius: '8px', border: '1px solid rgba(66, 133, 244, 0.2)' }}>
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: '#4285F4' }}>
+                  <FaGoogle size={14} /> Dati da Fogli Google
+                </h3>
+                
+                {(() => {
+                  try {
+                    const data = JSON.parse(selectedClient.sheetData);
+                    return (
+                      <div style={{ fontSize: '0.8rem' }}>
+                        {data.servicesDetails && Object.keys(data.servicesDetails).length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                            {Object.entries(data.servicesDetails).map(([service, users]) => (
+                              <div key={service} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: 'var(--bg-elevated)', padding: '0.3rem 0.5rem', borderRadius: '4px' }}>
+                                <strong style={{ minWidth: '100px' }}>{service}:</strong>
+                                <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                                  {users.map((u, idx) => (
+                                    <span key={idx} style={{ background: 'var(--bg-secondary)', padding: '0.1rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.75rem' }}>
+                                      {u.name} {u.effort ? <strong style={{ color: 'var(--accent-primary)' }}>({u.effort})</strong> : ''}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{ color: 'var(--text-secondary)' }}>Nessun dettaglio servizio disponibile.</div>
+                        )}
+                      </div>
+                    );
+                  } catch(e) {
+                    return <p style={{ margin: 0, color: 'var(--status-delayed)', fontSize: '0.8rem' }}>Errore parsing dati.</p>;
+                  }
+                })()}
+              </div>
+            )}
+
+            {/* Zona Pericolosa */}
             <div style={{ background: 'rgba(255,0,0,0.02)', border: '1px solid rgba(255,0,0,0.1)', borderRadius: '6px' }}>
               <div onClick={() => setShowDanger(!showDanger)} style={{ padding: '0.6rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--status-danger)' }}>
                 <span>{showDanger ? '−' : '+'}</span>
@@ -430,58 +457,6 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                 </div>
               )}
             </div>
-
-            {/* Mostriamo i dati sincronizzati da Google Sheets se presenti */}
-            {selectedClient.sheetData && (
-              <div style={{ marginTop: '2rem', padding: '1rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                  <FaGoogle color="#4285F4" /> Dati Sincronizzati da Fogli Google
-                </h3>
-                
-                {(() => {
-                  try {
-                    const data = JSON.parse(selectedClient.sheetData);
-                    return (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <div style={{ marginTop: '1rem' }}>
-                          <strong>Dettaglio Servizi e Collaboratori: </strong>
-                          {data.servicesDetails && Object.keys(data.servicesDetails).length > 0 ? (
-                            <table style={{ width: '100%', marginTop: '0.5rem', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-                              <thead>
-                                <tr style={{ background: 'var(--bg-elevated)', textAlign: 'left' }}>
-                                  <th style={{ padding: '0.5rem', border: '1px solid var(--border-color)' }}>Servizio</th>
-                                  <th style={{ padding: '0.5rem', border: '1px solid var(--border-color)' }}>Collaboratori</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {Object.entries(data.servicesDetails).map(([service, users]) => (
-                                  <tr key={service}>
-                                    <td style={{ padding: '0.5rem', border: '1px solid var(--border-color)', fontWeight: 'bold' }}>{service}</td>
-                                    <td style={{ padding: '0.5rem', border: '1px solid var(--border-color)' }}>
-                                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                        {users.map((u, idx) => (
-                                          <span key={idx} style={{ background: 'var(--bg-secondary)', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-                                            {u.name} {u.effort ? <strong style={{ color: 'var(--accent-primary)' }}>({u.effort})</strong> : ''}
-                                          </span>
-                                        ))}
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          ) : (
-                            <div style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Nessun dettaglio servizio disponibile. Sincronizza per aggiornare.</div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  } catch(e) {
-                    return <p style={{ color: 'var(--status-delayed)' }}>Errore di parsing dati sincronizzati.</p>;
-                  }
-                })()}
-              </div>
-            )}
           </div>
         )}
       </div>

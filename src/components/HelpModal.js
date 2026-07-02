@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.24.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>✨ <strong>UI Scheda Cliente Migliorata:</strong> Ulteriore ottimizzazione del layout del cliente. Il pulsante di "Salva Modifiche" è stato spostato in alto a destra per maggiore comodità, la visualizzazione dei dati sincronizzati da Fogli Google è stata compattata ed evidenziata per occupare meno spazio mantenendo chiarezza, e la sezione Appunti Veloci è stata definitivamente migrata: tutti i vecchi appunti sono stati salvati come "Accessi" e uniti alla gestione rubrica. E ovviamente, l'intera "Zona Pericolosa" è stata portata in fondo alla scheda!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.23.0</h4>
                 <ul style={noteUlStyle}>
                   <li>📊 <strong>Tracciamento Attività Utenti:</strong> Nel pannello "Management" le statistiche dei collaboratori sono state potenziate. Ora è possibile vedere, oltre agli accessi totali e al tempo complessivo speso, anche il <strong>tempo di utilizzo specifico di "Oggi"</strong> per capire meglio l'utilizzo quotidiano della piattaforma.</li>
