@@ -166,18 +166,17 @@ export default function AccessesView({ clients = [], onRefresh }) {
               <input type="text" className={styles.input} value={name} onChange={e => setName(e.target.value)} required style={{ fontSize: '1.1rem', fontWeight: 'bold' }} />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Classificazione Accesso</label>
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: type === 'CLIENT' ? 'var(--accent-primary)' : 'var(--bg-primary)', color: type === 'CLIENT' ? 'black' : 'var(--text-primary)', border: `1px solid ${type === 'CLIENT' ? 'var(--accent-primary)' : 'var(--border-color)'}`, borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', flex: 1, justifyContent: 'center', transition: 'all 0.2s' }}>
-                  <input type="radio" name="accessType" value="CLIENT" checked={type === 'CLIENT'} onChange={() => setType('CLIENT')} style={{ display: 'none' }} />
-                  <span style={{ fontSize: '1.2rem' }}>👤</span> Cliente
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: type === 'SUPPLIER' ? 'var(--accent-primary)' : 'var(--bg-primary)', color: type === 'SUPPLIER' ? 'black' : 'var(--text-primary)', border: `1px solid ${type === 'SUPPLIER' ? 'var(--accent-primary)' : 'var(--border-color)'}`, borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', flex: 1, justifyContent: 'center', transition: 'all 0.2s' }}>
-                  <input type="radio" name="accessType" value="SUPPLIER" checked={type === 'SUPPLIER'} onChange={() => setType('SUPPLIER')} style={{ display: 'none' }} />
-                  <span style={{ fontSize: '1.2rem' }}>🛠️</span> Fornitore / Tool Agenzia
-                </label>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+              <input 
+                type="checkbox" 
+                checked={type === 'SUPPLIER'} 
+                onChange={e => setType(e.target.checked ? 'SUPPLIER' : 'CLIENT')} 
+                id="typeToggle" 
+                style={{ width: '1.1rem', height: '1.1rem', cursor: 'pointer', accentColor: 'var(--accent-primary)' }}
+              />
+              <label htmlFor="typeToggle" style={{ fontSize: '0.9rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                🛠️ Questo accesso è un Fornitore / Tool <span style={{ fontWeight: 'normal', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>(togli la spunta se è un Cliente)</span>
+              </label>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
