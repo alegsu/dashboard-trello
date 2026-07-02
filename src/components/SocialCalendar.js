@@ -128,12 +128,31 @@ export default function SocialCalendar({ clients, users = [] }) {
   };
 
   const handleBulkDelete = async () => {
-    if (!confirm(`Sei sicuro di voler ELIMINARE TUTTI I POST del mese di ${monthNames[currentDate.getMonth()]}? Questa azione non può essere annullata.`)) return;
-    setIsGenerating(true); // Using same loading state
+    let start, end, rangeName;
+    if (viewMode === 'monthly') {
+      start = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      end = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      rangeName = `il mese di ${monthNames[currentDate.getMonth()]}`;
+    } else {
+      start = days[0];
+      end = days[6];
+      rangeName = `questa settimana`;
+    }
+
+    let clientName = '';
+    if (filterClient) {
+      const client = clients.find(c => c.id === filterClient);
+      if (client) clientName = ` del cliente ${client.name}`;
+    }
+
+    if (!confirm(`Sei sicuro di voler ELIMINARE TUTTI I POST${clientName} per ${rangeName}? Questa azione non può essere annullata.`)) return;
+    
+    setIsGenerating(true); 
     try {
-      const res = await fetch(`/api/social-posts?year=${currentDate.getFullYear()}&month=${currentDate.getMonth()}`, {
-        method: 'DELETE'
-      });
+      let url = `/api/social-posts?startDate=${start.toISOString()}&endDate=${end.toISOString()}`;
+      if (filterClient) url += `&clientId=${filterClient}`;
+
+      const res = await fetch(url, { method: 'DELETE' });
       if (res.ok) {
         const data = await res.json();
         alert(`Eliminati ${data.deletedCount} post con successo.`);

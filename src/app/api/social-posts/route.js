@@ -121,26 +121,31 @@ export async function POST(request) {
 export async function DELETE(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const yearStr = searchParams.get('year');
-    const monthStr = searchParams.get('month');
+    const startDateStr = searchParams.get('startDate');
+    const endDateStr = searchParams.get('endDate');
+    const clientId = searchParams.get('clientId');
 
-    if (!yearStr || !monthStr) {
-      return NextResponse.json({ error: 'Missing year or month' }, { status: 400 });
+    if (!startDateStr || !endDateStr) {
+      return NextResponse.json({ error: 'Missing date range' }, { status: 400 });
     }
 
-    const year = parseInt(yearStr, 10);
-    const month = parseInt(monthStr, 10);
+    const start = new Date(startDateStr);
+    const end = new Date(endDateStr);
+    end.setHours(23, 59, 59, 999);
 
-    const startOfMonth = new Date(year, month, 1);
-    const endOfMonth = new Date(year, month + 1, 0);
+    const whereClause = {
+      date: {
+        gte: start,
+        lte: end
+      }
+    };
+
+    if (clientId) {
+      whereClause.clientId = clientId;
+    }
 
     const result = await prisma.socialPost.deleteMany({
-      where: {
-        date: {
-          gte: startOfMonth,
-          lte: endOfMonth
-        }
-      }
+      where: whereClause
     });
 
     return NextResponse.json({ success: true, deletedCount: result.count });
