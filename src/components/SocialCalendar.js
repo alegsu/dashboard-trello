@@ -6,7 +6,20 @@ const typeColors = {
   post: '#3b82f6',
   reel: '#e83e8c',
   video: '#f59e0b',
-  stories: '#10b981'
+  stories: '#10b981',
+  'IG/FB': '#e1306c',
+  'Linkedin': '#0077b5',
+  'TikTok': '#ff0050',
+  'BLOG e DEM': '#10b981',
+  'Stories': '#f59e0b'
+};
+
+const networkIcons = {
+  'IG/FB': '📸',
+  'Linkedin': '💼',
+  'TikTok': '🎵',
+  'Stories': '⏱️',
+  'BLOG e DEM': '📝'
 };
 
 export default function SocialCalendar({ clients, users = [] }) {
@@ -357,9 +370,13 @@ export default function SocialCalendar({ clients, users = [] }) {
                           cursor: 'pointer',
                           opacity: isSkipped ? 0.6 : 1
                         }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontWeight: 'bold', color: item.client?.color || 'var(--text-primary)', textDecoration: isSkipped ? 'line-through' : 'none' }}>{item.client?.name}</span>
-                          <span style={{ color: typeColors[item.type] || 'white', textTransform: 'capitalize', fontSize: '0.7rem' }}>{item.type}</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.2rem' }}>
+                          <span style={{ fontWeight: 'bold', color: item.client?.color || 'var(--text-primary)', textDecoration: isSkipped ? 'line-through' : 'none', flexShrink: 0 }}>
+                            {item.network && networkIcons[item.network] ? networkIcons[item.network] + ' ' : ''}{item.client?.name}
+                          </span>
+                          <span title={item.type} style={{ color: typeColors[item.network || item.type] || 'white', fontSize: '0.7rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                            {item.type}
+                          </span>
                         </div>
                       
                       {item.assignees && item.assignees.length > 0 && (

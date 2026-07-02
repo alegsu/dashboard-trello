@@ -179,6 +179,7 @@ model Client {
   notes         String? @db.Text // Quick notes / Contact info
   sheetData     String? @db.Text // Parsed Google Sheet JSON
   socialPlan    String? @db.Text // JSON for weekly social media calendar plan
+  pedSheets     String? @db.Text // JSON for per-month Google Sheet links {"YYYY-MM": "url"}
   color         String? // Hex color code for the client row
   status        String   @default("CLIENTE") // CLIENTE, OBSOLETO, PROSPECT
   
@@ -307,7 +308,8 @@ model PendingNotification {
 model SocialPost {
   id        String   @id @default(cuid())
   date      DateTime
-  type      String   // "post", "reel", "video", "stories"
+  type      String   // Actual format from PED (e.g. "IG - FB Carosello")
+  network   String?  // The social network (e.g. "IG/FB", "Linkedin") used for upserts
   clientId  String
   client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   assignees User[]   @relation("SocialPostAssignees")

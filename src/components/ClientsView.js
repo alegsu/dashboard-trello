@@ -25,6 +25,10 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
     sunday: { post: 0, reel: 0, video: 0, stories: 0 }
   };
   const [socialPlan, setSocialPlan] = useState(defaultPlan);
+  const [pedSheets, setPedSheets] = useState({});
+  const [pedMonthStr, setPedMonthStr] = useState('');
+  const [pedUrlInput, setPedUrlInput] = useState('');
+  const [isSyncingPed, setIsSyncingPed] = useState(false);
   
   // Google Sheets Sync
   const [csvUrl, setCsvUrl] = useState('');
@@ -59,6 +63,13 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
     } catch {
       setSocialPlan(defaultPlan);
     }
+    try {
+      setPedSheets(c.pedSheets ? JSON.parse(c.pedSheets) : {});
+    } catch {
+      setPedSheets({});
+    }
+    setPedMonthStr('');
+    setPedUrlInput('');
   };
 
   const handleSave = async (e) => {
@@ -75,14 +86,15 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
           claudeUrl,
           notes,
           color,
-          socialPlan: JSON.stringify(socialPlan)
+          socialPlan: JSON.stringify(socialPlan),
+          pedSheets: JSON.stringify(pedSheets)
         })
       });
 
       if (res.ok) {
         if (onRefresh) onRefresh();
         alert('Dati cliente salvati con successo!');
-        setSelectedClient({ ...selectedClient, name, notebookLmUrl, claudeUrl, notes, color, socialPlan: JSON.stringify(socialPlan) });
+        setSelectedClient({ ...selectedClient, name, notebookLmUrl, claudeUrl, notes, color, socialPlan: JSON.stringify(socialPlan), pedSheets: JSON.stringify(pedSheets) });
       } else {
         alert('Errore durante il salvataggio.');
       }
@@ -304,6 +316,46 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                     );
                   })}
                 </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '1rem' }}>
+                <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Piani Editoriali Mensili (Google Sheets)</label>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input type="month" value={pedMonthStr} onChange={e => setPedMonthStr(e.target.value)} style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }} />
+                  <input type="url" placeholder="https://docs.google.com/spreadsheets..." value={pedUrlInput} onChange={e => setPedUrlInput(e.target.value)} style={{ flex: 1, padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }} />
+                  <button type="button" onClick={() => { if(pedMonthStr && pedUrlInput) setPedSheets(p => ({...p, [pedMonthStr]: pedUrlInput})); setPedUrlInput(''); }} style={{ padding: '0.4rem 0.8rem', background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderRadius: '4px', border: '1px solid var(--border-color)', cursor: 'pointer', fontSize: '0.8rem' }}>
+                    Aggiungi
+                  </button>
+                </div>
+                {Object.keys(pedSheets).length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.5rem' }}>
+                    {Object.entries(pedSheets).map(([month, url]) => (
+                      <div key={month} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: 'rgba(255,255,255,0.05)', padding: '0.4rem', borderRadius: '4px' }}>
+                        <strong style={{ fontSize: '0.8rem', minWidth: '70px' }}>{month}</strong>
+                        <a href={url} target="_blank" rel="noreferrer" style={{ flex: 1, fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--accent-primary)' }}>{url}</a>
+                        <button type="button" onClick={async () => {
+                           setIsSyncingPed(true);
+                           try {
+                             const res = await fetch('/api/sync/ped', {
+                               method: 'POST',
+                               headers: {'Content-Type': 'application/json'},
+                               body: JSON.stringify({ clientId: selectedClient.id, monthKey: month, sheetUrl: url })
+                             });
+                             const data = await res.json();
+                             if (data.success) alert(`Sincronizzazione completata: ${data.syncedCount} post aggiornati.`);
+                             else alert('Errore: ' + data.error);
+                           } catch (e) { alert('Errore di rete'); }
+                           setIsSyncingPed(false);
+                        }} disabled={isSyncingPed} style={{ padding: '0.2rem 0.5rem', background: 'var(--status-in-progress, #3b82f6)', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}>
+                          {isSyncingPed ? '...' : 'Sincronizza Ora'}
+                        </button>
+                        <button type="button" onClick={() => setPedSheets(p => { const copy = {...p}; delete copy[month]; return copy; })} style={{ background: 'transparent', border: 'none', color: 'var(--status-danger)', cursor: 'pointer', padding: '0.2rem' }}>
+                          <FaTrash size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
