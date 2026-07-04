@@ -9,7 +9,7 @@ export async function GET() {
     const users = await prisma.user.findMany({
       orderBy: { name: 'asc' },
       select: { 
-        id: true, name: true, email: true, role: true, avatarUrl: true, loginCount: true, totalUsageTime: true, usageTimeToday: true, theme: true,
+        id: true, name: true, email: true, role: true, avatarUrl: true, loginCount: true, totalUsageTime: true, usageTimeToday: true, totalActiveTime: true, activeTimeToday: true, theme: true,
         _count: {
           select: {
             cards: { where: { isArchived: false, list: { NOT: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] } } },

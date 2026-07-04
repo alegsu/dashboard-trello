@@ -15,9 +15,11 @@ model User {
   role         String   @default("user")
   avatarUrl    String?
   loginCount     Int      @default(0)
-  totalUsageTime Int      @default(0) // in minuti
-  usageTimeToday Int      @default(0) // in minuti oggi
-  lastActiveAt   DateTime? // ultima attività per resettare usageTimeToday
+  totalUsageTime Int      @default(0) // in minuti (loggato)
+  usageTimeToday Int      @default(0) // in minuti oggi (loggato)
+  totalActiveTime Int     @default(0) // in minuti (effettivo)
+  activeTimeToday Int     @default(0) // in minuti oggi (effettivo)
+  lastActiveAt   DateTime? // ultima attività per resettare i contatori giornalieri
   theme          String   @default("dark")
   
   // Relazioni

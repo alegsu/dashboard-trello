@@ -163,14 +163,32 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
         document.documentElement.setAttribute('data-theme', 'dark');
       }
       
+      // Active tracking logic
+      let lastActivityTime = Date.now();
+      const updateActivity = () => { lastActivityTime = Date.now(); };
+      window.addEventListener('mousemove', updateActivity);
+      window.addEventListener('keydown', updateActivity);
+      window.addEventListener('click', updateActivity);
+      window.addEventListener('scroll', updateActivity);
+
       // Tracking ping
       const trackInterval = setInterval(() => {
-        fetch('/api/auth/track', { method: 'POST', body: JSON.stringify({ userId: storedUserId }) }).catch(() => {});
+        // Se c'è stata attività negli ultimi 2 minuti (120000 ms), l'utente è considerato attivo
+        const isActive = (Date.now() - lastActivityTime) < 120000;
+        fetch('/api/auth/track', { 
+          method: 'POST', 
+          body: JSON.stringify({ userId: storedUserId, isActive }) 
+        }).catch(() => {});
       }, 60000);
+
       return () => {
         clearInterval(interval);
         clearInterval(pedSyncInterval);
         clearInterval(trackInterval);
+        window.removeEventListener('mousemove', updateActivity);
+        window.removeEventListener('keydown', updateActivity);
+        window.removeEventListener('click', updateActivity);
+        window.removeEventListener('scroll', updateActivity);
       };
     } else {
       router.push('/login');
