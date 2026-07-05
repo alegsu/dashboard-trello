@@ -117,15 +117,15 @@ export async function syncClientPedForMonth(clientId, monthKey, sheetUrl) {
             const dateObj = new Date(Date.UTC(y, m, dayNum, 12, 0, 0)); 
             lastDaySeen = dayNum;
 
-            // Find Contenuto
-            let contenuto = "";
+            // Trova e compatta tutte le info extra disponibili (Contenuto, Topic, Eventi, Note, Foto)
+            let contenutoParts = [];
             for (const nr of nextRows) {
               const label = (nr[0] || "").trim().toUpperCase();
-              if (label.includes("CONTENUTO") && nr[c]) {
-                 contenuto = nr[c].trim();
-                 break;
+              if (["EVENTI", "TOPIC", "FOTO", "CONTENUTO", "NOTE"].some(kw => label.includes(kw)) && nr[c]) {
+                 contenutoParts.push(`${label}:\n${nr[c].trim()}`);
               }
             }
+            let contenuto = contenutoParts.join('\n\n');
 
             const ignoredLabels = ['EVENTI', 'TOPIC', 'FOTO', 'CONTENUTO', 'NOTE', 'STATUS'];
 

@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.26.1</h4>
+                <ul style={noteUlStyle}>
+                  <li>💅 <strong>Restyling Calendario Social:</strong> Aggiunta una legenda discreta in alto. I colori degli stati ora sono molto più chiari e intuitivi (verde acceso per i Programmati, verde tenue per le Bozze, arancione per Da Fare). Le etichette dei social network (es. IG/FB, TikTok) non sono più rosse per evitare l'effetto "alert".</li>
+                  <li>🔍 <strong>Dettagli completi nel Post:</strong> L'importazione dal PED ora aggrega e mostra direttamente all'interno della scheda del post tutte le sezioni disponibili: Topic, Eventi, Foto e Contenuto. Cliccando sulla scheda, hai finalmente il controllo visivo totale su ciò che devi pubblicare.</li>
+                </ul>
+              </div>
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.26.0</h4>
                 <ul style={noteUlStyle}>
                   <li>⏱️ <strong>Tempo Loggato vs Tempo Attivo:</strong> Il sistema ora distingue il tempo in cui si ha la pagina aperta dal tempo in cui si interagisce attivamente con il gestionale (movimento mouse, scroll, tastiera). Nel pannello di Gestione è possibile visualizzare entrambe le metriche affiancate.</li>

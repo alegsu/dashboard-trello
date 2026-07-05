@@ -7,9 +7,9 @@ const typeColors = {
   reel: '#e83e8c',
   video: '#f59e0b',
   stories: '#10b981',
-  'IG/FB': '#e1306c',
+  'IG/FB': '#8b5cf6', // purple instead of red
   'Linkedin': '#0077b5',
-  'TikTok': '#ff0050',
+  'TikTok': '#333333', // dark gray instead of red
   'BLOG e DEM': '#10b981',
   'Stories': '#f59e0b'
 };
@@ -296,6 +296,15 @@ export default function SocialCalendar({ clients, users = [] }) {
           </div>
         )}
         
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem', fontSize: '0.8rem', alignItems: 'center' }}>
+          <strong>Legenda:</strong>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><div style={{ width: 12, height: 12, background: 'rgba(245, 158, 11, 0.4)', borderRadius: 2 }}></div> Da Fare</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><div style={{ width: 12, height: 12, background: 'rgba(16, 185, 129, 0.2)', borderRadius: 2 }}></div> Bozza Pronta</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><div style={{ width: 12, height: 12, background: '#10b981', borderRadius: 2 }}></div> Programmato</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><div style={{ width: 12, height: 12, background: 'var(--bg-glass)', borderRadius: 2, border: '1px solid var(--accent-primary)' }}></div> In Approvazione (Pulse)</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><div style={{ width: 12, height: 12, background: 'rgba(249, 115, 22, 0.15)', borderRadius: 2 }}></div> Saltato</span>
+        </div>
+
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', 
@@ -342,17 +351,22 @@ export default function SocialCalendar({ clients, users = [] }) {
                     const isDraft = item.status === 'DRAFT';
                     const isScheduled = item.status === 'SCHEDULED';
                     const isSkipped = item.status === 'SKIPPED';
+                    const isTodo = item.status === 'TODO';
                     
                     let bgColor = 'rgba(0,0,0,0.2)';
                     if (isSkipped) bgColor = 'rgba(249, 115, 22, 0.15)';
-                    if (isDraft) bgColor = 'rgba(59, 130, 246, 0.15)'; // Blue for Draft
+                    if (isDraft) bgColor = 'rgba(16, 185, 129, 0.2)'; // Soft green
+                    if (isTodo) bgColor = 'rgba(245, 158, 11, 0.4)'; // Orange
+                    if (isScheduled) bgColor = '#10b981'; // Bright green
                     
                     let borderStyle = `none`;
                     let borderLeftStyle = `4px solid ${item.client?.color || 'white'}`;
                     
                     if (isScheduled) {
-                      borderStyle = `1px solid #10b981`;
+                      borderStyle = `1px solid #059669`;
                     }
+                    
+                    const textColor = isScheduled ? 'white' : (item.client?.color || 'var(--text-primary)');
                     
                     return (
                       <div 
@@ -364,7 +378,7 @@ export default function SocialCalendar({ clients, users = [] }) {
                         style={{ 
                           background: bgColor, 
                           border: borderStyle,
-                          borderLeft: isScheduled ? `4px solid #10b981` : (isDraft ? `4px solid #3b82f6` : borderLeftStyle),
+                          borderLeft: isScheduled ? `4px solid #059669` : borderLeftStyle,
                           padding: '0.4rem', 
                           borderRadius: '4px',
                           fontSize: '0.75rem',
@@ -374,10 +388,10 @@ export default function SocialCalendar({ clients, users = [] }) {
                           opacity: isSkipped ? 0.6 : 1
                         }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.2rem' }}>
-                          <span style={{ fontWeight: 'bold', color: item.client?.color || 'var(--text-primary)', textDecoration: isSkipped ? 'line-through' : 'none', flexShrink: 0 }}>
+                          <span style={{ fontWeight: 'bold', color: textColor, textDecoration: isSkipped ? 'line-through' : 'none', flexShrink: 0 }}>
                             {item.network && networkIcons[item.network] ? networkIcons[item.network] + ' ' : ''}{item.client?.name}
                           </span>
-                          <span title={item.type} style={{ color: typeColors[item.network || item.type] || 'white', fontSize: '0.7rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                          <span title={item.type} style={{ color: isScheduled ? 'rgba(255,255,255,0.9)' : (typeColors[item.network || item.type] || 'white'), fontSize: '0.7rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right' }}>
                             {item.type}
                           </span>
                         </div>

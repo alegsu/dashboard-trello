@@ -85,10 +85,10 @@ export default function SocialPostModal({ post, onClose, onUpdate, onDelete, cur
   };
 
   const statusColors = {
-    'TODO': { bg: 'var(--bg-secondary)', text: 'var(--text-primary)', label: 'Da Fare' },
-    'DRAFT': { bg: 'rgba(59, 130, 246, 0.2)', text: '#3b82f6', label: 'Bozza Pronta', border: '#3b82f6' },
+    'TODO': { bg: 'rgba(245, 158, 11, 0.2)', text: '#f59e0b', label: 'Da Fare', border: '#f59e0b' },
+    'DRAFT': { bg: 'rgba(16, 185, 129, 0.2)', text: '#10b981', label: 'Bozza Pronta', border: '#10b981' },
     'APPROVAL': { bg: 'rgba(139, 92, 246, 0.2)', text: '#a78bfa', label: 'In Approvazione', border: '#8b5cf6' },
-    'SCHEDULED': { bg: 'rgba(16, 185, 129, 0.2)', text: '#34d399', label: 'Programmato', border: '#10b981' },
+    'SCHEDULED': { bg: '#10b981', text: '#ffffff', label: 'Programmato', border: '#059669' },
     'SKIPPED': { bg: 'rgba(249, 115, 22, 0.2)', text: '#fb923c', label: 'Saltato', border: '#f97316' }
   };
 
