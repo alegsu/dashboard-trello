@@ -96,6 +96,17 @@ export async function GET(request) {
 
       const textEmail = `Ciao ${user.name},\n\nHai ${notifications.length} nuovi aggiornamenti nel gestionale.\n\nVai su ${BASE_URL} per vederli.`;
 
+      // RACE CONDITION FIX: Eliminiamo SUBITO le notifiche dal database.
+      // Se deleteMany restituisce 0, significa che un'altra richiesta concorrente le ha già prese.
+      const idsToDelete = notifications.map(n => n.id);
+      const { count } = await prisma.pendingNotification.deleteMany({
+        where: { id: { in: idsToDelete } }
+      });
+
+      if (count === 0) {
+        continue; // Un'altra esecuzione le ha già elaborate
+      }
+
       // Invia email
       const sent = await sendNotificationEmail(
         user.email,
@@ -113,11 +124,6 @@ export async function GET(request) {
         });
       }
     }
-
-    // 2. Elimina le notifiche in sospeso elaborate (solo quelle degli utenti processati)
-    await prisma.pendingNotification.deleteMany({
-      where: { userId: { in: processedUserIds } }
-    });
 
     let emailsSent = processedUserIds.length;
 

@@ -99,6 +99,12 @@ Non inventare nuovi ID. Restituisci SOLO l'array JSON (es. ["id1", "id2"]).`;
       }
     }
 
+    // Recupera i nomi della board e della lista per una notifica più chiara
+    const parentBoard = await prisma.board.findUnique({ where: { id: boardId } });
+    const parentList = await prisma.list.findUnique({ where: { id: listId } });
+    const boardName = parentBoard?.name || 'Sconosciuta';
+    const listName = parentList?.name || 'Sconosciuta';
+
     // Notifica tutti i collaboratori della bacheca che è stata aggiunta una nuova scheda
     const boardMembers = await prisma.user.findMany({
       where: {
@@ -106,16 +112,19 @@ Non inventare nuovi ID. Restituisci SOLO l'array JSON (es. ["id1", "id2"]).`;
           { cards: { some: { boardId } } },
           { lists: { some: { boardId } } }
         ]
-      }
+      },
+      distinct: ['id']
     });
 
-    for (const member of boardMembers) {
+    const uniqueMembers = Array.from(new Map(boardMembers.map(m => [m.id, m])).values());
+
+    for (const member of uniqueMembers) {
       if (member.email) {
         await prisma.pendingNotification.create({
           data: {
             userId: member.id,
             type: "CARD_ADD",
-            message: `È stata aggiunta una nuova scheda "${name}" nella bacheca`,
+            message: `È stata aggiunta una nuova scheda "${name}" nella lista "${listName}" (Bacheca: ${boardName})`,
             link: `/?card=${newCard.id}`
           }
         });
