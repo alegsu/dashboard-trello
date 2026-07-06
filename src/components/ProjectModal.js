@@ -608,7 +608,7 @@ export default function ProjectModal({ project, clients, members, currentUser, o
 
             <div>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Calendar size={12}/> Scadenza</label>
-              <input type="date" value={formData.dueDate} onChange={e => setFormData({ ...formData, dueDate: e.target.value })} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} />
+              <input type="date" value={formData.dueDate} onChange={e => setFormData({ ...formData, dueDate: e.target.value })} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', colorScheme: 'dark' }} />
             </div>
 
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}/>

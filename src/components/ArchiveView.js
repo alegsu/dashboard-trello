@@ -124,12 +124,12 @@ export default function ArchiveView({ clients }) {
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
           <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Da Data</label>
-          <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={{ padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} />
+          <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={{ padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', colorScheme: 'dark' }} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
           <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>A Data</label>
-          <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={{ padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} />
+          <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={{ padding: '0.4rem', borderRadius: '4px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', colorScheme: 'dark' }} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1, minWidth: '200px' }}>

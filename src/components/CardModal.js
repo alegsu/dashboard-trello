@@ -1013,10 +1013,15 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
               <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0', fontSize: '0.8rem' }}><Calendar size={14}/> Scadenza</h4>
               <input 
                 type="date" 
-                value={card.due ? new Date(card.due).toISOString().split('T')[0] : ''} 
-                onChange={e => updateCard({ due: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                defaultValue={card.due ? new Date(card.due).toISOString().split('T')[0] : ''} 
+                onBlur={e => {
+                  const val = e.target.value;
+                  const newDue = val ? new Date(val).toISOString() : null;
+                  const oldDue = card.due ? new Date(card.due).toISOString() : null;
+                  if (newDue !== oldDue) updateCard({ due: newDue });
+                }}
                 className={styles.input}
-                style={{ width: '100%', padding: '0.2rem', fontSize: '0.8rem' }}
+                style={{ width: '100%', padding: '0.2rem', fontSize: '0.8rem', colorScheme: 'dark' }}
               />
             </div>
 

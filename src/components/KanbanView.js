@@ -464,9 +464,9 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                         style={{ width: '90%', padding: '0.2rem', textAlign: 'center', fontFamily: 'var(--font-title)', fontWeight: 'bold' }} 
                       />
                       <div style={{ display: 'flex', gap: '0.2rem', fontSize: '0.8rem' }}>
-                        <input type="date" value={editingListStartDate} onChange={e => setEditingListStartDate(e.target.value)} style={{ padding: '0.1rem', fontSize: '0.7rem', flex: 1 }} title="Inizio Sprint" />
-                        <span>-</span>
-                        <input type="date" value={editingListEndDate} onChange={e => setEditingListEndDate(e.target.value)} style={{ padding: '0.1rem', fontSize: '0.7rem', flex: 1 }} title="Fine Sprint" />
+                        <input type="date" value={editingListStartDate} onChange={e => setEditingListStartDate(e.target.value)} style={{ padding: '0.1rem', fontSize: '0.7rem', flex: 1, colorScheme: 'dark' }} title="Inizio Sprint" />
+                        <span> - </span>
+                        <input type="date" value={editingListEndDate} onChange={e => setEditingListEndDate(e.target.value)} style={{ padding: '0.1rem', fontSize: '0.7rem', flex: 1, colorScheme: 'dark' }} title="Fine Sprint" />
                       </div>
                       <button onClick={setCurrentWeek} style={{ fontSize: '0.7rem', background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.2rem', cursor: 'pointer', width: '100%' }}>
                         📅 Settimana Corrente (Lun-Ven)

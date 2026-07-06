@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.26.2</h4>
+                <ul style={noteUlStyle}>
+                  <li>🗓️ <strong>Fix Date:</strong> Risolto il fastidioso problema che impediva di digitare correttamente l'anno nelle date di scadenza delle schede. Ora l'aggiornamento avviene solo al "click fuori" dal campo, permettendo una digitazione fluida. È stata anche resa visibile l'icona nativa del calendario che spariva con il tema scuro!</li>
+                  <li>✉️ <strong>Notifiche Potenziate:</strong> Le email di notifica ora riportano chiaramente il nome di chi ha aggiunto la scheda, e (ovviamente) evitano di inviare la notifica a chi ha appena compiuto l'azione. Addio doppioni automatici!</li>
+                </ul>
+              </div>
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.26.1</h4>
                 <ul style={noteUlStyle}>
                   <li>💅 <strong>Restyling Calendario Social:</strong> Aggiunta una legenda discreta in alto. I colori degli stati ora sono molto più chiari e intuitivi (verde acceso per i Programmati, verde tenue per le Bozze, arancione per Da Fare). Le etichette dei social network (es. IG/FB, TikTok) non sono più rosse per evitare l'effetto "alert".</li>
