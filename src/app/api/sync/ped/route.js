@@ -5,13 +5,14 @@ import { parse } from 'csv-parse/sync';
 async function fetchAndParsePedSheet(csvUrl) {
   if (csvUrl.includes('/edit')) {
     const urlObj = new URL(csvUrl);
-    let gid = '0';
+    let gid = null;
     if (urlObj.searchParams.has('gid')) {
         gid = urlObj.searchParams.get('gid');
     } else if (urlObj.hash && urlObj.hash.includes('gid=')) {
         gid = urlObj.hash.split('gid=')[1].split('&')[0];
     }
-    csvUrl = csvUrl.split('/edit')[0] + `/export?format=csv&gid=${gid}`;
+    csvUrl = csvUrl.split('/edit')[0] + `/export?format=csv`;
+    if (gid) csvUrl += `&gid=${gid}`;
   }
 
   const res = await fetch(csvUrl, { cache: 'no-store', headers: { 'Accept': 'text/csv' } });
