@@ -517,7 +517,18 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <button className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`} onClick={() => setView('settings')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>⚙️ Imposta</button>
               
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}>
-                <button onClick={() => setShowNotificationsModal(!showNotificationsModal)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', position: 'relative', padding: '0.2rem' }}>
+                <button 
+                  onClick={() => setShowNotificationsModal(!showNotificationsModal)} 
+                  style={{ 
+                    background: 'transparent', 
+                    border: 'none', 
+                    color: 'var(--text-primary)', 
+                    cursor: 'pointer', 
+                    position: 'relative', 
+                    padding: '0.2rem',
+                    animation: notifications.filter(n => !n.read).length > 0 ? 'pulse 1.5s infinite' : 'none'
+                  }}
+                >
                   <Bell size={16} />
                   {notifications.filter(n => !n.read).length > 0 && (
                     <span style={{ position: 'absolute', top: -5, right: -5, background: 'var(--status-danger)', color: 'white', fontSize: '0.6rem', padding: '2px 4px', borderRadius: '10px', fontWeight: 'bold' }}>
