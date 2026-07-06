@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import styles from './SettingsPanel.module.css';
 
-export default function SettingsPanel({ members, boards, clients = [], lists = [], onRefresh, currentUser }) {
+export default function SettingsPanel({ members, boards, clients = [], lists = [], onRefresh, currentUser, setView }) {
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
@@ -290,7 +290,15 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
   return (
     <div className={styles.container}>
 
-      <h2 className={styles.title}>⚙️ Impostazioni & Gestione</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <h2 className={styles.title} style={{ margin: 0 }}>⚙️ Impostazioni & Gestione</h2>
+        <button 
+          onClick={() => setView && setView('archive')}
+          style={{ background: 'var(--status-success)', color: 'white', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}
+        >
+          🗄️ Apri Archivio
+        </button>
+      </div>
       
       {error && <div style={{background: '#fee2e2', color: '#b91c1c', padding: '0.5rem', borderRadius: '6px', marginBottom: '0.5rem', fontSize: '0.82rem'}}>{error}</div>}
 

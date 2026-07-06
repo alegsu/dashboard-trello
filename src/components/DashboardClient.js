@@ -105,7 +105,6 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   
   const [showImportModal, setShowImportModal] = useState(false);
   // currentUser now declared earlier
-  const [zenMode, setZenMode] = useState(false);
   const [currentTime, setCurrentTime] = useState(null);
   const [globalCardId, setGlobalCardId] = useState(null);
   const [globalNotebookClient, setGlobalNotebookClient] = useState(null);
@@ -356,14 +355,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             >
               🎯 La Mia Giornata
             </button>
-            <button 
-              onClick={() => setZenMode(!zenMode)}
-              style={{ background: zenMode ? 'var(--accent-primary)' : 'rgba(161, 189, 207, 0.05)', color: zenMode ? 'white' : 'var(--accent-primary)', border: '1px solid var(--accent-primary)', borderRadius: '20px', padding: '0.4rem 1rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.3s', boxShadow: zenMode ? '0 0 15px rgba(161, 189, 207, 0.5)' : 'none' }}
-            >
-              {zenMode ? '🧘‍♂️ Esci da Zen' : '🧘‍♂️ Zen Mode'}
-            </button>
-            
-            {!zenMode && view === 'kanban' && (
+            {view === 'kanban' && (
               <button 
                 onClick={() => setShowImportModal(true)}
                 style={{ background: 'var(--status-success)', color: 'white', border: 'none', borderRadius: '20px', padding: '0.4rem 1rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.3s' }}
@@ -372,13 +364,8 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
                 ✨ Importa Documento
               </button>
             )}
-            {zenMode && (
-               <div style={{ background: 'rgba(0,0,0,0.1)', padding: '0.3rem 0.8rem', borderRadius: '12px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                 ⏱️ Focus
-               </div>
-            )}
             
-            {visibleBoards.length > 0 && !zenMode && (
+            {visibleBoards.length > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <select 
                   value={selectedBoardId} 
@@ -423,7 +410,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
           </div>
         </div>
 
-        {!zenMode && (
+        <div>
           <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-glass)', padding: '0.4rem', borderRadius: '8px', flexWrap: 'nowrap', overflowX: 'auto', alignItems: 'center', border: '1px solid var(--border-color)', backdropFilter: 'blur(12px)' }}>
             
             {view !== 'settings' && (<>
@@ -513,7 +500,6 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               {currentUser?.role === 'admin' && (
                 <button className={`${styles.navButton} ${view === 'management' ? styles.active : ''}`} onClick={() => setView('management')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-primary)' }}>👑 Management</button>
               )}
-              <button className={`${styles.navButton} ${view === 'archive' ? styles.active : ''}`} onClick={() => setView('archive')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🗄️ Arch.</button>
               <button className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`} onClick={() => setView('settings')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>⚙️ Imposta</button>
               
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}>
@@ -559,7 +545,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               </div>
             </div>
           </div>
-        )}
+        </div>
       </header>
       
       <div className={styles.content}>
@@ -574,7 +560,6 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               onRefresh={handleRefresh} 
               onCardUpdate={handleCardUpdate}
               currentUser={currentUser}
-              zenMode={zenMode}
               filterClientId={filterClientId}
               onCardClick={setGlobalCardId}
               onOpenNotebook={setGlobalNotebookClient}
@@ -625,6 +610,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               currentUser={currentUser}
               lists={initialLists || []}
               onRefresh={handleRefresh}
+              setView={setView}
             />
           )}
           {view === 'management' && (
@@ -645,7 +631,6 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
         </section>
       </div>
       
-      {zenMode && <PomodoroTimer />}
       {isHelpOpen && <HelpModal onClose={() => setIsHelpOpen(false)} />}
       {showImportModal && (
         <DocumentImportModal 
