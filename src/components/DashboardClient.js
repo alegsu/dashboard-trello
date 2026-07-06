@@ -142,8 +142,10 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
 
   useEffect(() => {
     fetchNotifications();
+    fetchAnnouncements();
     const interval = setInterval(() => {
       fetchNotifications();
+      fetchAnnouncements();
       fetch('/api/cron/process-queue?force=true').catch(() => {});
     }, 60000);
 
@@ -196,6 +198,33 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
 
     return () => clearInterval(interval);
   }, [initialMembers, router]);
+  // Announcements
+  const [announcements, setAnnouncements] = useState([]);
+  const [showAnnouncementsModal, setShowAnnouncementsModal] = useState(false);
+  const [hasNewAnnouncements, setHasNewAnnouncements] = useState(false);
+
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await fetch('/api/settings');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ANNOUNCEMENTS) {
+          const parsed = JSON.parse(data.ANNOUNCEMENTS);
+          setAnnouncements(parsed);
+          if (parsed.length > 0) {
+            const lastSeen = localStorage.getItem('lastSeenAnnouncementAt');
+            if (!lastSeen || new Date(parsed[0].createdAt) > new Date(lastSeen)) {
+              setHasNewAnnouncements(true);
+            } else {
+              setHasNewAnnouncements(false);
+            }
+          } else {
+            setHasNewAnnouncements(false);
+          }
+        }
+      }
+    } catch(e) {}
+  };
 
   const fetchNotifications = async () => {
     const res = await fetch(`/api/notifications`);
@@ -282,11 +311,38 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.26.2
+              v2.27.0
             </span>
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <button 
+              onClick={() => {
+                setShowAnnouncementsModal(true);
+                setHasNewAnnouncements(false);
+                if (announcements.length > 0) {
+                  localStorage.setItem('lastSeenAnnouncementAt', announcements[0].createdAt);
+                }
+              }}
+              style={{ 
+                background: hasNewAnnouncements ? 'var(--status-danger)' : 'transparent', 
+                color: hasNewAnnouncements ? 'white' : 'var(--text-secondary)', 
+                border: 'none', 
+                cursor: 'pointer', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.4rem', 
+                transition: 'all 0.3s',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                justifyContent: 'center',
+                animation: hasNewAnnouncements ? 'pulse 1.5s infinite' : 'none'
+              }}
+              title="Annunci Team"
+            >
+              📣
+            </button>
             <button 
               onClick={() => setIsHelpOpen(true)}
               style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.3s' }}
@@ -609,6 +665,32 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
           client={globalNotebookClient} 
           onClose={() => setGlobalNotebookClient(null)} 
         />
+      )}
+      
+      {showAnnouncementsModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100000, display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={() => setShowAnnouncementsModal(false)}>
+          <div style={{ background: 'var(--bg-primary)', padding: '2rem', borderRadius: '12px', maxWidth: '500px', width: '90%', maxHeight: '80vh', overflowY: 'auto', border: '1px solid var(--border-color)', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>📣 Annunci Team</h2>
+              <button onClick={() => setShowAnnouncementsModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {announcements.length === 0 ? (
+                <p style={{ color: 'var(--text-secondary)', textAlign: 'center' }}>Nessun annuncio presente.</p>
+              ) : (
+                announcements.map(a => (
+                  <div key={a.id} style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-color)', padding: '1rem', borderRadius: '8px' }}>
+                    <p style={{ margin: '0 0 0.5rem 0', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{a.text}</p>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
+                      — {a.author}, {new Date(a.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

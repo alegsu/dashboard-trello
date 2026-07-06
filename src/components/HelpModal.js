@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.27.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>📣 <strong>Bacheca Annunci:</strong> Aggiunto un nuovo sistema di annunci globale per il team. Gli amministratori possono pubblicare comunicazioni dalla sezione Impostazioni. Quando c'è un nuovo annuncio non letto, l'icona del Megafono in alto lampeggerà! Cliccando l'icona si accede allo storico di tutte le vecchie comunicazioni.</li>
+                  <li>📘 <strong>Manuale Operativo:</strong> È stato redatto un manuale operativo completo per l'utilizzo del gestionale.</li>
+                </ul>
+              </div>
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.26.2</h4>
                 <ul style={noteUlStyle}>
                   <li>🗓️ <strong>Fix Date:</strong> Risolto il fastidioso problema che impediva di digitare correttamente l'anno nelle date di scadenza delle schede. Ora l'aggiornamento avviene solo al "click fuori" dal campo, permettendo una digitazione fluida. È stata anche resa visibile l'icona nativa del calendario che spariva con il tema scuro!</li>

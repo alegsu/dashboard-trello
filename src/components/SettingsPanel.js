@@ -66,6 +66,10 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
   const [selectedList, setSelectedList] = useState(lists.length > 0 ? lists[0].id : '');
   const [generatingTemplate, setGeneratingTemplate] = useState(false);
 
+  // Announcements
+  const [announcements, setAnnouncements] = useState([]);
+  const [newAnnouncement, setNewAnnouncement] = useState('');
+
   // Archive
   const [archive, setArchive] = useState({ boards: [], lists: [], cards: [], projects: [] });
 
@@ -76,6 +80,12 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
       if (data.SMTP_USER) setSmtpUser(data.SMTP_USER);
       if (data.SMTP_PASS) setSmtpPass(data.SMTP_PASS);
       if (data.BASE_URL) setBaseUrl(data.BASE_URL);
+      
+      if (data.ANNOUNCEMENTS) {
+        try {
+          setAnnouncements(JSON.parse(data.ANNOUNCEMENTS));
+        } catch(e) {}
+      }
     });
 
     fetch('/api/templates')
@@ -139,6 +149,36 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
     });
     setLoading(false);
     alert('Impostazioni SMTP salvate!');
+  };
+
+  const handleAddAnnouncement = async () => {
+    if (!newAnnouncement.trim()) return;
+    const newId = Date.now().toString();
+    const newMsg = { id: newId, text: newAnnouncement, createdAt: new Date().toISOString(), author: effectiveCurrentUser?.name || 'Admin' };
+    const updated = [newMsg, ...announcements];
+    
+    setLoading(true);
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ANNOUNCEMENTS: JSON.stringify(updated) })
+    });
+    setAnnouncements(updated);
+    setNewAnnouncement('');
+    setLoading(false);
+  };
+
+  const handleDeleteAnnouncement = async (id) => {
+    if (!window.confirm('Vuoi eliminare questo annuncio?')) return;
+    const updated = announcements.filter(a => a.id !== id);
+    setLoading(true);
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ANNOUNCEMENTS: JSON.stringify(updated) })
+    });
+    setAnnouncements(updated);
+    setLoading(false);
   };
 
   const handleGenerateTemplate = async () => {
@@ -599,32 +639,61 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
               ))}
             </select>
           </div>
-          
           <div className={styles.formGroup}>
-            <label>Cliente</label>
+            <label>Cliente da taggare (Opzionale)</label>
             <select className={styles.input} style={{ padding: '0.4rem 0.5rem' }} value={selectedClient} onChange={e => setSelectedClient(e.target.value)}>
-              <option value="none">-- Nessun Cliente --</option>
+              <option value="none">-- Nessun cliente --</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-
           <div className={styles.formGroup}>
-            <label>Lista di Destinazione</label>
+            <label>Lista di destinazione</label>
             <select className={styles.input} style={{ padding: '0.4rem 0.5rem' }} value={selectedList} onChange={e => setSelectedList(e.target.value)}>
-              <option value="">-- Seleziona Lista --</option>
               {lists.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
             </select>
           </div>
-
-          <button 
-            className={styles.btnPrimary} 
-            onClick={handleGenerateTemplate} 
-            disabled={generatingTemplate || !selectedTemplateTitle || !selectedList}
-            style={{ width: '100%', marginTop: '0.5rem' }}
-          >
-            {generatingTemplate ? 'Generazione...' : 'Genera Scheda da Template'}
+          <button onClick={handleGenerateTemplate} disabled={generatingTemplate} className={styles.button} style={{ width: '100%', marginTop: '0.5rem' }}>
+            {generatingTemplate ? '⏳ Generazione...' : '🚀 Genera e Aggiungi al Kanban'}
           </button>
         </div>
+
+        {/* Gestione Annunci */}
+        {effectiveCurrentUser?.role === 'admin' && (
+          <div className={styles.card}>
+            <h3>📣 Bacheca Annunci Team</h3>
+            <p className={styles.subtitle}>Scrivi un aggiornamento. Tutti vedranno l'avviso lampeggiante.</p>
+            
+            <div className={styles.inputGroup} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '0.5rem' }}>
+              <textarea 
+                value={newAnnouncement} 
+                onChange={e => setNewAnnouncement(e.target.value)} 
+                placeholder="Es. Da domani usiamo la nuova etichetta 'Urgente'..."
+                className={styles.input}
+                style={{ resize: 'vertical', minHeight: '60px', padding: '0.5rem', fontSize: '0.85rem' }}
+              />
+              <button onClick={handleAddAnnouncement} disabled={loading} className={styles.button} style={{ alignSelf: 'flex-end' }}>
+                + Pubblica Annuncio
+              </button>
+            </div>
+
+            {announcements.length > 0 && (
+              <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>Storico Annunci</h4>
+                {announcements.map(a => (
+                  <div key={a.id} style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem', position: 'relative' }}>
+                    <p style={{ margin: '0 0 0.3rem 0', fontSize: '0.85rem', whiteSpace: 'pre-wrap' }}>{a.text}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                      <span>Di {a.author} il {new Date(a.createdAt).toLocaleDateString()}</span>
+                      <button onClick={() => handleDeleteAnnouncement(a.id)} style={{ background: 'transparent', border: 'none', color: 'var(--status-danger)', cursor: 'pointer' }} title="Elimina Annuncio">
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
         {/* Impostazioni Email */}
