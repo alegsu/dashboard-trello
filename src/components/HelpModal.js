@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.29.1</h4>
+                <ul style={noteUlStyle}>
+                  <li>📐 <strong>Allineamento Perfetto:</strong> Rese le colonne della bacheca Kanban a larghezza fissa per garantire un allineamento millimetrico perfetto tra intestazioni e celle in ogni situazione.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.29.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🦄 <strong>Temi Divertenti & Animati:</strong> Aggiunti tre nuovi temi per personalizzare la tua esperienza (Unicorno Magico, Palloncini in Festa, Tramonto Rilassante). Provali nelle Impostazioni!</li>
