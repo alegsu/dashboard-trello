@@ -150,6 +150,20 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.29.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🦄 <strong>Temi Divertenti & Animati:</strong> Aggiunti tre nuovi temi per personalizzare la tua esperienza (Unicorno Magico, Palloncini in Festa, Tramonto Rilassante). Provali nelle Impostazioni!</li>
+                  <li>👤 <strong>Assegnatari Visibili in Kanban:</strong> Ora puoi vedere immediatamente chi sta lavorando a una scheda grazie all'icona assegnatario che appare direttamente nell'anteprima della scheda in bacheca.</li>
+                </ul>
+              </div>
+              <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.28.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🧹 <strong>Pulizia Menu:</strong> Rimossa la modalità "Zen" (poco utilizzata) e spostato il pulsante Archivio nel pannello Impostazioni per avere una navigazione molto più chiara e pulita.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.27.0</h4>
                 <ul style={noteUlStyle}>
                   <li>📣 <strong>Bacheca Annunci:</strong> Aggiunto un nuovo sistema di annunci globale per il team. Gli amministratori possono pubblicare comunicazioni dalla sezione Impostazioni. Quando c'è un nuovo annuncio non letto, l'icona del Megafono in alto lampeggerà! Cliccando l'icona si accede allo storico di tutte le vecchie comunicazioni.</li>
