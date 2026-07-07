@@ -310,7 +310,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.29.1
+              v2.29.2
             </span>
           </div>
           
@@ -355,6 +355,15 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             >
               🎯 La Mia Giornata
             </button>
+            {view === 'kanban' && (
+              <button 
+                onClick={() => setFilterUserId(filterUserId === currentUser?.id ? '' : currentUser?.id)}
+                style={{ background: filterUserId === currentUser?.id ? 'var(--status-warning)' : 'rgba(161, 189, 207, 0.05)', color: filterUserId === currentUser?.id ? 'var(--bg-primary)' : 'var(--text-primary)', border: filterUserId === currentUser?.id ? '1px solid var(--status-warning)' : '1px solid var(--border-color)', borderRadius: '20px', padding: '0.4rem 1rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.3s' }}
+                title="Filtra Kanban mostrando solo i task assegnati a te"
+              >
+                🙋‍♂️ I Miei Task
+              </button>
+            )}
             {view === 'kanban' && (
               <button 
                 onClick={() => setShowImportModal(true)}
