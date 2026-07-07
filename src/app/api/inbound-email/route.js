@@ -107,6 +107,7 @@ Regole:
 2. Altrimenti (se è una richiesta, una cosa da fare, un problema da risolvere, task), usa "CREATE_TASK".
 3. Se riconosci chiaramente il cliente dal testo o dall'oggetto, inserisci il suo clientId. È FONDAMENTALE per "ADD_NOTE".
 4. Nel campo description inserisci le informazioni rilevanti ripulite (togli saluti inutili o le firme).
+5. ECCEZIONE CRITICA: Se l'utente scrive nel testo dell'email un'istruzione esplicita come "questa deve andare in scheda", "crea task", "metti in bacheca", ecc., ignora la Regola 1 e usa SEMPRE "CREATE_TASK".
 `;
 
     const openai = new OpenAI({ apiKey });
