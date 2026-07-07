@@ -496,7 +496,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
               );
             })}
             {newListMode && (
-              <div className={styles.kanbanColumnHeader} style={{ background: 'var(--bg-secondary)', borderLeft: '1px solid var(--border-color)', minWidth: '180px', flex: '0 0 auto' }}>
+              <div className={styles.kanbanColumnHeader} style={{ background: 'var(--bg-secondary)', borderLeft: '1px solid var(--border-color)', width: '260px', flex: '0 0 260px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <input autoFocus value={newListName} onChange={e => setNewListName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddList()} placeholder="Nome Lista..." style={{ width: '100%', padding: '0.4rem' }} />
                   <div style={{ display: 'flex', gap: '0.3rem' }}>
@@ -686,7 +686,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                         </div>
                       )
                     })}
-                    {newListMode && <div className={styles.kanbanCell} style={{ background: 'transparent', border: 'none', minWidth: '180px', flex: '0 0 auto' }}></div>}
+                    {newListMode && <div className={styles.kanbanCell} style={{ background: 'transparent', border: 'none', width: '260px', flex: '0 0 260px' }}></div>}
                     <div style={{ width: '50px', flex: '0 0 50px' }}></div>
                   </div>
                 </div>

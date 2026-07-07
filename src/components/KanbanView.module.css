@@ -30,8 +30,10 @@
 
 .kanbanColumnHeader {
   font-family: var(--font-title);
-  min-width: 180px;
-  flex: 1;
+  width: 260px;
+  min-width: 260px;
+  max-width: 260px;
+  flex: 0 0 260px;
   padding: 0.5rem;
   font-weight: 600;
   border-right: 1px solid var(--border-color);
@@ -81,8 +83,10 @@
 }
 
 .kanbanCell {
-  min-width: 180px;
-  flex: 1;
+  width: 260px;
+  min-width: 260px;
+  max-width: 260px;
+  flex: 0 0 260px;
   padding: 0.5rem;
   border-right: 1px solid var(--border-color);
   background: transparent !important;
