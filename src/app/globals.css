@@ -123,3 +123,95 @@ select {
   70% { box-shadow: 0 0 0 6px rgba(139, 92, 246, 0); }
   100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
 }
+
+/* ============================
+   FUN THEMES & ANIMATIONS
+   ============================ */
+
+/* 🦄 Unicorn Theme */
+[data-theme="unicorn"] {
+  --bg-primary: #fce7f3;
+  --bg-secondary: #fbcfe8;
+  --bg-glass: rgba(255, 255, 255, 0.7);
+  --text-primary: #831843;
+  --text-secondary: #be185d;
+  --accent-primary: #d946ef;
+  --accent-hover: #c026d3;
+  --accent-secondary: #fb7185;
+  --border-color: rgba(217, 70, 239, 0.2);
+  --glass-border: rgba(255, 255, 255, 0.5);
+}
+[data-theme="unicorn"] body {
+  background: linear-gradient(120deg, #fce7f3, #fdf4ff, #fae8ff, #fce7f3);
+  background-size: 400% 400%;
+  animation: unicornMagic 15s ease infinite;
+}
+@keyframes unicornMagic {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 🎈 Balloons Theme */
+[data-theme="balloons"] {
+  --bg-primary: #e0f2fe;
+  --bg-secondary: #bae6fd;
+  --bg-glass: rgba(255, 255, 255, 0.7);
+  --text-primary: #0c4a6e;
+  --text-secondary: #0369a1;
+  --accent-primary: #f59e0b;
+  --accent-hover: #d97706;
+  --accent-secondary: #ef4444;
+  --border-color: rgba(14, 165, 233, 0.2);
+  --glass-border: rgba(255, 255, 255, 0.5);
+}
+[data-theme="balloons"] body {
+  background: linear-gradient(to top, #e0f2fe, #f0f9ff);
+  overflow: hidden; /* Prevent balloon scrollbars */
+}
+[data-theme="balloons"] body::before,
+[data-theme="balloons"] body::after {
+  content: "🎈";
+  font-size: 6rem;
+  position: absolute;
+  top: 110%;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="balloons"] body::before {
+  left: 10%;
+  animation: floatBalloons 12s linear infinite;
+}
+[data-theme="balloons"] body::after {
+  left: 80%;
+  animation: floatBalloons 18s linear infinite 5s;
+}
+@keyframes floatBalloons {
+  0% { top: 110%; transform: rotate(-10deg) translateX(0); }
+  50% { transform: rotate(10deg) translateX(20px); }
+  100% { top: -20%; transform: rotate(-10deg) translateX(0); }
+}
+
+/* 🌅 Sunset Theme */
+[data-theme="sunset"] {
+  --bg-primary: #2e1065;
+  --bg-secondary: #4c1d95;
+  --bg-glass: rgba(0, 0, 0, 0.4);
+  --text-primary: #fef08a;
+  --text-secondary: #fca5a5;
+  --accent-primary: #f97316;
+  --accent-hover: #ea580c;
+  --accent-secondary: #db2777;
+  --border-color: rgba(249, 115, 22, 0.3);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+[data-theme="sunset"] body {
+  background: linear-gradient(180deg, #1e1b4b, #4c1d95, #be123c, #f59e0b);
+  background-attachment: fixed;
+  animation: sunsetGlow 20s ease-in-out infinite alternate;
+}
+@keyframes sunsetGlow {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 0% 100%; }
+}

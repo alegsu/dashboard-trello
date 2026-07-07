@@ -461,6 +461,9 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
             >
               <option value="dark">Scuro (Default)</option>
               <option value="light">Chiaro</option>
+              <option value="unicorn">🦄 Unicorno Magico</option>
+              <option value="balloons">🎈 Palloncini in Festa</option>
+              <option value="sunset">🌅 Tramonto Rilassante</option>
             </select>
           </div>
           

@@ -18,7 +18,7 @@ function getContrastYIQ(hexcolor){
   return (yiq >= 128) ? '#000000' : '#ffffff';
 }
 
-export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh, onCardUpdate, currentUser, zenMode, filterClientId, onCardClick, onOpenNotebook }) {
+export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh, onCardUpdate, currentUser, filterClientId, onCardClick, onOpenNotebook }) {
   const [isMounted, setIsMounted] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(100);
 
@@ -597,6 +597,15 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                                   </div>
                                 )}
                                 <div className={styles.kanbanCardName} style={{ color: getContrastYIQ(card.color) }}>{card.name}</div>
+                                {card.assignees && card.assignees.length > 0 && (
+                                  <div style={{ display: 'flex', marginTop: '0.4rem' }}>
+                                    {card.assignees.map(a => (
+                                      <div key={a.id} title={a.name} style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', color: getContrastYIQ(card.color), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 'bold', border: `1px solid ${card.color || 'var(--border-color)'}`, marginLeft: '-4px', backdropFilter: 'blur(4px)' }}>
+                                        {a.name.charAt(0).toUpperCase()}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                                 {card.due && (() => {
                                   let percent = 0;
                                   const dDate = new Date(card.due).getTime();
