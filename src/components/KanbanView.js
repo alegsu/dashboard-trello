@@ -439,6 +439,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                 </div>
               )}
             </div>
+            <div className={styles.kanbanSwimlaneCells}>
             {lists.map(list => {
               const hasDates = list.startDate || list.endDate;
               return (
@@ -517,6 +518,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                 </button>
               </div>
             )}
+            </div>
          </div>
 
          <div className={styles.kanbanBody}>
