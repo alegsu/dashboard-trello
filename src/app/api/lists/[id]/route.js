@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
+import { del } from '@vercel/blob';
 
 export async function PUT(request, { params }) {
   try {
@@ -29,7 +30,29 @@ export async function DELETE(request, { params }) {
   try {
     const { id } = await params;
     
-    // Delete all cards in this list (cascades to checklists, comments, attachments)
+    // Trova tutte le schede della lista
+    const cards = await prisma.card.findMany({ where: { listId: id }, select: { id: true } });
+    const cardIds = cards.map(c => c.id);
+
+    if (cardIds.length > 0) {
+      // Trova tutti gli allegati di queste schede
+      const attachments = await prisma.attachment.findMany({
+        where: { cardId: { in: cardIds } }
+      });
+
+      // Elimina i blob da Vercel
+      for (const att of attachments) {
+        if (att.url.includes('public.blob.vercel-storage.com')) {
+          try {
+            await del(att.url);
+          } catch (e) {
+            console.error('Failed to delete blob:', e);
+          }
+        }
+      }
+    }
+
+    // Delete all cards in this list (cascades to checklists, comments, attachments in DB)
     await prisma.card.deleteMany({ where: { listId: id } });
     // Delete the list itself
     await prisma.list.delete({ where: { id } });

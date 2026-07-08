@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
+import { del } from '@vercel/blob';
 
 export async function GET(request, { params }) {
   try {
@@ -97,6 +98,21 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const { id } = await params;
+
+    // Trova tutti gli allegati della scheda
+    const attachments = await prisma.attachment.findMany({ where: { cardId: id } });
+    
+    // Elimina i blob da Vercel
+    for (const att of attachments) {
+      if (att.url.includes('public.blob.vercel-storage.com')) {
+        try {
+          await del(att.url);
+        } catch (e) {
+          console.error('Failed to delete blob:', e);
+        }
+      }
+    }
+
     await prisma.card.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (err) {

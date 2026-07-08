@@ -29,6 +29,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
   const [attachments, setAttachments] = useState([]);
   const [newAttachmentUrl, setNewAttachmentUrl] = useState('');
   const [newAttachmentName, setNewAttachmentName] = useState('');
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
 
   // Checklist Item Notes State
   const [openNotes, setOpenNotes] = useState({});
@@ -490,6 +491,43 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
     fetchAttachments();
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Optional: check file size if needed
+
+    setIsUploadingFile(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      await fetch(`/api/cards/${cardId}/attachments/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      fetchAttachments();
+    } catch (err) {
+      console.error('Upload failed', err);
+      alert("Errore durante il caricamento del file.");
+    } finally {
+      setIsUploadingFile(false);
+      // Reset input file value to allow uploading same file again if needed
+      e.target.value = null;
+    }
+  };
+
+  const deleteAttachment = async (attachmentId) => {
+    if (!confirm('Sei sicuro di voler eliminare questo allegato? Il file verrà rimosso definitivamente.')) return;
+    try {
+      await fetch(`/api/attachments/${attachmentId}`, { method: 'DELETE' });
+      fetchAttachments();
+    } catch (e) {
+      console.error(e);
+      alert("Errore durante l'eliminazione.");
+    }
+  };
+
   const generateAiSummary = async () => {
     setLoadingSummary(true);
     setAiError('');
@@ -921,42 +959,64 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
 
             {/* Attachments Section */}
             <div className={styles.section}>
-              <details style={{ cursor: 'pointer' }}>
+              <details style={{ cursor: 'pointer' }} open>
                 <summary style={{ outline: 'none', userSelect: 'none', fontWeight: 'bold' }}>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Paperclip size={16}/> Allegati Drive / Link
+                    <Paperclip size={16}/> Allegati e File
                   </div>
                 </summary>
                 
                 <div style={{ marginTop: '1rem', paddingLeft: '1.5rem', cursor: 'default' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
                     {attachments.map(att => (
-                      <a key={att.id} href={att.url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-elevated)', padding: '0.5rem 1rem', borderRadius: '4px', textDecoration: 'none', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
-                        <ExternalLink size={14} color="var(--accent-primary)" />
-                        {att.name}
-                      </a>
+                      <div key={att.id} style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-elevated)', borderRadius: '4px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+                        <a href={att.url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', textDecoration: 'none', color: 'var(--text-primary)', flex: 1 }}>
+                          <ExternalLink size={14} color="var(--accent-primary)" />
+                          <span style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{att.name}</span>
+                        </a>
+                        <button 
+                          onClick={() => deleteAttachment(att.id)}
+                          style={{ padding: '0.5rem', background: 'transparent', border: 'none', borderLeft: '1px solid var(--border-color)', color: 'var(--status-danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          title="Elimina allegato"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     ))}
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <input 
-                      className={styles.input} 
-                      placeholder="Nome allegato..." 
-                      value={newAttachmentName} 
-                      onChange={e => setNewAttachmentName(e.target.value)}
-                      style={{ flex: 1 }}
-                    />
-                    <input 
-                      className={styles.input} 
-                      placeholder="https://drive.google.com/..." 
-                      value={newAttachmentUrl} 
-                      onChange={e => setNewAttachmentUrl(e.target.value)}
-                      style={{ flex: 2 }}
-                    />
-                    <button className={styles.btnSecondary} onClick={addAttachment}>Allega Link</button>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <label style={{ cursor: isUploadingFile ? 'not-allowed' : 'pointer', background: 'var(--accent-primary)', color: 'white', padding: '0.5rem 1rem', borderRadius: '4px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: isUploadingFile ? 0.7 : 1 }}>
+                      <Plus size={16} />
+                      {isUploadingFile ? 'Caricamento...' : 'Carica File'}
+                      <input 
+                        type="file" 
+                        onChange={handleFileUpload} 
+                        style={{ display: 'none' }} 
+                        disabled={isUploadingFile}
+                      />
+                    </label>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', flex: 1, minWidth: '300px' }}>
+                      <input 
+                        className={styles.input} 
+                        placeholder="Nome link..." 
+                        value={newAttachmentName} 
+                        onChange={e => setNewAttachmentName(e.target.value)}
+                        style={{ flex: 1 }}
+                      />
+                      <input 
+                        className={styles.input} 
+                        placeholder="https://drive.google.com/..." 
+                        value={newAttachmentUrl} 
+                        onChange={e => setNewAttachmentUrl(e.target.value)}
+                        style={{ flex: 2 }}
+                      />
+                      <button className={styles.btnSecondary} onClick={addAttachment}>Allega Link</button>
+                    </div>
                   </div>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                    *In futuro, qui comparirà il pulsante "Sfoglia Google Drive" usando le Google Picker API.
+                    *Puoi caricare file fisici dal tuo dispositivo, oppure incollare un link a risorse esterne (es. Google Drive).
                   </p>
                 </div>
               </details>

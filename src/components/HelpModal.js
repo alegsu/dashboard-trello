@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.30.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>☁️ <strong>Upload Nativo Allegati:</strong> Ora puoi caricare file, immagini e documenti direttamente dal tuo computer all'interno delle schede. I file vengono salvati su Vercel Blob.</li>
+                  <li>🧹 <strong>Pulizia Automatica Storage:</strong> Aggiunta l'eliminazione a cascata: quando elimini un allegato, una scheda o un'intera bacheca, tutti i file fisici collegati verranno automaticamente distrutti da Vercel Blob per liberare spazio!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.29.2</h4>
                 <ul style={noteUlStyle}>
                   <li>🙋‍♂️ <strong>Filtro Diretto "I Miei Task":</strong> Aggiunto un comodissimo pulsante rapido vicino a "La Mia Giornata" che ti permette, con un solo click, di filtrare l'intera visuale Kanban mostrando esclusivamente le schede in cui sei coinvolto tu!</li>
