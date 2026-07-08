@@ -102,6 +102,11 @@
   border-color: var(--accent-primary);
 }
 
+.uploadLabelHover:hover {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
 .input {
   background: var(--bg-primary);
   border: 1px solid var(--border-color);

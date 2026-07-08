@@ -502,14 +502,18 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
     formData.append('file', file);
 
     try {
-      await fetch(`/api/cards/${cardId}/attachments/upload`, {
+      const res = await fetch(`/api/cards/${cardId}/attachments/upload`, {
         method: 'POST',
         body: formData,
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Errore del server');
+      }
       fetchAttachments();
     } catch (err) {
       console.error('Upload failed', err);
-      alert("Errore durante il caricamento del file.");
+      alert(`Errore durante il caricamento: ${err.message}`);
     } finally {
       setIsUploadingFile(false);
       // Reset input file value to allow uploading same file again if needed
@@ -985,10 +989,26 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                     ))}
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <label style={{ cursor: isUploadingFile ? 'not-allowed' : 'pointer', background: 'var(--accent-primary)', color: 'white', padding: '0.5rem 1rem', borderRadius: '4px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: isUploadingFile ? 0.7 : 1 }}>
-                      <Plus size={16} />
-                      {isUploadingFile ? 'Caricamento...' : 'Carica File'}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label 
+                      style={{ 
+                        cursor: isUploadingFile ? 'not-allowed' : 'pointer', 
+                        background: 'transparent', 
+                        color: 'var(--text-secondary)', 
+                        border: '1px dashed var(--border-color)', 
+                        padding: '0.4rem 0.8rem', 
+                        borderRadius: '4px', 
+                        fontSize: '0.85rem', 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '0.5rem', 
+                        opacity: isUploadingFile ? 0.7 : 1,
+                        transition: 'all 0.2s'
+                      }}
+                      className={styles.uploadLabelHover}
+                    >
+                      <Plus size={14} />
+                      {isUploadingFile ? 'Caricamento in corso...' : 'Sfoglia file dal PC...'}
                       <input 
                         type="file" 
                         onChange={handleFileUpload} 
@@ -996,7 +1016,9 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                         disabled={isUploadingFile}
                       />
                     </label>
+                  </div>
 
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                     <div style={{ display: 'flex', gap: '0.5rem', flex: 1, minWidth: '300px' }}>
                       <input 
                         className={styles.input} 
