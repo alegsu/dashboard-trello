@@ -36,7 +36,11 @@ export async function GET(request, { params }) {
         });
       } catch (e) {
         console.error('Error proxying blob:', e);
-        return NextResponse.json({ error: 'Errore durante la lettura del file' }, { status: 500 });
+        return NextResponse.json({ 
+           error: 'Errore durante la lettura del file', 
+           details: e ? (e.stack || e.toString()) : 'Unknown error',
+           tokenExists: !!process.env.BLOB_READ_WRITE_TOKEN
+        }, { status: 500 });
       }
     }
 
