@@ -16,13 +16,16 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Allegato non trovato' }, { status: 404 });
     }
 
-    // Se l'URL è un Vercel Blob (pubblico o privato), lo proxyamo con il token per avere accesso garantito
     if (attachment.url.includes('blob.vercel-storage.com')) {
       try {
+        const env = process.env;
+        const token = env.BLOB_READ_WRITE_TOKEN;
+        
         const response = await fetch(attachment.url, {
           headers: {
-            Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`
-          }
+            Authorization: `Bearer ${token}`
+          },
+          cache: 'no-store'
         });
 
         if (!response.ok) {
@@ -41,7 +44,7 @@ export async function GET(request, { params }) {
         return NextResponse.json({ 
            error: 'Errore durante la lettura del file', 
            details: e ? (e.stack || e.toString()) : 'Unknown error',
-           tokenExists: !!process.env.BLOB_READ_WRITE_TOKEN
+           tokenExists: !!process.env['BLOB_READ_WRITE_TOKEN']
         }, { status: 500 });
       }
     }
