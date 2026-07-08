@@ -974,7 +974,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
                     {attachments.map(att => (
                       <div key={att.id} style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-elevated)', borderRadius: '4px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
-                        <a href={att.url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', textDecoration: 'none', color: 'var(--text-primary)', flex: 1 }}>
+                        <a href={`/api/attachments/read/${att.id}`} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', textDecoration: 'none', color: 'var(--text-primary)', flex: 1 }}>
                           <ExternalLink size={14} color="var(--accent-primary)" />
                           <span style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{att.name}</span>
                         </a>

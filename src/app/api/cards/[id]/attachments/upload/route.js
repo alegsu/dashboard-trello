@@ -19,9 +19,9 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Nessun file fornito' }, { status: 400 });
     }
 
-    // Carica il file su Vercel Blob
+    // Carica il file su Vercel Blob (impostato su private per compatibilità con il tuo store)
     const blob = await put(`attachments/${id}/${file.name}`, file, {
-      access: 'public',
+      access: 'private',
     });
 
     // Salva nel database
