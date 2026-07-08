@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
+import { get } from '@vercel/blob';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,25 +17,14 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Allegato non trovato' }, { status: 404 });
     }
 
+    // Se l'URL è un Vercel Blob (pubblico o privato), usiamo l'SDK per scaricarlo
     if (attachment.url.includes('blob.vercel-storage.com')) {
       try {
-        const env = process.env;
-        const token = env.BLOB_READ_WRITE_TOKEN;
+        const result = await get(attachment.url, { access: 'private' });
         
-        const response = await fetch(attachment.url, {
+        return new NextResponse(result.stream, {
           headers: {
-            Authorization: `Bearer ${token}`
-          },
-          cache: 'no-store'
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch blob: ${response.status} ${response.statusText}`);
-        }
-
-        return new NextResponse(response.body, {
-          headers: {
-            'Content-Type': response.headers.get('Content-Type') || 'application/octet-stream',
+            'Content-Type': result.blob.contentType || 'application/octet-stream',
             // Usa 'inline' per visualizzare nel browser (immagini/pdf), 'attachment' per forzare il download
             'Content-Disposition': `inline; filename="${encodeURIComponent(attachment.name)}"`,
           }
@@ -43,8 +33,7 @@ export async function GET(request, { params }) {
         console.error('Error proxying blob:', e);
         return NextResponse.json({ 
            error: 'Errore durante la lettura del file', 
-           details: e ? (e.stack || e.toString()) : 'Unknown error',
-           tokenExists: !!process.env['BLOB_READ_WRITE_TOKEN']
+           details: e ? (e.stack || e.toString()) : 'Unknown error'
         }, { status: 500 });
       }
     }
