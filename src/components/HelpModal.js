@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.30.1</h4>
+                <ul style={noteUlStyle}>
+                  <li>⏱️ <strong>Fix Tracciamento Tempi:</strong> Risolto un bug che faceva lievitare il tempo "Loggato" all'infinito se si lasciava la scheda aperta nel weekend. Ora il sistema rileva l'inattività: se non tocchi il mouse o la tastiera per più di 5 minuti, il conteggio del tempo viene temporaneamente messo in pausa in modo intelligente!</li>
+                  <li>🐛 <strong>Fix Reset Mezzanotte:</strong> Corretto un problema tecnico che causava la sovrapposizione errata dei tempi "Attivo" del giorno precedente a causa del fuso orario del server.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.30.0</h4>
                 <ul style={noteUlStyle}>
                   <li>☁️ <strong>Upload Nativo Allegati:</strong> Ora puoi caricare file, immagini e documenti direttamente dal tuo computer all'interno delle schede. I file vengono salvati su Vercel Blob.</li>
