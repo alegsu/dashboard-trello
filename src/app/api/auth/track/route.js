@@ -13,11 +13,16 @@ export async function POST(request) {
       let activeTimeToday = user.activeTimeToday;
       
       // Reset daily usage if last active was before today
+      let isNewDay = false;
       if (user.lastActiveAt) {
-        const lastActiveDate = new Date(user.lastActiveAt);
-        if (lastActiveDate.toDateString() !== now.toDateString()) {
+        const formatter = new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', year: 'numeric', month: '2-digit', day: '2-digit' });
+        const lastDateString = formatter.format(new Date(user.lastActiveAt));
+        const nowDateString = formatter.format(now);
+        
+        if (lastDateString !== nowDateString) {
           usageTimeToday = 0;
           activeTimeToday = 0;
+          isNewDay = true;
         }
       }
 
@@ -30,6 +35,9 @@ export async function POST(request) {
       if (isActive) {
         updateData.totalActiveTime = { increment: 1 };
         updateData.activeTimeToday = activeTimeToday + 1;
+      } else if (isNewDay) {
+        // Se è un nuovo giorno ma NON è attivo, dobbiamo assicurarci di salvare il reset a 0!
+        updateData.activeTimeToday = 0;
       }
 
       await prisma.user.update({

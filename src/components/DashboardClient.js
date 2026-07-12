@@ -174,8 +174,15 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
 
       // Tracking ping
       const trackInterval = setInterval(() => {
-        // Se c'è stata attività negli ultimi 2 minuti (120000 ms), l'utente è considerato attivo
-        const isActive = (Date.now() - lastActivityTime) < 120000;
+        const timeSinceLastActivity = Date.now() - lastActivityTime;
+        
+        // Se inattivo da più di 5 minuti, smettiamo di tracciare il tempo loggato (pausa)
+        if (timeSinceLastActivity > 5 * 60 * 1000) {
+          return; 
+        }
+
+        // Se c'è stata attività negli ultimi 2 minuti, è considerato "Attivo"
+        const isActive = timeSinceLastActivity < 120000;
         fetch('/api/auth/track', { 
           method: 'POST', 
           body: JSON.stringify({ userId: storedUserId, isActive }) 
