@@ -18,6 +18,11 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
   const [showAddUserForm, setShowAddUserForm] = useState(false);
 
   const [liveMembers, setLiveMembers] = useState(members || []);
+  const [liveBoards, setLiveBoards] = useState(boards || []);
+
+  React.useEffect(() => {
+    setLiveBoards(boards || []);
+  }, [boards]);
   
   React.useEffect(() => {
     const fetchUsers = () => {
@@ -541,12 +546,19 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           <p className={styles.subtitle}>Crea nuovi spazi di lavoro indipendenti.</p>
           
           <ul className={styles.list}>
-            {boards.map(b => (
-              <li key={b.id} className={styles.listItem} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'stretch' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ color: b.color || 'var(--text-primary)' }}>■</span> 
-                    <span>{b.name}</span>
+            {liveBoards.map(b => (
+              <li key={b.id} className={styles.listItem} style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                    <span 
+                      style={{
+                        display: 'inline-block',
+                        width: '12px', height: '12px', borderRadius: '50%',
+                        backgroundColor: b.color || '#3b82f6',
+                        boxShadow: `0 0 8px ${b.color || '#3b82f6'}88`
+                      }}
+                    ></span>
+                    <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>{b.name}</strong>
                   </div>
                   <button 
                     onClick={async () => {
@@ -569,7 +581,10 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                         defaultValue={b.color || '#3b82f6'} 
                         onBlur={async (e) => {
                           if (e.target.value !== b.color) {
-                            await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ color: e.target.value }) });
+                            // Ottimistico per il colore
+                            const newColor = e.target.value;
+                            setLiveBoards(prev => prev.map(board => board.id === b.id ? { ...board, color: newColor } : board));
+                            await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ color: newColor }) });
                             if (onRefresh) onRefresh();
                           }
                         }} 
@@ -599,11 +614,21 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                                   checked={hasAccess || false}
                                   onChange={async (e) => {
                                     const isChecked = e.target.checked;
-                                    let newAssignees = b.assignees ? b.assignees.map(u => u.id) : [];
-                                    if (isChecked) newAssignees.push(m.id);
-                                    else newAssignees = newAssignees.filter(id => id !== m.id);
+                                    let newAssignees = b.assignees ? [...b.assignees] : [];
                                     
-                                    await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assignees: newAssignees }) });
+                                    if (isChecked) {
+                                      if (!newAssignees.some(u => u.id === m.id)) newAssignees.push({ id: m.id, name: m.name });
+                                    } else {
+                                      newAssignees = newAssignees.filter(u => u.id !== m.id);
+                                    }
+                                    
+                                    // Aggiornamento ottimistico
+                                    setLiveBoards(prev => prev.map(board => 
+                                      board.id === b.id ? { ...board, assignees: newAssignees } : board
+                                    ));
+
+                                    const assigneeIds = newAssignees.map(u => u.id);
+                                    await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assignees: assigneeIds }) });
                                     if (onRefresh) onRefresh();
                                   }}
                                   style={{ accentColor: 'var(--accent-primary)', width: '14px', height: '14px' }}
