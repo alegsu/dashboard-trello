@@ -592,6 +592,23 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
                         style={{width: '24px', height: '24px', padding: '0', border: 'none', cursor: 'pointer', background: 'transparent'}}
                       />
                     </label>
+
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', marginTop: '0.3rem' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Tipo Bacheca:</span>
+                      <select 
+                        defaultValue={b.type || 'PRODUCTION'}
+                        onChange={async (e) => {
+                          const newType = e.target.value;
+                          setLiveBoards(prev => prev.map(board => board.id === b.id ? { ...board, type: newType } : board));
+                          await fetch(`/api/boards/${b.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: newType }) });
+                          if (onRefresh) onRefresh();
+                        }}
+                        style={{ padding: '0.2rem', borderRadius: '4px', fontSize: '0.75rem', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+                      >
+                        <option value="PRODUCTION">Produzione (Mostra Clienti)</option>
+                        <option value="INTERNAL">Interna (Nascondi Clienti)</option>
+                      </select>
+                    </label>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.5rem', position: 'relative' }}>
                       <span style={{ color: 'var(--text-secondary)' }}>Membri con Accesso:</span>

@@ -42,7 +42,15 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
   // Raggruppiamo i clienti per id per facilitare la ricerca
   const clientMap = new Map((clients || []).map(c => [c.id, c]));
   const unassignedId = 'unassigned';
-  const allClientIds = [unassignedId, ...(clients || []).map(c => c.id)];
+  
+  // Trova la bacheca attiva
+  const activeBoard = (boards || []).find(b => b.id === selectedBoardId);
+  const isInternalBoard = activeBoard?.type === 'INTERNAL';
+
+  // Se la bacheca è interna, forziamo un solo "cliente" fittizio (unassignedId)
+  const allClientIds = isInternalBoard 
+    ? [unassignedId] 
+    : [unassignedId, ...(clients || []).map(c => c.id)];
 
   const [forcedVisibleClients, setForcedVisibleClients] = useState([]);
 
@@ -391,55 +399,57 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
   return (
       <div className={styles.kanbanContainer} style={{ zoom: zoomLevel / 100 }}>
          <div className={styles.kanbanHeaderRow}>
-            <div className={styles.kanbanUserCorner} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              Cliente | Stato
-              {!showClientAutocomplete ? (
-                <button 
-                  onClick={() => setShowClientAutocomplete(true)}
-                  style={{ 
-                    background: 'transparent', 
-                    border: '1px solid var(--accent-primary)', 
-                    color: 'var(--accent-primary)', 
-                    borderRadius: '50%', 
-                    width: '20px', 
-                    height: '20px', 
-                    display: 'inline-flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    cursor: 'pointer', 
-                    fontSize: '14px', 
-                    lineHeight: '1',
-                    padding: 0,
-                    flexShrink: 0
-                  }}
-                  title="Aggiungi Cliente al Tabellone"
-                >
-                  +
-                </button>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <input 
-                    type="text" 
-                    list="client-list-datalist"
-                    value={clientAutocompleteText}
-                    onChange={(e) => setClientAutocompleteText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') confirmClientAutocomplete();
-                      if (e.key === 'Escape') setShowClientAutocomplete(false);
+            {!isInternalBoard && (
+              <div className={styles.kanbanUserCorner} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                Cliente | Stato
+                {!showClientAutocomplete ? (
+                  <button 
+                    onClick={() => setShowClientAutocomplete(true)}
+                    style={{ 
+                      background: 'transparent', 
+                      border: '1px solid var(--accent-primary)', 
+                      color: 'var(--accent-primary)', 
+                      borderRadius: '50%', 
+                      width: '20px', 
+                      height: '20px', 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      cursor: 'pointer', 
+                      fontSize: '14px', 
+                      lineHeight: '1',
+                      padding: 0,
+                      flexShrink: 0
                     }}
-                    placeholder="Nome cliente..."
-                    autoFocus
-                    style={{ padding: '2px 4px', fontSize: '12px', width: '120px', borderRadius: '4px', border: '1px solid var(--accent-primary)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-                  />
-                  <datalist id="client-list-datalist">
-                    {(clients || []).map(c => <option key={c.id} value={c.name} />)}
-                  </datalist>
-                  <button onClick={confirmClientAutocomplete} style={{ background: 'var(--accent-primary)', border: 'none', borderRadius: '4px', color: 'white', padding: '2px 6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>✓</button>
-                  <button onClick={() => { setShowClientAutocomplete(false); setClientAutocompleteText(''); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>✕</button>
-                </div>
-              )}
-            </div>
-            <div className={styles.kanbanSwimlaneCells}>
+                    title="Aggiungi Cliente al Tabellone"
+                  >
+                    +
+                  </button>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <input 
+                      type="text" 
+                      list="client-list-datalist"
+                      value={clientAutocompleteText}
+                      onChange={(e) => setClientAutocompleteText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') confirmClientAutocomplete();
+                        if (e.key === 'Escape') setShowClientAutocomplete(false);
+                      }}
+                      placeholder="Nome cliente..."
+                      autoFocus
+                      style={{ padding: '2px 4px', fontSize: '12px', width: '120px', borderRadius: '4px', border: '1px solid var(--accent-primary)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+                    />
+                    <datalist id="client-list-datalist">
+                      {(clients || []).map(c => <option key={c.id} value={c.name} />)}
+                    </datalist>
+                    <button onClick={confirmClientAutocomplete} style={{ background: 'var(--accent-primary)', border: 'none', borderRadius: '4px', color: 'white', padding: '2px 6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>✓</button>
+                    <button onClick={() => { setShowClientAutocomplete(false); setClientAutocompleteText(''); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>✕</button>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className={styles.kanbanSwimlaneCells} style={isInternalBoard ? { marginLeft: 0 } : {}}>
             {lists.map(list => {
               const hasDates = list.startDate || list.endDate;
               return (
@@ -546,21 +556,23 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
 
               return (
                 <div key={clientId} className={styles.kanbanSwimlane} style={{ background: bgColor }}>
-                  <div className={styles.kanbanUserHeader} style={{ background: bgColor === 'transparent' ? 'var(--bg-primary)' : bgColor, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                     {client?.name}
-                     {clientId !== unassignedId && client && (
-                       <button 
-                         onClick={() => { if (onOpenNotebook) onOpenNotebook(client); }}
-                         style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: '0', transition: 'transform 0.2s', display: 'flex', alignItems: 'center' }}
-                         title={`Apri Brain: ${client.name}`}
-                         onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
-                         onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                       >
-                         🧠
-                       </button>
-                     )}
-                  </div>
-                  <div className={styles.kanbanSwimlaneCells}>
+                  {!isInternalBoard && (
+                    <div className={styles.kanbanUserHeader} style={{ background: bgColor === 'transparent' ? 'var(--bg-primary)' : bgColor, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                       {client?.name}
+                       {clientId !== unassignedId && client && (
+                         <button 
+                           onClick={() => { if (onOpenNotebook) onOpenNotebook(client); }}
+                           style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: '0', transition: 'transform 0.2s', display: 'flex', alignItems: 'center' }}
+                           title={`Apri Brain: ${client.name}`}
+                           onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                           onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                         >
+                           🧠
+                         </button>
+                       )}
+                    </div>
+                  )}
+                  <div className={styles.kanbanSwimlaneCells} style={isInternalBoard ? { marginLeft: 0 } : {}}>
                     {lists.map(list => {
                       const cellKey = `${clientId}-${list.id}`;
                       const cellCards = cardsByCell[cellKey] || [];

@@ -16,7 +16,7 @@ const renderTextWithLinks = (text) => {
   });
 };
 
-export default function CardModal({ cardId, members, onClose, onRefresh, onDeleteCard, currentUser, onOpenNotebook }) {
+export default function CardModal({ cardId, members, onClose, onRefresh, onDeleteCard, currentUser, onOpenNotebook, activeBoard }) {
   const [card, setCard] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -1143,36 +1143,40 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
             </div>
 
             {/* Client */}
-            <div className={styles.widget} style={{ padding: '0.5rem' }}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0', fontSize: '0.8rem' }}>🏢 Cliente</h4>
-              <select 
-                className={styles.input} 
-                value={card.clientId || ''} 
-                onChange={(e) => updateCard({ clientId: e.target.value || null, projectId: null })}
-                style={{ padding: '0.2rem', borderRadius: '4px', fontSize: '0.8rem', width: '100%' }}
-              >
-                <option value="">Nessuno</option>
-                {allClients.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
+            {activeBoard?.type !== 'INTERNAL' && (
+              <div className={styles.widget} style={{ padding: '0.5rem' }}>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0', fontSize: '0.8rem' }}>🏢 Cliente</h4>
+                <select 
+                  className={styles.input} 
+                  value={card.clientId || ''} 
+                  onChange={(e) => updateCard({ clientId: e.target.value || null, projectId: null })}
+                  style={{ padding: '0.2rem', borderRadius: '4px', fontSize: '0.8rem', width: '100%' }}
+                >
+                  <option value="">Nessuno</option>
+                  {allClients.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Project */}
-            <div className={styles.widget} style={{ padding: '0.5rem' }}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0', fontSize: '0.8rem' }}>📁 Progetto</h4>
-              <select 
-                className={styles.input} 
-                value={card.projectId || ''} 
-                onChange={(e) => updateCard({ projectId: e.target.value || null })}
-                style={{ padding: '0.2rem', borderRadius: '4px', fontSize: '0.8rem', width: '100%' }}
-              >
-                <option value="">Nessuno</option>
-                {allProjects.filter(p => !card.clientId || p.clientId === card.clientId).map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
+            {activeBoard?.type !== 'INTERNAL' && (
+              <div className={styles.widget} style={{ padding: '0.5rem' }}>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 0.3rem 0', fontSize: '0.8rem' }}>📁 Progetto</h4>
+                <select 
+                  className={styles.input} 
+                  value={card.projectId || ''} 
+                  onChange={(e) => updateCard({ projectId: e.target.value || null })}
+                  style={{ padding: '0.2rem', borderRadius: '4px', fontSize: '0.8rem', width: '100%' }}
+                >
+                  <option value="">Nessuno</option>
+                  {allProjects.filter(p => !card.clientId || p.clientId === card.clientId).map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Card Color */}
             <div className={styles.widget} style={{ padding: '0.5rem' }}>

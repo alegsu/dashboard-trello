@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.31.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🏢 <strong>Bacheche Interne (Agenzia):</strong> Ora puoi configurare una bacheca come "Interna" dalle Impostazioni! Selezionando questa modalità, la bacheca nasconderà completamente la logica dei Clienti e dei Progetti, fondendo tutte le schede in un'unica vista pulita. Perfetto per la gestione interna di ShinyUp!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.30.2</h4>
                 <ul style={noteUlStyle}>
                   <li>👥 <strong>Fix Assegnazione Utenti alle Bacheche:</strong> Risolto un fastidioso bug (effetto race-condition) che rendeva impossibile assegnare velocemente più utenti a una nuova bacheca. Ora i click multipli vengono registrati istantaneamente e in parallelo!</li>

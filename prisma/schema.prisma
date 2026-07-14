@@ -60,6 +60,7 @@ model Board {
   labels    Label[]
 
   color     String?
+  type      String   @default("PRODUCTION") // PRODUCTION or INTERNAL
   assignees User[]   @relation("BoardAssignees")
 
   isArchived Boolean @default(false)

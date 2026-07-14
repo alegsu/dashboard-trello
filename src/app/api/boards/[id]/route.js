@@ -29,10 +29,11 @@ export async function PUT(request, { params }) {
       return NextResponse.json(updatedBoard);
     }
 
-    if (body.name !== undefined || body.color !== undefined || body.assignees !== undefined) {
+    if (body.name !== undefined || body.color !== undefined || body.type !== undefined || body.assignees !== undefined) {
       const updateData = {};
       if (body.name !== undefined) updateData.name = body.name;
       if (body.color !== undefined) updateData.color = body.color;
+      if (body.type !== undefined) updateData.type = body.type;
       
       if (body.assignees !== undefined) {
         // body.assignees should be an array of user IDs
