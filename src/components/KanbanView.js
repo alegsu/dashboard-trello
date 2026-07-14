@@ -18,7 +18,7 @@ function getContrastYIQ(hexcolor){
   return (yiq >= 128) ? '#000000' : '#ffffff';
 }
 
-export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh, onCardUpdate, currentUser, filterClientId, onCardClick, onOpenNotebook }) {
+export default function KanbanView({ boardId, lists, cards, members, clients, onRefresh, onCardUpdate, currentUser, filterClientId, onCardClick, onOpenNotebook, activeBoard }) {
   const [isMounted, setIsMounted] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(100);
 
@@ -43,8 +43,6 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
   const clientMap = new Map((clients || []).map(c => [c.id, c]));
   const unassignedId = 'unassigned';
   
-  // Trova la bacheca attiva
-  const activeBoard = (boards || []).find(b => b.id === selectedBoardId);
   const isInternalBoard = activeBoard?.type === 'INTERNAL';
 
   // Se la bacheca è interna, forziamo un solo "cliente" fittizio (unassignedId)

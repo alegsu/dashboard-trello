@@ -579,6 +579,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               filterClientId={filterClientId}
               onCardClick={setGlobalCardId}
               onOpenNotebook={setGlobalNotebookClient}
+              activeBoard={initialBoards.find(b => b.id === selectedBoardId)}
             />
           )}
 
