@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.31.1</h4>
+                <ul style={noteUlStyle}>
+                  <li>✅ <strong>Fix Clonazione Schede:</strong> Risolto un fastidioso bug per cui, copiando una scheda, i sottotask delle checklist perdevano la loro gerarchia (diventando tutti task principali). Ora la clonazione preserva perfettamente tutto l'albero di dipendenze!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.31.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🏢 <strong>Bacheche Interne (Agenzia):</strong> Ora puoi configurare una bacheca come "Interna" dalle Impostazioni! Selezionando questa modalità, la bacheca nasconderà completamente la logica dei Clienti e dei Progetti, fondendo tutte le schede in un'unica vista pulita. Perfetto per la gestione interna di ShinyUp!</li>
