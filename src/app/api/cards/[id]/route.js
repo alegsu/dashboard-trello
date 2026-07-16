@@ -66,7 +66,7 @@ export async function PUT(request, { params }) {
     const updated = await prisma.card.update({
       where: { id },
       data: updateData,
-      include: { assignees: true, labels: true }
+      include: { assignees: true, labels: true, checklists: { include: { items: { select: { isCompleted: true } } } } }
     });
 
     // Notify newly assigned users

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { flushSync } from 'react-dom';
 import confetti from 'canvas-confetti';
 
+import { CheckSquare } from 'lucide-react';
 import styles from './KanbanView.module.css';
 
 // Helper per calcolare se il testo deve essere chiaro o scuro in base al background
@@ -668,6 +669,33 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                                           }}></div>
                                         </div>
                                       )}
+                                    </div>
+                                  );
+                                })()}
+                                
+                                {(() => {
+                                  const totalItems = card.checklists?.reduce((sum, cl) => sum + (cl.items?.length || 0), 0) || 0;
+                                  const completedItems = card.checklists?.reduce((sum, cl) => sum + (cl.items?.filter(i => i.isCompleted).length || 0), 0) || 0;
+                                  if (totalItems === 0) return null;
+                                  
+                                  const percent = Math.round((completedItems / totalItems) * 100);
+                                  const containerBg = 'rgba(0, 0, 0, 0.15)'; 
+                                  const isDone = completedItems === totalItems;
+
+                                  return (
+                                    <div style={{ marginTop: '0.6rem', width: '100%', color: getContrastYIQ(card.color), opacity: 0.9 }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>
+                                        <CheckSquare size={12} /> 
+                                        <span>{completedItems}/{totalItems} completati</span>
+                                      </div>
+                                      <div style={{ width: '100%', height: '6px', background: containerBg, borderRadius: '3px', overflow: 'hidden', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' }}>
+                                        <div style={{ 
+                                          width: `${Math.max(3, percent)}%`, 
+                                          height: '100%', 
+                                          background: isDone ? 'var(--status-success)' : 'var(--accent-primary)', 
+                                          transition: 'width 0.3s' 
+                                        }}></div>
+                                      </div>
                                     </div>
                                   );
                                 })()}

@@ -9,7 +9,7 @@ export async function GET(request) {
   const cards = await prisma.card.findMany({
     where: { boardId, isArchived: false },
     orderBy: { order: 'asc' },
-    include: { assignees: true, labels: true }
+    include: { assignees: true, labels: true, checklists: { include: { items: { select: { isCompleted: true } } } } }
   });
   return NextResponse.json(cards);
 }
@@ -49,7 +49,7 @@ export async function POST(request) {
 
     const newCard = await prisma.card.create({
       data,
-      include: { assignees: true, labels: true }
+      include: { assignees: true, labels: true, checklists: { include: { items: { select: { isCompleted: true } } } } }
     });
 
     // AI Feature C: Auto-Categorizer
@@ -88,7 +88,7 @@ Non inventare nuovi ID. Restituisci SOLO l'array JSON (es. ["id1", "id2"]).`;
                   data: {
                     labels: { connect: validIds.map(id => ({ id })) }
                   },
-                  include: { assignees: true, labels: true }
+                  include: { assignees: true, labels: true, checklists: { include: { items: { select: { isCompleted: true } } } } }
                 });
               }
             }

@@ -34,7 +34,7 @@ export default async function Home() {
   });
   const cards = await prisma.card.findMany({ 
     where: { isArchived: false },
-    include: { assignees: true, labels: true },
+    include: { assignees: true, labels: true, checklists: { include: { items: { select: { isCompleted: true } } } } },
     orderBy: { order: 'asc' }
   });
 

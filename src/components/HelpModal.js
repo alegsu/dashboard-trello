@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.32.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>📊 <strong>Avanzamento Task nelle Anteprime:</strong> Ora puoi vedere a colpo d'occhio l'avanzamento dei lavori direttamente nelle schede della bacheca (e nella sezione "La Mia Giornata")! Se una scheda contiene una o più checklist, apparirà una barra di progresso e il conteggio dei task completati, per un colpo d'occhio immediato.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.31.1</h4>
                 <ul style={noteUlStyle}>
                   <li>✅ <strong>Fix Clonazione Schede:</strong> Risolto un fastidioso bug per cui, copiando una scheda, i sottotask delle checklist perdevano la loro gerarchia (diventando tutti task principali). Ora la clonazione preserva perfettamente tutto l'albero di dipendenze!</li>

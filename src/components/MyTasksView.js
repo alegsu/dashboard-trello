@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, AlertTriangle, CheckSquare } from 'lucide-react';
 export default function MyTasksView({ cards, currentUser, clients, boards, allMembers, onCardUpdate, lists, onRefresh, onCardClick }) {
   const [socialPosts, setSocialPosts] = useState([]);
 
@@ -105,6 +105,30 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
                       <Calendar size={14} /> {new Date(card.due).toLocaleDateString('it-IT')}
                     </div>
                   )}
+                  {(() => {
+                    const totalItems = card.checklists?.reduce((sum, cl) => sum + (cl.items?.length || 0), 0) || 0;
+                    const completedItems = card.checklists?.reduce((sum, cl) => sum + (cl.items?.filter(i => i.isCompleted).length || 0), 0) || 0;
+                    if (totalItems === 0) return null;
+                    
+                    const percent = Math.round((completedItems / totalItems) * 100);
+                    const isDone = completedItems === totalItems;
+                    return (
+                      <div style={{ marginTop: '0.5rem', width: '100%', maxWidth: '200px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>
+                          <CheckSquare size={12} /> 
+                          <span>{completedItems}/{totalItems} completati</span>
+                        </div>
+                        <div style={{ width: '100%', height: '4px', background: 'rgba(0,0,0,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
+                          <div style={{ 
+                            width: `${Math.max(3, percent)}%`, 
+                            height: '100%', 
+                            background: isDone ? 'var(--status-success)' : 'var(--accent-primary)', 
+                            transition: 'width 0.3s' 
+                          }}></div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
                 <button 
                   onClick={(e) => {
