@@ -107,7 +107,7 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
                   )}
                   {(() => {
                     const totalItems = card.checklists?.reduce((sum, cl) => sum + (cl.items?.length || 0), 0) || 0;
-                    const completedItems = card.checklists?.reduce((sum, cl) => sum + (cl.items?.filter(i => i.isCompleted).length || 0), 0) || 0;
+                    const completedItems = card.checklists?.reduce((sum, cl) => sum + (cl.items?.filter(i => i.isCompleted)?.length || 0), 0) || 0;
                     if (totalItems === 0) return null;
                     
                     const percent = Math.round((completedItems / totalItems) * 100);
