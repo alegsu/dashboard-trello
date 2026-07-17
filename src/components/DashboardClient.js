@@ -45,26 +45,6 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   const [selectedBoardId, setSelectedBoardId] = useState(visibleBoards.length > 0 ? visibleBoards[0].id : '');
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Ripristina l'ultima bacheca visitata (solo lato client)
-  useEffect(() => {
-    if (!isHydrated && visibleBoards.length > 0) {
-      const saved = localStorage.getItem('lastBoardId');
-      if (saved && visibleBoards.some(b => b.id === saved)) {
-        setSelectedBoardId(saved);
-      } else if (!visibleBoards.some(b => b.id === selectedBoardId)) {
-        setSelectedBoardId(visibleBoards[0].id);
-      }
-      setIsHydrated(true);
-    }
-  }, [visibleBoards, isHydrated, selectedBoardId]);
-
-  // Salva l'ultima bacheca visitata solo dopo l'idratazione iniziale
-  useEffect(() => {
-    if (isHydrated && selectedBoardId) {
-      localStorage.setItem('lastBoardId', selectedBoardId);
-    }
-  }, [selectedBoardId, isHydrated]);
-
   useEffect(() => {
     const board = visibleBoards.find(b => b.id === selectedBoardId);
     if (board && board.color) {
@@ -92,8 +72,10 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   const router = useRouter();
   // Se non c'è una board, mostra settings. Altrimenti kanban.
   
+  const [isHydrated, setIsHydrated] = useState(false);
+
   useEffect(() => {
-    if (typeof window !== 'undefined' && visibleBoards.length > 0) {
+    if (typeof window !== 'undefined' && visibleBoards.length > 0 && !isHydrated) {
       const urlParams = new URLSearchParams(window.location.search);
       const urlBoardId = urlParams.get('boardId');
       const saved = localStorage.getItem('lastSelectedBoardId');
@@ -115,14 +97,15 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
         url.searchParams.delete('card');
         window.history.replaceState({}, document.title, url);
       }
+      setIsHydrated(true);
     }
-  }, [visibleBoards]);
+  }, [visibleBoards, isHydrated, selectedBoardId]);
 
   useEffect(() => {
-    if (selectedBoardId && typeof window !== 'undefined') {
+    if (isHydrated && selectedBoardId && typeof window !== 'undefined') {
       localStorage.setItem('lastSelectedBoardId', selectedBoardId);
     }
-  }, [selectedBoardId]);
+  }, [selectedBoardId, isHydrated]);
   
   const [showImportModal, setShowImportModal] = useState(false);
   // currentUser now declared earlier
