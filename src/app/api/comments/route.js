@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
 import { cookies } from 'next/headers';
 import { decrypt } from '@/utils/auth';
+import { processMentions } from '@/utils/mentions';
 
 export async function POST(request) {
   try {
@@ -24,24 +25,10 @@ export async function POST(request) {
     });
 
     // Notifiche Mentions
-    const allUsers = await prisma.user.findMany();
-    const mentionedUsers = allUsers.filter(u => 
-      text.toLowerCase().includes(`@${u.name.toLowerCase()}`) || 
-      text.toLowerCase().includes(`@${u.name.split(' ')[0].toLowerCase()}`)
-    );
+    const link = `/?card=${cardId}`;
+    await processMentions(text, session.id, link, `Commento indipendente o su progetto`);
 
-    for (const u of mentionedUsers) {
-      if (u.id !== session.id && u.notifyMentions !== false && u.email) {
-        await prisma.pendingNotification.create({
-          data: {
-            userId: u.id,
-            type: "MENTION",
-            message: `${newComment.author.name} ti ha menzionato in un commento: "${text}"`,
-            link: `/?card=${cardId}`
-          }
-        });
-      }
-    }
+    // I messaggi di notifica sono già inviati da processMentions
 
     return NextResponse.json(newComment, { status: 201 });
   } catch (err) {

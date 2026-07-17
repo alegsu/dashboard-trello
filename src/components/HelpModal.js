@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.33.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🧠 <strong>Memoria Bacheca Preferita:</strong> Ora il gestionale si ricorda qual è l'ultima bacheca che stavi visualizzando, e te la riaprirà in automatico al prossimo accesso! Niente più aperture forzate sulla bacheca "Plan 2027" se stai lavorando su "Produzione".</li>
+                  <li>🐛 <strong>Fix Menzioni (Falsi Positivi):</strong> Abbiamo sistemato il sistema di menzioni (@). Prima, menzionando "@ale", il sistema notificava erroneamente tutti gli utenti che si chiamavano Alessandro, Alessio, o che avevano un nome che iniziava per Ale. Ora le menzioni sono precise e notificano solo la persona esatta!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.32.0</h4>
                 <ul style={noteUlStyle}>
                   <li>📊 <strong>Avanzamento Task nelle Anteprime:</strong> Ora puoi vedere a colpo d'occhio l'avanzamento dei lavori direttamente nelle schede della bacheca (e nella sezione "La Mia Giornata")! Se una scheda contiene una o più checklist, apparirà una barra di progresso e il conteggio dei task completati, per un colpo d'occhio immediato.</li>

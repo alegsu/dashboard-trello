@@ -23,10 +23,13 @@ export async function processMentions(text, authorId, link, contextText) {
   
   for (const user of users) {
     const rawName = user.name.toLowerCase().replace(/\s+/g, '');
+    const firstName = user.name.toLowerCase().split(' ')[0].replace(/[^a-z0-9_.-]/g, '');
     const partials = Array.from(mentionedNames);
     
-    // Controlla se la mention esatta coincide, o se il rawName *inizia* con la mention (così @ale becca alessandro)
-    const isMentioned = partials.some(p => rawName === p || rawName.startsWith(p));
+    // Controlla se la mention esatta coincide con il nome compressato (rawName), 
+    // oppure con il solo nome di battesimo (firstName). Non usiamo startsWith per evitare falsi positivi
+    // tra utenti con nomi simili (es. @ale menzionava sia Alessandro che Alessio).
+    const isMentioned = partials.some(p => rawName === p || firstName === p);
     
     if (isMentioned) {
       // if (user.id === authorId) continue; // L'utente vuole ricevere notifiche anche se si auto-menziona
