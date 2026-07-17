@@ -72,7 +72,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   const router = useRouter();
   // Se non c'è una board, mostra settings. Altrimenti kanban.
   
-  const [isHydrated, setIsHydrated] = useState(false);
+
 
   useEffect(() => {
     if (typeof window !== 'undefined' && visibleBoards.length > 0 && !isHydrated) {
