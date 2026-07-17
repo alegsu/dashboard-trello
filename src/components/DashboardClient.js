@@ -43,25 +43,27 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
 
   const [view, setView] = useState(visibleBoards.length > 0 ? 'kanban' : 'settings'); 
   const [selectedBoardId, setSelectedBoardId] = useState(visibleBoards.length > 0 ? visibleBoards[0].id : '');
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Ripristina l'ultima bacheca visitata (solo lato client)
   useEffect(() => {
-    if (visibleBoards.length > 0) {
+    if (!isHydrated && visibleBoards.length > 0) {
       const saved = localStorage.getItem('lastBoardId');
       if (saved && visibleBoards.some(b => b.id === saved)) {
         setSelectedBoardId(saved);
       } else if (!visibleBoards.some(b => b.id === selectedBoardId)) {
         setSelectedBoardId(visibleBoards[0].id);
       }
+      setIsHydrated(true);
     }
-  }, [visibleBoards]);
+  }, [visibleBoards, isHydrated, selectedBoardId]);
 
-  // Salva l'ultima bacheca visitata
+  // Salva l'ultima bacheca visitata solo dopo l'idratazione iniziale
   useEffect(() => {
-    if (selectedBoardId) {
+    if (isHydrated && selectedBoardId) {
       localStorage.setItem('lastBoardId', selectedBoardId);
     }
-  }, [selectedBoardId]);
+  }, [selectedBoardId, isHydrated]);
 
   useEffect(() => {
     const board = visibleBoards.find(b => b.id === selectedBoardId);
@@ -336,7 +338,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.33.0
+              v2.33.1
             </span>
           </div>
           

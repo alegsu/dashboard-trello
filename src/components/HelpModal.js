@@ -150,8 +150,9 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
-                <h4 style={noteHeaderStyle}>🚀 v2.33.0</h4>
+                <h4 style={noteHeaderStyle}>🚀 v2.33.1</h4>
                 <ul style={noteUlStyle}>
+                  <li>🐛 <strong>Hotfix Memoria Bacheca:</strong> Corretto un conflitto che resettava l'ultima bacheca visitata ogni volta che si ricaricava la pagina. Ora la memoria locale funziona correttamente!</li>
                   <li>🧠 <strong>Memoria Bacheca Preferita:</strong> Ora il gestionale si ricorda qual è l'ultima bacheca che stavi visualizzando, e te la riaprirà in automatico al prossimo accesso! Niente più aperture forzate sulla bacheca "Plan 2027" se stai lavorando su "Produzione".</li>
                   <li>🐛 <strong>Fix Menzioni (Falsi Positivi):</strong> Abbiamo sistemato il sistema di menzioni (@). Prima, menzionando "@ale", il sistema notificava erroneamente tutti gli utenti che si chiamavano Alessandro, Alessio, o che avevano un nome che iniziava per Ale. Ora le menzioni sono precise e notificano solo la persona esatta!</li>
                 </ul>
