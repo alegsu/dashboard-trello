@@ -14,10 +14,7 @@ export async function GET() {
           select: {
             cards: { where: { isArchived: false, list: { NOT: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] } } },
             checklistItems: { where: { isCompleted: false } },
-            projects: { where: { isArchived: false, status: { not: 'Completato' } } },
-            cardsDone: { where: { isArchived: false, list: { OR: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] } } },
-            checklistItemsDone: { where: { isCompleted: true } },
-            projectsDone: { where: { isArchived: false, status: 'Completato' } }
+            projects: { where: { isArchived: false, status: { not: 'Completato' } } }
           }
         },
         cards: {
@@ -33,7 +30,31 @@ export async function GET() {
         }
       }
     });
-    return NextResponse.json(users);
+
+    // Fetch completati (visto che _count non supporta gli alias)
+    const enrichedUsers = await Promise.all(users.map(async (u) => {
+      const cardsDone = await prisma.card.count({
+        where: { assignees: { some: { id: u.id } }, isArchived: false, list: { OR: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] } }
+      });
+      const checklistItemsDone = await prisma.checklistItem.count({
+        where: { assignees: { some: { id: u.id } }, isCompleted: true }
+      });
+      const projectsDone = await prisma.project.count({
+        where: { assignees: { some: { id: u.id } }, isArchived: false, status: 'Completato' }
+      });
+
+      return {
+        ...u,
+        _count: {
+          ...u._count,
+          cardsDone,
+          checklistItemsDone,
+          projectsDone
+        }
+      };
+    }));
+
+    return NextResponse.json(enrichedUsers);
   } catch (error) {
     console.error("Errore fetch users:", error);
     return NextResponse.json({ error: 'Errore nel recupero utenti' }, { status: 500 });
