@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.34.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>📱 <strong>Modalità Mobile Responsiva:</strong> L'app è ora completamente ottimizzata per schermi piccoli! Header compatto con menu ad Hamburger, bacheca Kanban con scorrimento laterale "Swipe" colonna per colonna, e modali delle schede a schermo intero. Finalmente GestionAle comodissimo anche in mobilità!</li>
+                  <li>🏆 <strong>Nuovi KPI nel Management:</strong> Aggiunta una nuova sezione "Produttività (Completati)" nel pannello Admin, per visualizzare non solo il carico operativo attivo, ma anche i task, i progetti e le schede completati da ciascun utente.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.33.1</h4>
                 <ul style={noteUlStyle}>
                   <li>🐛 <strong>Hotfix Memoria Bacheca:</strong> Corretto un conflitto che resettava l'ultima bacheca visitata ogni volta che si ricaricava la pagina. Ora la memoria locale funziona correttamente!</li>

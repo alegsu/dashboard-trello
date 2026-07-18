@@ -14,7 +14,10 @@ export async function GET() {
           select: {
             cards: { where: { isArchived: false, list: { NOT: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] } } },
             checklistItems: { where: { isCompleted: false } },
-            projects: { where: { isArchived: false, status: { not: 'Completato' } } }
+            projects: { where: { isArchived: false, status: { not: 'Completato' } } },
+            cardsDone: { where: { isArchived: false, list: { OR: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] } } },
+            checklistItemsDone: { where: { isCompleted: true } },
+            projectsDone: { where: { isArchived: false, status: 'Completato' } }
           }
         },
         cards: {

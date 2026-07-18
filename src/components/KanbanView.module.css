@@ -197,3 +197,17 @@
   color: white;
   border-color: var(--accent-primary);
 }
+
+
+@media (max-width: 768px) {
+  .kanbanColumnHeader, .kanbanCell {
+    width: 85vw !important;
+    min-width: 85vw !important;
+    max-width: 85vw !important;
+    scroll-snap-align: start;
+    scroll-margin-left: 10px;
+  }
+  .kanbanHeaderRow, .kanbanSwimlane {
+    scroll-snap-type: x mandatory;
+  }
+}

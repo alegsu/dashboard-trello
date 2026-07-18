@@ -164,6 +164,16 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
                           <div style={{ background: '#f97316', height: '100%', width: `${((m._count?.projects || 0) / globalMax) * 100}%` }}></div>
                         </div>
                       </div>
+                      
+                      <div style={{ marginTop: '0.8rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
+                        <strong style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>🏆 Produttività (Completati)</strong>
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.3rem', fontSize: '0.7rem' }}>
+                          <span title="Schede completate">✅ Schede: <strong>{m._count?.cardsDone || 0}</strong></span>
+                          <span title="Sottotask completati">✅ Sottotask: <strong>{m._count?.checklistItemsDone || 0}</strong></span>
+                          <span title="Progetti completati">✅ Progetti: <strong>{m._count?.projectsDone || 0}</strong></span>
+                        </div>
+                      </div>
+
                       {serviceEntries.length > 0 && (
                         <div style={{ marginTop: '0.6rem', display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
                           {serviceEntries.map(([srv, count], idx) => (

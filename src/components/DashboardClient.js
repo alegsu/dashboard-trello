@@ -17,7 +17,7 @@ import ClientNotebookModal from './ClientNotebookModal';
 import CardModal from './CardModal';
 import SocialCalendar from './SocialCalendar';
 import ArchiveView from './ArchiveView';
-import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock } from 'lucide-react';
+import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock, Menu, X } from 'lucide-react';
 
 export default function DashboardClient({ initialBoards: initialBoardsProp, initialLists: initialListsProp, initialCards: initialCardsProp, initialMembers, initialClients: initialClientsProp }) {
   const [liveBoards, setLiveBoards] = useState(initialBoardsProp);
@@ -112,6 +112,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   const [currentTime, setCurrentTime] = useState(null);
   const [globalCardId, setGlobalCardId] = useState(null);
   const [globalNotebookClient, setGlobalNotebookClient] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setCurrentTime(new Date());
@@ -314,18 +315,25 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   return (
     <main className={styles.mainContainer}>
       <header className={`glass-panel ${styles.header}`} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem', padding: '1rem 1.5rem', borderTop: '3px solid var(--accent-primary)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className={styles.mobileHeaderRow1} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <img src="/logo.png" alt="ShinyUp Logo" style={{ height: '32px', objectFit: 'contain' }} />
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.33.1
+              v2.34.0
             </span>
+            <button 
+              className={styles.mobileShow} 
+              style={{ display: 'none', background: 'transparent', border: 'none', color: 'var(--text-primary)', marginLeft: '1rem' }} 
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
           </div>
           
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div className={styles.mobileHide} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <button 
               onClick={() => {
                 setShowAnnouncementsModal(true);
@@ -430,7 +438,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
           </div>
         </div>
 
-        <div>
+        <div className={styles.mobileHide}>
           <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-glass)', padding: '0.4rem', borderRadius: '8px', flexWrap: 'nowrap', overflowX: 'auto', alignItems: 'center', border: '1px solid var(--border-color)', backdropFilter: 'blur(12px)' }}>
             
             {view !== 'settings' && (<>
@@ -567,6 +575,32 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
           </div>
         </div>
       </header>
+
+      {/* Hamburger Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className={styles.hamburgerMenuOverlay}>
+          <div className={styles.hamburgerHeader}>
+            <h2 style={{ margin: 0 }}>Menu Principale</h2>
+            <button className={styles.hamburgerCloseBtn} onClick={() => setIsMobileMenuOpen(false)}>
+              <X size={28} />
+            </button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <button onClick={() => { setIsMobileMenuOpen(false); setView('kanban'); }} className={styles.navButton} style={{ background: view === 'kanban' ? 'var(--status-success)' : 'transparent', color: view === 'kanban' ? 'white' : 'var(--text-primary)' }}>📋 Bacheca Kanban</button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setView('my-tasks'); }} className={styles.navButton} style={{ background: view === 'my-tasks' ? 'var(--status-success)' : 'transparent', color: view === 'my-tasks' ? 'white' : 'var(--text-primary)' }}>🎯 La Mia Giornata</button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setView('projects'); }} className={styles.navButton} style={{ background: view === 'projects' ? 'var(--status-success)' : 'transparent', color: view === 'projects' ? 'white' : 'var(--text-primary)' }}>🎯 Obiettivi</button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setView('clients'); }} className={styles.navButton} style={{ background: view === 'clients' ? 'var(--status-success)' : 'transparent', color: view === 'clients' ? 'white' : 'var(--text-primary)' }}>💼 Clienti</button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setView('social'); }} className={styles.navButton} style={{ background: view === 'social' ? 'var(--status-success)' : 'transparent', color: view === 'social' ? 'white' : 'var(--text-primary)' }}>📱 Social Calendar</button>
+            {currentUser?.role === 'admin' && (
+              <button onClick={() => { setIsMobileMenuOpen(false); setView('management'); }} className={styles.navButton} style={{ background: view === 'management' ? 'var(--status-success)' : 'transparent', color: view === 'management' ? 'white' : 'var(--accent-primary)' }}>👑 Management</button>
+            )}
+            <button onClick={() => { setIsMobileMenuOpen(false); setView('settings'); }} className={styles.navButton} style={{ background: view === 'settings' ? 'var(--status-success)' : 'transparent', color: view === 'settings' ? 'white' : 'var(--text-primary)' }}>⚙️ Impostazioni</button>
+            <hr style={{ borderColor: 'var(--border-color)', margin: '0.5rem 0' }} />
+            <button onClick={() => { setIsMobileMenuOpen(false); setShowAnnouncementsModal(true); }} className={styles.navButton}>📣 Annunci Team</button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setIsHelpOpen(true); }} className={styles.navButton}><HelpCircle size={16} style={{ verticalAlign: 'middle', marginRight: '0.5rem' }}/> Guida e Aiuto</button>
+          </div>
+        </div>
+      )}
       
       <div className={styles.content}>
         <section className={styles.viewArea} style={{ padding: view === 'settings' ? '1rem' : 0 }}>

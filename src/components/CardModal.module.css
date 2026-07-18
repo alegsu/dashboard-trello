@@ -321,3 +321,27 @@
   text-shadow: 0px 1px 2px rgba(0,0,0,0.4);
 }
 
+
+
+@media (max-width: 768px) {
+  .modal {
+    width: 100%;
+    max-width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+  .content {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+    flex-wrap: nowrap;
+  }
+  .mainCol {
+    min-width: 100%;
+  }
+  .sideCol {
+    min-width: 100%;
+  }
+}
