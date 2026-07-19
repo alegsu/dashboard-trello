@@ -76,7 +76,16 @@ export default function LeaderboardModal({ onClose }) {
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: i === 0 ? '#fbbf24' : 'var(--text-primary)' }}>
-                      {m.name} <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: 'var(--text-secondary)', marginLeft: '8px' }}>{i === 0 ? '👑 Dominatore' : i === 1 ? '🚀 Macchina' : i === 2 ? '⚡ Scheggia' : '🎯 Inarrestabile'}</span>
+                      {m.name} <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: 'var(--text-secondary)', marginLeft: '8px' }}>
+                        {(() => {
+                          const hasActivity = (m._count?.cardsDone || 0) > 0 || (m._count?.checklistItemsDone || 0) > 0;
+                          if (!hasActivity) return '💤 In panchina';
+                          if (i === 0) return '👑 Dominatore';
+                          if (i === 1) return '🚀 Macchina';
+                          if (i === 2) return '⚡ Scheggia';
+                          return '💪 Al lavoro';
+                        })()}
+                      </span>
                     </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', gap: '10px', marginTop: '4px' }}>
                       <span><strong>{m._count?.cardsDone || 0}</strong> Schede Chiuse</span>

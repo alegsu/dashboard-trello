@@ -213,5 +213,7 @@ select {
 }
 @keyframes sunsetGlow {
   0% { background-position: 0% 0%; }
-  100% { background-position: 0% 100%; }
 }
+
+.header-row-scroll::-webkit-scrollbar { display: none; }
+.header-row-scroll { -ms-overflow-style: none; scrollbar-width: none; }

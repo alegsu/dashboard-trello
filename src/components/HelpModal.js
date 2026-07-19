@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.36.4</h4>
+                <ul style={noteUlStyle}>
+                  <li>🩹 <strong>Hotfix:</strong> La barra di navigazione ora rimane tutta su una riga e la barra di scorrimento laterale brutta è stata nascosta (è comunque possibile scorrere muovendo il dito/mouse).</li>
+                  <li>🎖️ <strong>Titoli Leaderboard:</strong> Ora vengono assegnati titoli solo a chi ha effettivamente completato task o schede. Chi è a zero ha un simpatico "In panchina"!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.36.3</h4>
                 <ul style={noteUlStyle}>
                   <li>🔧 <strong>Fix Header e Metriche:</strong> Sistemato l'impaginamento della barra di ricerca che fuoriusciva sui monitor più piccoli.</li>
