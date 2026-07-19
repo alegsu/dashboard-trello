@@ -75,7 +75,9 @@ export default function LeaderboardModal({ onClose }) {
                     {(m.name || '?').charAt(0).toUpperCase()}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: i === 0 ? '#fbbf24' : 'var(--text-primary)' }}>{m.name}</div>
+                    <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: i === 0 ? '#fbbf24' : 'var(--text-primary)' }}>
+                      {m.name} <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: 'var(--text-secondary)', marginLeft: '8px' }}>{i === 0 ? '👑 Dominatore' : i === 1 ? '🚀 Macchina' : i === 2 ? '⚡ Scheggia' : '🎯 Inarrestabile'}</span>
+                    </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', gap: '10px', marginTop: '4px' }}>
                       <span><strong>{m._count?.cardsDone || 0}</strong> Schede Chiuse</span>
                       <span><strong>{m._count?.checklistItemsDone || 0}</strong> Task</span>
@@ -83,7 +85,7 @@ export default function LeaderboardModal({ onClose }) {
                   </div>
                   <div style={{ textAlign: 'right', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                     {m.avgCardHours ? (
-                      <div>Velocità:<br/><strong style={{color: '#38bdf8'}}>{m.avgCardHours}h / scheda</strong></div>
+                      <div>Tempo completamento:<br/><strong style={{color: '#38bdf8'}}>{m.avgCardHours >= 24 ? (m.avgCardHours / 24).toFixed(1) + ' giorni / scheda' : m.avgCardHours + ' ore / scheda'}</strong></div>
                     ) : '-'}
                   </div>
                 </div>

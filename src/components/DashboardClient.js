@@ -451,7 +451,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
         </div>
 
         <div className={styles.mobileHide}>
-          <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-glass)', padding: '0.4rem', borderRadius: '8px', flexWrap: 'nowrap', overflowX: 'auto', alignItems: 'center', border: '1px solid var(--border-color)', backdropFilter: 'blur(12px)' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-glass)', padding: '0.4rem', borderRadius: '8px', flexWrap: 'wrap', alignItems: 'center', border: '1px solid var(--border-color)', backdropFilter: 'blur(12px)' }}>
             
             {view !== 'settings' && (<>
             {/* Search */}
@@ -540,8 +540,8 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               {currentUser?.role === 'admin' && (
                 <button className={`${styles.navButton} ${view === 'management' ? styles.active : ''}`} onClick={() => setView('management')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-primary)' }}>👑 Management</button>
               )}
-              <button onClick={() => setShowLeaderboard(true)} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', background: 'transparent', border: '1px solid #fbbf24', color: '#fbbf24', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Trophy size={14} /> Classifica
+              <button className={styles.navButton} onClick={() => setShowLeaderboard(true)} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>
+                🏆 Classifica
               </button>
               <button className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`} onClick={() => setView('settings')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>⚙️ Imposta</button>
               
@@ -760,7 +760,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             </div>
             
             <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '1rem', opacity: 0.7 }}>
-              v2.36.1
+              v2.36.3
             </div>
           </div>
         </div>

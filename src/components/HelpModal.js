@@ -150,6 +150,16 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.36.3</h4>
+                <ul style={noteUlStyle}>
+                  <li>🔧 <strong>Fix Header e Metriche:</strong> Sistemato l'impaginamento della barra di ricerca che fuoriusciva sui monitor più piccoli.</li>
+                  <li>🖼️ <strong>Foto di Roger:</strong> Ora la foto della nostra mascotte preferita è finalmente visibile!</li>
+                  <li>⏱️ <strong>Metriche in Giorni:</strong> Le metriche di "Tempo di Completamento" (ex Velocità) ora sono espresse in "Giorni" anziché "Ore" per maggiore chiarezza.</li>
+                  <li>🎖️ <strong>Classifica Simpatica:</strong> Aggiunti titoli onorifici divertenti nella Leaderboard per chi domina la classifica!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.36.1</h4>
                 <ul style={noteUlStyle}>
                   <li>🩹 <strong>Hotfix:</strong> Corretto un problema di navigazione del pulsante di RogerMascot che rimandava a una pagina vuota.</li>
