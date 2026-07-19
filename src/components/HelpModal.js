@@ -150,6 +150,17 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.36.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🐶 <strong>Roger Mascot Rivisitato:</strong> Roger ora è più discreto, interviene solo per i task in scadenza e ha una comoda funzione di "Snooze" (Rinvio).</li>
+                  <li>🏆 <strong>Classifica Team (Leaderboard):</strong> Aggiunta una classifica pubblica in alto per vedere chi sta chiudendo più schede e task.</li>
+                  <li>⏱️ <strong>Metriche Admin:</strong> Nel pannello Management, ora è visibile il tempo medio (in ore) impiegato da ciascun utente per chiudere una scheda.</li>
+                  <li>💬 <strong>Chat Compatta:</strong> La chat di scheda ora è meno ingombrante e più facile da leggere.</li>
+                  <li>🧹 <strong>Pulizia:</strong> Rimossi i messaggi di "Tutto pulito" dalle bacheche vuote per un aspetto più rigoroso.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.35.0</h4>
                 <ul style={noteUlStyle}>
                   <li>💬 <strong>Chat di Scheda & Menzioni in Tempo Reale:</strong> I commenti ora si comportano come una vera chat dal vivo! Quando menzioni un collega (@nome), riceverà un popup sonoro immediato sulla sua schermata senza dover ricaricare la pagina.</li>

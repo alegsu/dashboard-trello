@@ -131,7 +131,10 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
                     <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
                       <div style={{ marginBottom: '2px' }}><strong>Accessi:</strong> {m.loginCount || 0}</div>
                       <div style={{ marginBottom: '2px' }}><strong>Totale Loggato:</strong> {m.totalUsageTime ? Math.floor(m.totalUsageTime / 60) : 0}h {m.totalUsageTime ? m.totalUsageTime % 60 : 0}m <span style={{opacity:0.7, fontSize:'0.65rem'}}>(Attivo: {m.totalActiveTime ? Math.floor(m.totalActiveTime / 60) : 0}h {m.totalActiveTime ? m.totalActiveTime % 60 : 0}m)</span></div>
-                      <div><strong>Oggi Loggato:</strong> {m.usageTimeToday ? Math.floor(m.usageTimeToday / 60) : 0}h {m.usageTimeToday ? m.usageTimeToday % 60 : 0}m <span style={{opacity:0.7, fontSize:'0.65rem'}}>(Attivo: {m.activeTimeToday ? Math.floor(m.activeTimeToday / 60) : 0}h {m.activeTimeToday ? m.activeTimeToday % 60 : 0}m)</span></div>
+                      <div style={{ marginBottom: '2px' }}><strong>Oggi Loggato:</strong> {m.usageTimeToday ? Math.floor(m.usageTimeToday / 60) : 0}h {m.usageTimeToday ? m.usageTimeToday % 60 : 0}m <span style={{opacity:0.7, fontSize:'0.65rem'}}>(Attivo: {m.activeTimeToday ? Math.floor(m.activeTimeToday / 60) : 0}h {m.activeTimeToday ? m.activeTimeToday % 60 : 0}m)</span></div>
+                      <div style={{ display: 'inline-block', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #38bdf8', padding: '2px 6px', borderRadius: '4px', color: '#38bdf8', marginTop: '4px' }}>
+                        <strong>⏱️ Velocità (Schede):</strong> {m.avgCardHours ? `${m.avgCardHours}h in media` : 'N/A'}
+                      </div>
                     </td>
                     <td style={{ padding: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.75rem', width: '40%' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 110px) 1fr', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>

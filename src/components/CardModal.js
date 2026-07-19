@@ -1056,28 +1056,29 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
             </div>
 
             {/* Chat Section */}
-            <div className={styles.section} style={{ display: 'flex', flexDirection: 'column', height: '400px' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-                <MessageSquare size={16}/> Chat di Scheda
+            <div className={styles.section} style={{ display: 'flex', flexDirection: 'column', height: '300px' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', margin: '0 0 0.5rem 0', fontSize: '1rem' }}>
+                <MessageSquare size={16}/> Chat
               </h3>
               
-              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: '1rem 0' }}>
+              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.5rem 0' }}>
                 {card.comments?.map(c => {
                   const isMe = c.authorId === localStorage.getItem('userId');
                   return (
                     <div key={c.id} style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '2px', padding: '0 4px' }}>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '1px', padding: '0 4px' }}>
                         {isMe ? 'Tu' : (c.author?.name || 'Sconosciuto')} - {new Date(c.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                       </div>
                       <div style={{ 
                         background: isMe ? 'var(--accent-primary)' : 'var(--bg-glass)', 
                         color: isMe ? '#fff' : 'var(--text-primary)',
-                        padding: '0.6rem 1rem', 
-                        borderRadius: isMe ? '16px 16px 0 16px' : '16px 16px 16px 0',
-                        maxWidth: '80%',
+                        padding: '0.4rem 0.6rem', 
+                        borderRadius: isMe ? '12px 12px 0 12px' : '12px 12px 12px 0',
+                        maxWidth: '85%',
                         boxShadow: 'var(--shadow-sm)',
-                        fontSize: '0.9rem',
-                        whiteSpace: 'pre-wrap'
+                        fontSize: '0.8rem',
+                        whiteSpace: 'pre-wrap',
+                        lineHeight: '1.3'
                       }}>
                         {renderTextWithLinks(c.text)}
                       </div>

@@ -18,8 +18,10 @@ import CardModal from './CardModal';
 import SocialCalendar from './SocialCalendar';
 import ArchiveView from './ArchiveView';
 import WelcomeToast from './WelcomeToast';
+import RogerMascot from './RogerMascot';
 import NotificationPoller from './NotificationPoller';
-import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock, Menu, X } from 'lucide-react';
+import LeaderboardModal from './LeaderboardModal';
+import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock, Menu, X, Trophy } from 'lucide-react';
 
 export default function DashboardClient({ initialBoards: initialBoardsProp, initialLists: initialListsProp, initialCards: initialCardsProp, initialMembers, initialClients: initialClientsProp }) {
   const [liveBoards, setLiveBoards] = useState(initialBoardsProp);
@@ -128,6 +130,10 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   const [filterClientId, setFilterClientId] = useState('');
   const [filterProjectId, setFilterProjectId] = useState('');
   const [filterLabelId, setFilterLabelId] = useState('');
+
+  const [showSettings, setShowSettings] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const [allProjects, setAllProjects] = useState([]);
   const [allLabels, setAllLabels] = useState([]);
@@ -318,6 +324,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
     <main className={styles.mainContainer}>
       <WelcomeToast currentUser={currentUser} />
       <NotificationPoller currentUser={currentUser} />
+      <RogerMascot currentUser={currentUser} cards={liveCards} setView={setView} />
       
       <header className={`glass-panel ${styles.header}`} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem', padding: '1rem 1.5rem', borderTop: '3px solid var(--accent-primary)' }}>
         <div className={styles.mobileHeaderRow1} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -533,6 +540,9 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               {currentUser?.role === 'admin' && (
                 <button className={`${styles.navButton} ${view === 'management' ? styles.active : ''}`} onClick={() => setView('management')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-primary)' }}>👑 Management</button>
               )}
+              <button onClick={() => setShowLeaderboard(true)} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', background: 'transparent', border: '1px solid #fbbf24', color: '#fbbf24', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Trophy size={14} /> Classifica
+              </button>
               <button className={`${styles.navButton} ${view === 'settings' ? styles.active : ''}`} onClick={() => setView('settings')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>⚙️ Imposta</button>
               
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}>
@@ -691,6 +701,8 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
         </section>
       </div>
       
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+      {showLeaderboard && <LeaderboardModal onClose={() => setShowLeaderboard(false)} />}
       {isHelpOpen && <HelpModal onClose={() => setIsHelpOpen(false)} />}
       {showImportModal && (
         <DocumentImportModal 
@@ -748,7 +760,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             </div>
             
             <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '1rem', opacity: 0.7 }}>
-              v2.35.1
+              v2.36.0
             </div>
           </div>
         </div>

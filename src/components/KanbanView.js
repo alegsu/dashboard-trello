@@ -586,8 +586,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
                         >
                           {cellCards.length === 0 ? (
                             <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '1rem', fontSize: '0.8rem', opacity: 0.6, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                              <span style={{ fontSize: '1.5rem' }}>☕</span>
-                              <span>Tutto pulito!</span>
+                              <span>Nessuna scheda presente in questa lista.</span>
                             </div>
                           ) : cellCards.map((card, index) => {
                             const isDueApproaching = card.due && new Date(card.due) <= new Date(Date.now() + 24 * 60 * 60 * 1000);

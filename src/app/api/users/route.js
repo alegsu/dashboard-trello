@@ -51,6 +51,17 @@ export async function GET() {
         }
       });
 
+      // Calcolo tempo medio in ore per chiudere le schede
+      const completedCardsData = await prisma.card.findMany({
+        where: { assignees: { some: { id: u.id } }, completedAt: { not: null } },
+        select: { createdAt: true, completedAt: true }
+      });
+      let avgCardHours = 0;
+      if (completedCardsData.length > 0) {
+        const totalMs = completedCardsData.reduce((acc, c) => acc + (new Date(c.completedAt) - new Date(c.createdAt)), 0);
+        avgCardHours = Math.round((totalMs / completedCardsData.length) / (1000 * 60 * 60));
+      }
+
       // Calcola se i valori 'oggi' sono validi
       let usageTimeToday = u.usageTimeToday;
       let activeTimeToday = u.activeTimeToday;
@@ -66,6 +77,7 @@ export async function GET() {
         ...u,
         usageTimeToday,
         activeTimeToday,
+        avgCardHours,
         _count: {
           ...u._count,
           cardsDone,
