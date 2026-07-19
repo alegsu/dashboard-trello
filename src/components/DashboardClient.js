@@ -18,7 +18,6 @@ import CardModal from './CardModal';
 import SocialCalendar from './SocialCalendar';
 import ArchiveView from './ArchiveView';
 import WelcomeToast from './WelcomeToast';
-import RogerMascot from './RogerMascot';
 import NotificationPoller from './NotificationPoller';
 import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock, Menu, X } from 'lucide-react';
 
@@ -318,7 +317,6 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   return (
     <main className={styles.mainContainer}>
       <WelcomeToast currentUser={currentUser} />
-      <RogerMascot currentUser={currentUser} cards={liveCards} setView={setView} />
       <NotificationPoller currentUser={currentUser} />
       
       <header className={`glass-panel ${styles.header}`} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem', padding: '1rem 1.5rem', borderTop: '3px solid var(--accent-primary)' }}>
@@ -750,7 +748,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             </div>
             
             <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '1rem', opacity: 0.7 }}>
-              v2.35.0
+              v2.35.1
             </div>
           </div>
         </div>

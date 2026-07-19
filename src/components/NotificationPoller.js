@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 export default function NotificationPoller({ currentUser }) {
   const [notifications, setNotifications] = useState([]);
   const displayedIds = useRef(new Set());
+  const isFirstFetch = useRef(true);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -14,6 +15,13 @@ export default function NotificationPoller({ currentUser }) {
         if (!res.ok) return;
         const data = await res.json();
         
+        if (isFirstFetch.current) {
+          // Al primo caricamento non mostriamo popup per vecchie notifiche
+          data.forEach(n => displayedIds.current.add(n.id));
+          isFirstFetch.current = false;
+          return;
+        }
+
         // Find newly unread ones that we haven't displayed yet
         const newNots = data.filter(n => !displayedIds.current.has(n.id));
         if (newNots.length > 0) {
