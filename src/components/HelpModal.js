@@ -150,6 +150,15 @@ export default function HelpModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.34.1</h4>
+                <ul style={noteUlStyle}>
+                  <li>📈 <strong>Miglioramento KPI Produttività:</strong> Sistemato il conteggio dei task "Completati". Ora il sistema include nel calcolo anche i task storici che sono stati successivamente archiviati per pulizia della bacheca, fornendo un report di performance reale e non al ribasso.</li>
+                  <li>⏱️ <strong>Nuovo KPI "In Ritardo":</strong> Aggiunto un nuovo indicatore rosso che segnala immediatamente quante schede attualmente in carico all'utente hanno superato la data di scadenza.</li>
+                  <li>🐛 <strong>Fix Resoconto Tempo Giornaliero:</strong> Risolto un bug visivo nel pannello Management che mostrava come "Loggato Oggi" l'ultimo tempo registrato settimane fa per gli utenti inattivi. Ora, se l'utente non entra nel giorno corrente, il contatore giornaliero mostrerà correttamente zero.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.34.0</h4>
                 <ul style={noteUlStyle}>
                   <li>📱 <strong>Modalità Mobile Responsiva:</strong> L'app è ora completamente ottimizzata per schermi piccoli! Header compatto con menu ad Hamburger, bacheca Kanban con scorrimento laterale "Swipe" colonna per colonna, e modali delle schede a schermo intero. Finalmente GestionAle comodissimo anche in mobilità!</li>

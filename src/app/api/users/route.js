@@ -9,7 +9,7 @@ export async function GET() {
     const users = await prisma.user.findMany({
       orderBy: { name: 'asc' },
       select: { 
-        id: true, name: true, email: true, role: true, avatarUrl: true, loginCount: true, totalUsageTime: true, usageTimeToday: true, totalActiveTime: true, activeTimeToday: true, theme: true,
+        id: true, name: true, email: true, role: true, avatarUrl: true, loginCount: true, totalUsageTime: true, usageTimeToday: true, totalActiveTime: true, activeTimeToday: true, theme: true, lastActiveAt: true,
         _count: {
           select: {
             cards: { where: { isArchived: false, list: { NOT: [{ name: { contains: 'fatto', mode: 'insensitive' } }, { name: { contains: 'completat', mode: 'insensitive' } }] } } },
@@ -34,22 +34,44 @@ export async function GET() {
     // Fetch completati (visto che _count non supporta gli alias)
     const enrichedUsers = await Promise.all(users.map(async (u) => {
       const cardsDone = await prisma.card.count({
-        where: { assignees: { some: { id: u.id } }, isArchived: false, list: { OR: [{ name: { contains: 'fatto', mode: 'insensitive' } }, { name: { contains: 'completat', mode: 'insensitive' } }] } }
+        where: { assignees: { some: { id: u.id } }, list: { OR: [{ name: { contains: 'fatto', mode: 'insensitive' } }, { name: { contains: 'completat', mode: 'insensitive' } }] } }
       });
       const checklistItemsDone = await prisma.checklistItem.count({
         where: { assignees: { some: { id: u.id } }, isCompleted: true }
       });
       const projectsDone = await prisma.project.count({
-        where: { assignees: { some: { id: u.id } }, isArchived: false, status: 'Completato' }
+        where: { assignees: { some: { id: u.id } }, status: 'Completato' }
       });
+      const cardsOverdue = await prisma.card.count({
+        where: { 
+          assignees: { some: { id: u.id } }, 
+          isArchived: false, 
+          due: { lt: new Date() },
+          list: { NOT: [{ name: { contains: 'fatto', mode: 'insensitive' } }, { name: { contains: 'completat', mode: 'insensitive' } }] }
+        }
+      });
+
+      // Calcola se i valori 'oggi' sono validi
+      let usageTimeToday = u.usageTimeToday;
+      let activeTimeToday = u.activeTimeToday;
+      if (u.lastActiveAt) {
+        const formatter = new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', year: 'numeric', month: '2-digit', day: '2-digit' });
+        if (formatter.format(new Date(u.lastActiveAt)) !== formatter.format(new Date())) {
+          usageTimeToday = 0;
+          activeTimeToday = 0;
+        }
+      }
 
       return {
         ...u,
+        usageTimeToday,
+        activeTimeToday,
         _count: {
           ...u._count,
           cardsDone,
           checklistItemsDone,
-          projectsDone
+          projectsDone,
+          cardsOverdue
         }
       };
     }));

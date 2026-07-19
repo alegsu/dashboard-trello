@@ -166,11 +166,14 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
                       </div>
                       
                       <div style={{ marginTop: '0.8rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
-                        <strong style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>🏆 Produttività (Completati)</strong>
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.3rem', fontSize: '0.7rem' }}>
-                          <span title="Schede completate">✅ Schede: <strong>{m._count?.cardsDone || 0}</strong></span>
-                          <span title="Sottotask completati">✅ Sottotask: <strong>{m._count?.checklistItemsDone || 0}</strong></span>
-                          <span title="Progetti completati">✅ Progetti: <strong>{m._count?.projectsDone || 0}</strong></span>
+                        <strong style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>🏆 KPI & Performance</strong>
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.3rem', fontSize: '0.7rem', flexWrap: 'wrap' }}>
+                          <span title="Schede completate (anche archiviate)">✅ Schede Done: <strong>{m._count?.cardsDone || 0}</strong></span>
+                          <span title="Sottotask completati">✅ Sottotask Done: <strong>{m._count?.checklistItemsDone || 0}</strong></span>
+                          <span title="Progetti completati">✅ Progetti Done: <strong>{m._count?.projectsDone || 0}</strong></span>
+                          <span title="Schede non completate con scadenza passata" style={{ color: (m._count?.cardsOverdue || 0) > 0 ? 'var(--status-danger)' : 'inherit' }}>
+                            ⚠️ In Ritardo: <strong>{m._count?.cardsOverdue || 0}</strong>
+                          </span>
                         </div>
                       </div>
 
