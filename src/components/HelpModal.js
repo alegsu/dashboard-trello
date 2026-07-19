@@ -147,8 +147,18 @@ export default function HelpModal({ onClose }) {
 
           {/* TAB: NOTE RILASCIO */}
           {activeTab === 'notes' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
+              <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.35.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>💬 <strong>Chat di Scheda & Menzioni in Tempo Reale:</strong> I commenti ora si comportano come una vera chat dal vivo! Quando menzioni un collega (@nome), riceverà un popup sonoro immediato sulla sua schermata senza dover ricaricare la pagina.</li>
+                  <li>🐶 <strong>La Mascotte Roger:</strong> Fai ciao a Roger! Comparirà in basso a destra per avvisarti amichevolmente se hai schede in ritardo o se stai lavorando da troppo tempo senza sosta (ricordandoti di fare una pausa caffè ☕).</li>
+                  <li>🏆 <strong>Titoli Gamification nel Management:</strong> Ora nel pannello amministrativo compaiono simpatici titoli di merito ("Distruttore di Task", "Macchina da Guerra") in base alle performance e schede completate di ogni collaboratore.</li>
+                  <li>✨ <strong>Email e Saluti Personalizzati:</strong> Aggiunti saluti motivazionali all'ingresso nel gestionale e email giornaliere molto più simpatiche (scritte direttamente da Roger in stile assistente canino!).</li>
+                  <li>☕ <strong>Stati Vuoti Rilassanti:</strong> Le liste senza schede mostreranno ora l'avviso "Tutto pulito!" per dare un senso di traguardo raggiunto e relax visivo.</li>
+                </ul>
+              </div>
               <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.34.1</h4>
                 <ul style={noteUlStyle}>

@@ -17,6 +17,9 @@ import ClientNotebookModal from './ClientNotebookModal';
 import CardModal from './CardModal';
 import SocialCalendar from './SocialCalendar';
 import ArchiveView from './ArchiveView';
+import WelcomeToast from './WelcomeToast';
+import RogerMascot from './RogerMascot';
+import NotificationPoller from './NotificationPoller';
 import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock, Menu, X } from 'lucide-react';
 
 export default function DashboardClient({ initialBoards: initialBoardsProp, initialLists: initialListsProp, initialCards: initialCardsProp, initialMembers, initialClients: initialClientsProp }) {
@@ -314,6 +317,10 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
 
   return (
     <main className={styles.mainContainer}>
+      <WelcomeToast currentUser={currentUser} />
+      <RogerMascot currentUser={currentUser} cards={liveCards} setView={setView} />
+      <NotificationPoller currentUser={currentUser} />
+      
       <header className={`glass-panel ${styles.header}`} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem', padding: '1rem 1.5rem', borderTop: '3px solid var(--accent-primary)' }}>
         <div className={styles.mobileHeaderRow1} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -734,8 +741,9 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
                 announcements.map(a => (
                   <div key={a.id} style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-color)', padding: '1rem', borderRadius: '8px' }}>
                     <p style={{ margin: '0 0 0.5rem 0', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{a.text}</p>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
-                      — {a.author}, {new Date(a.createdAt).toLocaleString()}
+                    <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '1rem', opacity: 0.7 }}>
+              v2.35.0
+            </div>{a.author}, {new Date(a.createdAt).toLocaleString()}
                     </div>
                   </div>
                 ))

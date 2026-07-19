@@ -162,7 +162,7 @@ export async function GET(request) {
         cardsHtmlList += tomorrowCards.map(renderCard).join('');
       }
 
-      const prompt = `Sei l'assistente virtuale dell'agenzia "GestionAle". Scrivi UNICAMENTE un breve messaggio motivazionale di buongiorno (massimo 2-3 frasi) per ${user.name}, con un tono energico e professionale. Non includere saluti finali o liste di task, solo l'introduzione.`;
+      const prompt = `Sei 'Roger', la mascotte canina (un cane felice e laborioso) dell'agenzia "GestionAle". Scrivi UNICAMENTE un brevissimo messaggio motivazionale del buongiorno (max 2 frasi) per ${user.name}, con un tono super simpatico, energico ed informale (aggiungi un "Woof!" o emoji a tema cane). Non includere saluti finali.`;
 
       const aiRes = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
@@ -172,28 +172,31 @@ export async function GET(request) {
       const aiGreeting = aiRes.choices[0].message.content.trim();
 
       const htmlEmail = `
-      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
-        <div style="background-color: #0f172a; padding: 20px; text-align: center; border-bottom: 4px solid #a1bdcf;">
-          <img src="https://raw.githubusercontent.com/alegsu/dashboard-trello/main/public/logo.png" alt="ShinyUp" style="height: 40px; margin-bottom: 10px;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 24px;"><span style="color: #a1bdcf;">Gestion</span>Ale</h1>
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
+        <div style="background: linear-gradient(135deg, #0f172a, #1e293b); padding: 20px; text-align: center; border-bottom: 4px solid #3b82f6;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 26px;">Gestion<span style="color: #3b82f6;">Ale</span> 🚀</h1>
         </div>
         <div style="padding: 30px;">
-          <h2 style="color: #0f172a; margin-top: 0;">Buongiorno, ${user.name}! ☕</h2>
-          <p style="color: #475569; font-size: 15px; line-height: 1.6; font-style: italic; background-color: #f1f5f9; padding: 15px; border-radius: 6px;">
-            "${aiGreeting}"
-          </p>
+          <h2 style="color: #0f172a; margin-top: 0; display: flex; align-items: center; gap: 10px;">
+            <span>Buongiorno, ${user.name}! ☕</span>
+          </h2>
+          <div style="background-color: #f8fafc; padding: 15px; border-radius: 12px; border: 2px dashed #cbd5e1; margin-bottom: 20px;">
+            <p style="color: #334155; font-size: 15px; line-height: 1.6; font-style: italic; margin: 0;">
+              🐾 <strong>Roger dice:</strong> "${aiGreeting}"
+            </p>
+          </div>
           <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;">
-          <h2 style="color: #0f172a; font-size: 18px; margin-bottom: 15px;">Le tue priorità aperte:</h2>
+          <h2 style="color: #0f172a; font-size: 18px; margin-bottom: 15px;">Le tue missioni di oggi:</h2>
           <ul style="list-style-type: none; padding: 0; margin: 0;">
             ${cardsHtmlList}
           </ul>
           <div style="text-align: center; margin-top: 30px;">
-            <a href="${baseUrl}" style="background-color: #a1bdcf; color: #0f172a; font-weight: bold; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Apri GestionAle</a>
+            <a href="${baseUrl}" style="background-color: #3b82f6; color: #ffffff; font-weight: bold; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);">Vola in Bacheca 🚀</a>
           </div>
         </div>
-        <div style="background-color: #f8fafc; padding: 15px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
-          Ricevi questa email perché hai attivato le notifiche giornaliere in GestionAle.<br>
-          Puoi disattivarle in qualsiasi momento dal tuo Profilo.
+        <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
+          Ricevi questa email perché sei un campione di produttività (e hai le notifiche attive).<br>
+          Puoi disattivarle dal tuo Profilo in GestionAle.
         </div>
       </div>`;
 

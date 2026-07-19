@@ -40,6 +40,10 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
   const [loadingSummary, setLoadingSummary] = useState(false);
 
   // Edit states for checklists and items
+  const [draggedChecklist, setDraggedChecklist] = useState(null);
+  const [dragOverChecklist, setDragOverChecklist] = useState(null);
+  const [activeTab, setActiveTab] = useState('details');
+
   const [editingChecklistId, setEditingChecklistId] = useState(null);
   const [editingChecklistTitle, setEditingChecklistTitle] = useState('');
   const [editingItemId, setEditingItemId] = useState(null);
@@ -149,6 +153,13 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
   useEffect(() => {
     fetchCard();
     fetchAttachments();
+    
+    // Polling for live chat/updates
+    const interval = setInterval(() => {
+      fetchCard(true); // Se vogliamo, possiamo passare un flag per "silent" nel futuro
+    }, 4000);
+    
+    return () => clearInterval(interval);
   }, [cardId]);
 
   useEffect(() => {
@@ -1044,34 +1055,65 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
               </details>
             </div>
 
-            {/* Comments Section */}
-            <div className={styles.section}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MessageSquare size={16}/> Commenti & Menzioni</h3>
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', position: 'relative' }}>
+            {/* Chat Section */}
+            <div className={styles.section} style={{ display: 'flex', flexDirection: 'column', height: '400px' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                <MessageSquare size={16}/> Chat di Scheda
+              </h3>
+              
+              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: '1rem 0' }}>
+                {card.comments?.map(c => {
+                  const isMe = c.authorId === localStorage.getItem('userId');
+                  return (
+                    <div key={c.id} style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '2px', padding: '0 4px' }}>
+                        {isMe ? 'Tu' : (c.author?.name || 'Sconosciuto')} - {new Date(c.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </div>
+                      <div style={{ 
+                        background: isMe ? 'var(--accent-primary)' : 'var(--bg-glass)', 
+                        color: isMe ? '#fff' : 'var(--text-primary)',
+                        padding: '0.6rem 1rem', 
+                        borderRadius: isMe ? '16px 16px 0 16px' : '16px 16px 16px 0',
+                        maxWidth: '80%',
+                        boxShadow: 'var(--shadow-sm)',
+                        fontSize: '0.9rem',
+                        whiteSpace: 'pre-wrap'
+                      }}>
+                        {renderTextWithLinks(c.text)}
+                      </div>
+                    </div>
+                  );
+                })}
+                {card.comments?.length === 0 && (
+                  <div style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '2rem', fontSize: '0.9rem' }}>
+                    <p style={{ fontSize: '2rem', margin: '0 0 0.5rem 0' }}>💬</p>
+                    Non ci sono ancora messaggi.<br/>Scrivi qualcosa per iniziare la chat!
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto', position: 'relative', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
                 <textarea 
                   id="textarea-comment"
                   value={newComment} 
                   onChange={e => handleMentionChange(e.target.value, 'comment', setNewComment)} 
                   className={styles.textarea} 
-                  placeholder="Scrivi un commento e usa @ per menzionare (es. @mario)..." 
-                  rows={2}
+                  style={{ borderRadius: '20px', padding: '0.8rem 1rem', resize: 'none' }}
+                  placeholder="Scrivi un messaggio... (Usa @ per menzionare)" 
+                  rows={1}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      addComment();
+                    }
+                  }}
                 />
                 
                 {renderMentionDropdown('comment', newComment, setNewComment)}
 
-                <button onClick={addComment} className={styles.saveBtn} style={{ height: 'auto' }}>Invia</button>
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {card.comments?.map(c => (
-                  <div key={c.id} style={{ background: 'var(--bg-glass)', padding: '0.75rem', borderRadius: '8px' }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--accent-primary)', marginBottom: '0.2rem' }}>
-                      {c.author?.name || 'Sconosciuto'} <span style={{ color: 'var(--text-secondary)', fontWeight: 'normal' }}>- {new Date(c.createdAt).toLocaleString()}</span>
-                    </div>
-                    <div style={{ fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>{renderTextWithLinks(c.text)}</div>
-                  </div>
-                ))}
-                {card.comments?.length === 0 && <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Nessun commento.</p>}
+                <button onClick={addComment} className={styles.saveBtn} style={{ borderRadius: '50%', width: '40px', height: '40px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  ➤
+                </button>
               </div>
             </div>
 

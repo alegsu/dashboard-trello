@@ -1,25 +1,26 @@
 import nodemailer from 'nodemailer';
 import { prisma } from './prisma';
 
-export function getEmailTemplate({ title, bodyHtml, ctaLink, ctaText = "Vai al GestionAle" }) {
+export function getEmailTemplate({ title, bodyHtml, ctaLink, ctaText = "Vola su GestionAle 🚀" }) {
   return `
-    <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
-      <div style="background-color: #0f172a; padding: 24px; text-align: center; border-bottom: 4px solid #a1bdcf;">
-        <h1 style="color: #f8fafc; margin: 0; font-size: 24px; letter-spacing: 1px;">Gestion<span style="color: #a1bdcf;">Ale</span></h1>
+    <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+      <div style="background: linear-gradient(135deg, #0f172a, #1e293b); padding: 30px 24px; text-align: center; border-bottom: 4px solid #3b82f6;">
+        <h1 style="color: #f8fafc; margin: 0; font-size: 28px; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">Gestion<span style="color: #3b82f6;">Ale</span> ✨</h1>
+        <p style="color: #94a3b8; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Il tuo assistente di produttività preferito</p>
       </div>
       <div style="padding: 32px 24px; background-color: #ffffff;">
-        <h2 style="color: #0f172a; font-size: 20px; margin-top: 0; margin-bottom: 16px;">${title}</h2>
+        <h2 style="color: #0f172a; font-size: 22px; margin-top: 0; margin-bottom: 20px;">${title}</h2>
         <div style="color: #475569; font-size: 16px; line-height: 1.6;">
           ${bodyHtml}
         </div>
         ${ctaLink ? `
-        <div style="margin-top: 32px; text-align: center;">
-          <a href="${ctaLink}" style="background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block;">${ctaText}</a>
+        <div style="margin-top: 36px; text-align: center;">
+          <a href="${ctaLink}" style="background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); transition: all 0.2s;">${ctaText}</a>
         </div>
         ` : ''}
       </div>
-      <div style="background-color: #f8fafc; padding: 16px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px solid #e2e8f0;">
-        Questo è un messaggio automatico da GestionAle.<br>Non rispondere a questa email.
+      <div style="background-color: #f1f5f9; padding: 20px; text-align: center; color: #64748b; font-size: 13px; border-top: 1px solid #e2e8f0;">
+        🤖 Beep boop! Questo è un messaggio automatico da Roger e dal team di GestionAle.<br>Non c'è bisogno di rispondere a questa email, ma ti auguriamo un'ottima giornata lavorativa! ☕
       </div>
     </div>
   `;
