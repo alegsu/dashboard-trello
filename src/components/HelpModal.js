@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.36.1</h4>
+                <ul style={noteUlStyle}>
+                  <li>🩹 <strong>Hotfix:</strong> Corretto un problema di navigazione del pulsante di RogerMascot che rimandava a una pagina vuota.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.36.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🐶 <strong>Roger Mascot Rivisitato:</strong> Roger ora è più discreto, interviene solo per i task in scadenza e ha una comoda funzione di "Snooze" (Rinvio).</li>

@@ -96,7 +96,7 @@ export default function RogerMascot({ currentUser, cards, setView }) {
           </button>
         </div>
         <button 
-          onClick={() => { if(setView) setView('myTasks'); setIsVisible(false); }}
+          onClick={() => { if(setView) setView('my-tasks'); setIsVisible(false); }}
           style={{ width: '100%', background: 'var(--accent-primary)', color: '#fff', border: 'none', padding: '5px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
         >
           Vedi Task
