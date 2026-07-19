@@ -12,13 +12,13 @@ export async function GET() {
         id: true, name: true, email: true, role: true, avatarUrl: true, loginCount: true, totalUsageTime: true, usageTimeToday: true, totalActiveTime: true, activeTimeToday: true, theme: true,
         _count: {
           select: {
-            cards: { where: { isArchived: false, list: { NOT: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] } } },
+            cards: { where: { isArchived: false, list: { NOT: [{ name: { contains: 'fatto', mode: 'insensitive' } }, { name: { contains: 'completat', mode: 'insensitive' } }] } } },
             checklistItems: { where: { isCompleted: false } },
             projects: { where: { isArchived: false, status: { not: 'Completato' } } }
           }
         },
         cards: {
-          where: { isArchived: false, list: { NOT: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] } },
+          where: { isArchived: false, list: { NOT: [{ name: { contains: 'fatto', mode: 'insensitive' } }, { name: { contains: 'completat', mode: 'insensitive' } }] } },
           select: { 
             clientId: true,
             _count: { select: { checklists: true } }
@@ -34,7 +34,7 @@ export async function GET() {
     // Fetch completati (visto che _count non supporta gli alias)
     const enrichedUsers = await Promise.all(users.map(async (u) => {
       const cardsDone = await prisma.card.count({
-        where: { assignees: { some: { id: u.id } }, isArchived: false, list: { OR: [{ name: { contains: 'fatto' } }, { name: { contains: 'completat' } }] } }
+        where: { assignees: { some: { id: u.id } }, isArchived: false, list: { OR: [{ name: { contains: 'fatto', mode: 'insensitive' } }, { name: { contains: 'completat', mode: 'insensitive' } }] } }
       });
       const checklistItemsDone = await prisma.checklistItem.count({
         where: { assignees: { some: { id: u.id } }, isCompleted: true }

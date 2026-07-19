@@ -113,3 +113,6 @@
     scroll-padding-left: 0.5rem;
   }
 }
+
+.mobileShow { display: none; }
+

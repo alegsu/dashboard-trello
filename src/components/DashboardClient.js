@@ -326,7 +326,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             </span>
             <button 
               className={styles.mobileShow} 
-              style={{ display: 'none', background: 'transparent', border: 'none', color: 'var(--text-primary)', marginLeft: '1rem' }} 
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', marginLeft: '1rem' }} 
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Menu size={24} />
