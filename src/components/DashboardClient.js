@@ -741,13 +741,16 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
                 announcements.map(a => (
                   <div key={a.id} style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-color)', padding: '1rem', borderRadius: '8px' }}>
                     <p style={{ margin: '0 0 0.5rem 0', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{a.text}</p>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '1rem', opacity: 0.7 }}>
-              v2.35.0
-            </div>{a.author}, {new Date(a.createdAt).toLocaleString()}
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
+                      — {a.author}, {new Date(a.createdAt).toLocaleString()}
                     </div>
                   </div>
                 ))
               )}
+            </div>
+            
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '1rem', opacity: 0.7 }}>
+              v2.35.0
             </div>
           </div>
         </div>
