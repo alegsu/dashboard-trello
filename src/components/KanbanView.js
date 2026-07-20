@@ -233,7 +233,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     await fetch(`/api/cards/${cardId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ listId: destListId, order: newOrder })
+      body: JSON.stringify({ listId: destListId, order: newOrder, authorId: currentUser.id, baseUrl: window.location.origin })
     });
     
     // Check if the destination list is a "done" list

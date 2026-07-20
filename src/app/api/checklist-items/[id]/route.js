@@ -8,9 +8,9 @@ export async function PUT(request, { params }) {
     const data = await request.json();
     
     let oldAssigneeIds = [];
-    if (data.assignees) {
-      const oldEntity = await prisma.checklistItem.findUnique({ where: { id }, include: { assignees: true } });
-      if (oldEntity) oldAssigneeIds = oldEntity.assignees.map(a => a.id);
+    const oldEntity = await prisma.checklistItem.findUnique({ where: { id }, include: { assignees: true } });
+    if (oldEntity) {
+      oldAssigneeIds = oldEntity.assignees.map(a => a.id);
     }
     
     const updateData = { ...data };
@@ -50,6 +50,26 @@ export async function PUT(request, { params }) {
               }
             });
           }
+        }
+      }
+    }
+
+    if (data.isCompleted === true && oldEntity && !oldEntity.isCompleted) {
+      const checklist = await prisma.checklist.findUnique({
+        where: { id: oldEntity.checklistId },
+        include: { card: { include: { assignees: true } } }
+      });
+      if (checklist && checklist.card && checklist.card.assignees) {
+        const authorId = data.authorId;
+        for (const user of checklist.card.assignees) {
+          if (authorId && user.id === authorId) continue;
+          await prisma.notification.create({
+            data: {
+              userId: user.id,
+              message: `✅ Il task "${updated.text}" è stato completato nella scheda "${checklist.card.name}"`,
+              link: data.baseUrl ? `${data.baseUrl}/?card=${checklist.card.id}` : `/?card=${checklist.card.id}`
+            }
+          });
         }
       }
     }

@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.37.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🔔 <strong>Notifiche di Completamento:</strong> Ora, quando una scheda viene spostata in "Fatto" (o in una lista di completamento), oppure quando viene spuntato un task/sottotask, tutti i membri assegnati a quella scheda riceveranno una notifica istantanea su GestionAle.</li>
+                  <li>✍️ <strong>Fix Descrizioni Scheda:</strong> Risolto definitivamente il problema che causava la chiusura involontaria della scheda o la perdita di testo mentre si scriveva nella descrizione (incluso l'uso delle menzioni con @).</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.36.6</h4>
                 <ul style={noteUlStyle}>
                   <li>🏅 <strong>Classifica Team:</strong> Risolto un bug che mostrava "0 Task" per tutti gli utenti nella classifica. Ora il sistema conta correttamente i task completati basandosi sull'assegnazione della scheda madre!</li>

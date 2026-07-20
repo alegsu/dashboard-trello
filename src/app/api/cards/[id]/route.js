@@ -57,6 +57,22 @@ export async function PUT(request, { params }) {
               data: { isCompleted: true, completedAt: new Date() }
             });
           }
+          
+          // Notify assignees
+          const oldEntity = await prisma.card.findUnique({ where: { id }, include: { assignees: true } });
+          if (oldEntity && !oldEntity.completedAt) {
+            const authorId = data.authorId; // Passed from client ideally
+            for (const user of oldEntity.assignees) {
+              if (authorId && user.id === authorId) continue;
+              await prisma.notification.create({
+                data: {
+                  userId: user.id,
+                  message: `🎉 La scheda "${oldEntity.name}" è stata completata!`,
+                  link: baseUrl ? `${baseUrl}/?card=${id}` : `/?card=${id}`
+                }
+              });
+            }
+          }
         } else {
           updateData.completedAt = null;
         }

@@ -460,7 +460,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
     await fetch(`/api/checklist-items/${itemId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isCompleted: !isCompleted })
+      body: JSON.stringify({ isCompleted: !isCompleted, authorId: currentUser.id, baseUrl: window.location.origin })
     });
     
     if (!isCompleted) {
