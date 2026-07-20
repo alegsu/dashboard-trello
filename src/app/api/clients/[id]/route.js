@@ -14,6 +14,7 @@ export async function PUT(request, { params }) {
         ...(body.claudeUrl !== undefined && { claudeUrl: body.claudeUrl }),
         ...(body.notes !== undefined && { notes: body.notes }),
         ...(body.color !== undefined && { color: body.color }),
+        ...(body.status !== undefined && { status: body.status }),
         ...(body.socialPlan !== undefined && { socialPlan: body.socialPlan }),
         ...(body.pedSheets !== undefined && { pedSheets: body.pedSheets })
       }

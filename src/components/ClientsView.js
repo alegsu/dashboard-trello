@@ -13,6 +13,8 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
   const [claudeUrl, setClaudeUrl] = useState('');
   const [notes, setNotes] = useState('');
   const [color, setColor] = useState('');
+  const [status, setStatus] = useState('CLIENTE');
+  
   const [mergeTargetId, setMergeTargetId] = useState('');
 
   const defaultPlan = {
@@ -57,6 +59,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
     setClaudeUrl(c.claudeUrl || '');
     setNotes(c.notes || '');
     setColor(c.color || '');
+    setStatus(c.status || 'CLIENTE');
     setMergeTargetId('');
     try {
       setSocialPlan(c.socialPlan ? JSON.parse(c.socialPlan) : defaultPlan);
@@ -128,6 +131,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
           claudeUrl,
           notes,
           color,
+          status,
           socialPlan: JSON.stringify(socialPlan),
           pedSheets: JSON.stringify(pedSheets)
         })
@@ -136,7 +140,7 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
       if (res.ok) {
         if (onRefresh) onRefresh();
         alert('Dati cliente salvati con successo!');
-        setSelectedClient({ ...selectedClient, name, notebookLmUrl, claudeUrl, notes, color, socialPlan: JSON.stringify(socialPlan), pedSheets: JSON.stringify(pedSheets) });
+        setSelectedClient({ ...selectedClient, name, notebookLmUrl, claudeUrl, notes, color, status, socialPlan: JSON.stringify(socialPlan), pedSheets: JSON.stringify(pedSheets) });
       } else {
         alert('Errore durante il salvataggio.');
       }
@@ -329,6 +333,20 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                     style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 'bold' }}
                   />
                 </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1 }}>
+                  <label style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>Stato</label>
+                  <select 
+                    value={status} 
+                    onChange={e => setStatus(e.target.value)} 
+                    style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '1.1rem' }}
+                  >
+                    <option value="CLIENTE">Attivo</option>
+                    <option value="PROSPECT">Prospect</option>
+                    <option value="OBSOLETO">Obsoleto</option>
+                  </select>
+                </div>
+
                 <button type="submit" style={{ padding: '0.5rem 1.5rem', background: 'var(--accent-primary)', color: 'black', borderRadius: '4px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.9rem', whiteSpace: 'nowrap', marginTop: '1.2rem' }}>
                   Salva Modifiche
                 </button>
