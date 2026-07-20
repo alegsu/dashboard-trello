@@ -76,10 +76,19 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
     }
   };
 
+  const isEditingRef = React.useRef(false);
+  const setEditing = (val) => {
+    isEditingRef.current = val;
+    setIsEditingDescription(val);
+  };
+
   const renderMentionDropdown = (target, currentText, setter) => {
     if (mentionTarget !== target || mentionQuery === null) return null;
     return (
-      <div style={{ position: 'absolute', top: '100%', left: 0, background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', zIndex: 100, maxHeight: '150px', overflowY: 'auto', width: '250px', boxShadow: 'var(--shadow-md)' }}>
+      <div 
+        onMouseDown={(e) => e.preventDefault()} 
+        style={{ position: 'absolute', top: '100%', left: 0, background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', zIndex: 100, maxHeight: '150px', overflowY: 'auto', width: '250px', boxShadow: 'var(--shadow-md)' }}
+      >
         {(members || []).filter(m => m?.name && m.name.toLowerCase().replace(/\s+/g, '').includes(mentionQuery)).map(m => (
           <div 
             key={m.id} 
@@ -132,7 +141,10 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
       if (res.ok) {
         const data = await res.json();
         setCard(data);
-        setDescription(data.description || '');
+        // Evitiamo di sovrascrivere mentre l'utente sta scrivendo
+        if (!isEditingRef.current) {
+          setDescription(data.description || '');
+        }
       }
     } catch (err) {
       console.error(err);
@@ -694,7 +706,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                       id="textarea-description"
                       value={description} 
                       onChange={e => handleMentionChange(e.target.value, 'description', setDescription)} 
-                      onBlur={() => { handleSaveDescription(); setIsEditingDescription(false); }}
+                      onBlur={() => { handleSaveDescription(); setEditing(false); }}
                       className={styles.textarea} 
                       placeholder="Aggiungi una descrizione più dettagliata... (usa @ per menzionare)" 
                       rows={4}
@@ -704,7 +716,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                   </>
                 ) : (
                   <div 
-                    onClick={() => setIsEditingDescription(true)}
+                    onClick={() => setEditing(true)}
                     style={{ whiteSpace: 'pre-wrap', cursor: 'text', minHeight: '60px', padding: '0.8rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid transparent', fontSize: '0.95rem', color: 'var(--text-primary)' }}
                     onMouseOver={e => e.currentTarget.style.border = '1px solid var(--border-color)'}
                     onMouseOut={e => e.currentTarget.style.border = '1px solid transparent'}
