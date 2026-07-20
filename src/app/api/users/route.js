@@ -37,7 +37,7 @@ export async function GET() {
         where: { assignees: { some: { id: u.id } }, list: { OR: [{ name: { contains: 'fatto', mode: 'insensitive' } }, { name: { contains: 'completat', mode: 'insensitive' } }] } }
       });
       const checklistItemsDone = await prisma.checklistItem.count({
-        where: { assignees: { some: { id: u.id } }, isCompleted: true }
+        where: { checklist: { card: { assignees: { some: { id: u.id } } } }, isCompleted: true }
       });
       const projectsDone = await prisma.project.count({
         where: { assignees: { some: { id: u.id } }, status: 'Completato' }
