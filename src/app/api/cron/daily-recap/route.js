@@ -41,7 +41,8 @@ export async function GET(request) {
     }
 
     const baseUrlSetting = await prisma.systemSetting.findUnique({ where: { key: 'BASE_URL' } });
-    const baseUrl = baseUrlSetting?.value || process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'));
+    let baseUrl = baseUrlSetting?.value || process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'));
+    baseUrl = baseUrl.replace('https://https://', 'https://').replace('http://https://', 'https://');
 
     // 0. Sincronizzazione Automatica Google Sheets
     try {
