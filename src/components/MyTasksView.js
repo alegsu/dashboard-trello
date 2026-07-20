@@ -83,7 +83,12 @@ export default function MyTasksView({ cards, currentUser, clients, boards, allMe
         </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
           {list.map(card => {
-            const clientName = card.isSocial ? card.client?.name : (card.project?.client?.name || 'Progetto Interno');
+            let clientName = 'Progetto Interno';
+            if (card.isSocial) {
+              clientName = card.client?.name || 'Progetto Interno';
+            } else if (card.clientId) {
+              clientName = clients.find(c => c.id === card.clientId)?.name || 'Progetto Interno';
+            }
             return (
               <div 
                 key={card.id} 

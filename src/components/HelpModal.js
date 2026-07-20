@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.38.1</h4>
+                <ul style={noteUlStyle}>
+                  <li>🏢 <strong>Cliente in "La Mia Giornata":</strong> Aggiunto il nome del cliente di riferimento sopra ogni task nella vista "La Mia Giornata". Nessun dubbio su chi sia il committente!</li>
+                  <li>🧹 <strong>Pulizia menu a tendina:</strong> Ora i clienti obsoleti non vengono più mostrati nei filtri generali della dashboard e nella selezione cliente per le nuove schede (mantenendo comunque visibili quelli a cui stai già lavorando).</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.38.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🏆 <strong>Classifica più equa:</strong> Da oggi i punti per le "Schede Chiuse" e i "Task Completati" vengono assegnati **soltanto a chi esegue fisicamente l'azione** (chi clicca la spunta o trascina la scheda su Fatto), e non più a tutti i membri assegnati alla scheda. Per le schede completate in passato, i punti rimangono assegnati a tutti i membri per non azzerare lo storico.</li>

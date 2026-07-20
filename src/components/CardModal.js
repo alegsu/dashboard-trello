@@ -1211,7 +1211,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                   style={{ padding: '0.2rem', borderRadius: '4px', fontSize: '0.8rem', width: '100%' }}
                 >
                   <option value="">Nessuno</option>
-                  {allClients.map(c => (
+                  {allClients.filter(c => c.status === 'CLIENTE' || c.id === card.clientId).map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
