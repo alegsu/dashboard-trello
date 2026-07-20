@@ -83,8 +83,10 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
         {(members || []).filter(m => m?.name && m.name.toLowerCase().replace(/\s+/g, '').includes(mentionQuery)).map(m => (
           <div 
             key={m.id} 
-            onClick={() => {
+            onMouseDown={(e) => {
+              e.preventDefault(); // Previene l'onBlur del textarea
               const textarea = document.getElementById(`textarea-${target}`);
+              if (!textarea) return;
               const cursor = textarea.selectionStart;
               const textBefore = currentText.slice(0, cursor);
               const textAfter = currentText.slice(cursor);
