@@ -201,6 +201,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
 
   const updateCard = async (updates) => {
     updates.baseUrl = window.location.origin;
+    if (currentUser && currentUser.id) updates.authorId = currentUser.id;
     await fetch(`/api/cards/${cardId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

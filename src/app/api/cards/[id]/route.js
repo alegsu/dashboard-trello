@@ -26,9 +26,9 @@ export async function PUT(request, { params }) {
     const { baseUrl, ...data } = await request.json();
     
     let oldAssigneeIds = [];
-    if (data.assignees) {
-      const oldEntity = await prisma.card.findUnique({ where: { id }, include: { assignees: true } });
-      if (oldEntity) oldAssigneeIds = oldEntity.assignees.map(a => a.id);
+    const oldEntity = await prisma.card.findUnique({ where: { id }, include: { assignees: true } });
+    if (oldEntity && data.assignees) {
+      oldAssigneeIds = oldEntity.assignees.map(a => a.id);
     }
     
     const updateData = { ...data };
@@ -59,7 +59,6 @@ export async function PUT(request, { params }) {
           }
           
           // Notify assignees
-          const oldEntity = await prisma.card.findUnique({ where: { id }, include: { assignees: true } });
           if (oldEntity && !oldEntity.completedAt) {
             const authorId = data.authorId; // Passed from client ideally
             for (const user of oldEntity.assignees) {
@@ -102,6 +101,37 @@ export async function PUT(request, { params }) {
             });
           }
         }
+      }
+    }
+
+    if (data.description && baseUrl && data.authorId) {
+      const { processMentions } = require('@/utils/mentions');
+      const link = `${baseUrl}/?card=${id}`;
+      
+      // Estraiamo le mention vecchie per evitare spam
+      const mentionRegex = /@([a-zA-Z0-9_.-]+)/g;
+      const oldMentions = new Set();
+      let match;
+      if (oldEntity && oldEntity.description) {
+        while ((match = mentionRegex.exec(oldEntity.description)) !== null) {
+          oldMentions.add(match[1].toLowerCase());
+        }
+      }
+      
+      // Estraiamo le mention nuove dalla nuova descrizione
+      const newMentions = new Set();
+      while ((match = mentionRegex.exec(data.description)) !== null) {
+        const m = match[1].toLowerCase();
+        if (!oldMentions.has(m)) {
+          newMentions.add(m);
+        }
+      }
+      
+      // Chiamiamo processMentions solo se ci sono *nuove* menzioni (passando solo quelle)
+      if (newMentions.size > 0) {
+        // Un trucco semplice: creiamo una stringa fittizia con solo le nuove menzioni
+        const fakeTextWithOnlyNewMentions = Array.from(newMentions).map(m => `@${m}`).join(' ');
+        await processMentions(fakeTextWithOnlyNewMentions, data.authorId, link, `Descrizione scheda: ${updated.name}`);
       }
     }
 
