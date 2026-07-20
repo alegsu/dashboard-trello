@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.37.1</h4>
+                <ul style={noteUlStyle}>
+                  <li>🩹 <strong>Hotfix Assegnazioni e Modifiche:</strong> Risolto un bug critico che impediva di assegnare utenti, etichette o clienti alle schede. Questo era un "danno collaterale" dell'ultimo aggiornamento, ora tornato tutto perfettamente funzionante!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.37.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🔔 <strong>Notifiche di Completamento:</strong> Ora, quando una scheda viene spostata in "Fatto" (o in una lista di completamento), oppure quando viene spuntato un task/sottotask, tutti i membri assegnati a quella scheda riceveranno una notifica istantanea su GestionAle.</li>

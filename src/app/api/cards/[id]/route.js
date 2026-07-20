@@ -32,6 +32,7 @@ export async function PUT(request, { params }) {
     }
     
     const updateData = { ...data };
+    delete updateData.authorId;
     
     if (data.assignees) {
       updateData.assignees = {
