@@ -34,6 +34,8 @@ model User {
   projects       Project[]       @relation("ProjectAssignees")
   boards         Board[]         @relation("BoardAssignees")
   socialPosts    SocialPost[]    @relation("SocialPostAssignees")
+  completedCards Card[]          @relation("CardCompletedBy")
+  completedTasks ChecklistItem[] @relation("ChecklistItemCompletedBy")
   
   // Impostazioni Notifiche
   notifyMentions       Boolean @default(true)
@@ -112,6 +114,8 @@ model Card {
   updatedAt   DateTime @default(now()) @updatedAt
   createdAt   DateTime @default(now())
   completedAt DateTime? // Traccia storicamente quando è stata completata
+  completedById String?
+  completedBy   User?     @relation("CardCompletedBy", fields: [completedById], references: [id])
   isArchived Boolean @default(false)
 }
 
@@ -169,6 +173,8 @@ model ChecklistItem {
   dueDate     DateTime?
   notes       String?   // Aggiunto per le note espandibili
   completedAt DateTime? // Traccia storicamente quando è stato completato
+  completedById String?
+  completedBy   User?     @relation("ChecklistItemCompletedBy", fields: [completedById], references: [id])
 }
 
 model Client {

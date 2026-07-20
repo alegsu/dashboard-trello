@@ -34,10 +34,22 @@ export async function GET() {
     // Fetch completati (visto che _count non supporta gli alias)
     const enrichedUsers = await Promise.all(users.map(async (u) => {
       const cardsDone = await prisma.card.count({
-        where: { assignees: { some: { id: u.id } }, list: { OR: [{ name: { contains: 'fatto', mode: 'insensitive' } }, { name: { contains: 'completat', mode: 'insensitive' } }] } }
+        where: { 
+          OR: [
+            { completedById: u.id },
+            { completedById: null, assignees: { some: { id: u.id } } }
+          ],
+          list: { OR: [{ name: { contains: 'fatto', mode: 'insensitive' } }, { name: { contains: 'completat', mode: 'insensitive' } }] } 
+        }
       });
       const checklistItemsDone = await prisma.checklistItem.count({
-        where: { checklist: { card: { assignees: { some: { id: u.id } } } }, isCompleted: true }
+        where: { 
+          OR: [
+            { completedById: u.id },
+            { completedById: null, checklist: { card: { assignees: { some: { id: u.id } } } } }
+          ],
+          isCompleted: true 
+        }
       });
       const projectsDone = await prisma.project.count({
         where: { assignees: { some: { id: u.id } }, status: 'Completato' }

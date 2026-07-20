@@ -21,6 +21,11 @@ export async function PUT(request, { params }) {
     
     if (data.isCompleted !== undefined) {
       updateData.completedAt = data.isCompleted ? new Date() : null;
+      if (data.isCompleted && data.authorId) {
+        updateData.completedById = data.authorId;
+      } else if (!data.isCompleted) {
+        updateData.completedById = null;
+      }
     }
     
     if (data.assignees) {

@@ -51,11 +51,14 @@ export async function PUT(request, { params }) {
         const isFatto = newList.name.toLowerCase().includes('fatto') || newList.name.toLowerCase().includes('completat');
         if (isFatto) {
           updateData.completedAt = new Date();
+          if (data.authorId) {
+            updateData.completedById = data.authorId;
+          }
           const checklists = await prisma.checklist.findMany({ where: { cardId: id } });
           for (const cl of checklists) {
             await prisma.checklistItem.updateMany({
               where: { checklistId: cl.id, isCompleted: false },
-              data: { isCompleted: true, completedAt: new Date() }
+              data: { isCompleted: true, completedAt: new Date(), completedById: data.authorId || undefined }
             });
           }
           
@@ -75,6 +78,7 @@ export async function PUT(request, { params }) {
           }
         } else {
           updateData.completedAt = null;
+          updateData.completedById = null;
         }
       }
     }
