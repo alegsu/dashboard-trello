@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.36.5</h4>
+                <ul style={noteUlStyle}>
+                  <li>🩹 <strong>Hotfix Mensioni:</strong> Risolto un bug che causava la chiusura della scheda invece di inserire il nome quando si selezionava un utente dalla tendina delle menzioni.</li>
+                  <li>✉️ <strong>Hotfix Email:</strong> Corretto un bug per cui i link nelle email di notifica (Recap giornaliero, assegnazioni) contenevano un doppio "https://" e risultavano corrotti.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.36.4</h4>
                 <ul style={noteUlStyle}>
                   <li>🩹 <strong>Hotfix:</strong> La barra di navigazione ora rimane tutta su una riga e la barra di scorrimento laterale brutta è stata nascosta (è comunque possibile scorrere muovendo il dito/mouse).</li>
