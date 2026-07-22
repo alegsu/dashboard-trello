@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.38.3</h4>
+                <ul style={noteUlStyle}>
+                  <li>🩹 <strong>Bugfix Descrizione Schede:</strong> Risolto un bug fastidioso che faceva "uscire" automaticamente dalla casella della descrizione quando si provava a scrivere per la prima volta in una scheda vuota. Ora il focus rimane saldo al suo posto!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.38.2</h4>
                 <ul style={noteUlStyle}>
                   <li>🏷️ <strong>Gestione Stato Clienti:</strong> Aggiunto un comodo menu a tendina nella scheda di modifica dei clienti (nella vista "Clienti") per impostare lo stato di un cliente come Attivo, Prospect o Obsoleto!</li>
