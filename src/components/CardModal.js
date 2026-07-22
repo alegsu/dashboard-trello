@@ -707,6 +707,7 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
                       id="textarea-description"
                       value={description} 
                       onChange={e => handleMentionChange(e.target.value, 'description', setDescription)} 
+                      onFocus={() => setEditing(true)}
                       onBlur={() => { handleSaveDescription(); setEditing(false); }}
                       className={styles.textarea} 
                       placeholder="Aggiungi una descrizione più dettagliata... (usa @ per menzionare)" 
