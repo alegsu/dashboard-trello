@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.39.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🤖 <strong>Integrazione Gemini Vocale (Nuova Funzione):</strong> Ora puoi parlare con il tuo telefono e dire a Gemini di creare un task su GestionAle! Vai nelle Impostazioni &gt; "Integrazione Gemini" per generare la tua API Key segreta, e configura il tuo Gem personalizzato usando le specifiche fornite dall'Assistente (su `tuo-dominio.com/openapi.yaml`). GestionAle capirà in automatico chi è il cliente, chi assegnare e dove piazzare la scheda!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.38.3</h4>
                 <ul style={noteUlStyle}>
                   <li>🩹 <strong>Bugfix Descrizione Schede:</strong> Risolto un bug fastidioso che faceva "uscire" automaticamente dalla casella della descrizione quando si provava a scrivere per la prima volta in una scheda vuota. Ora il focus rimane saldo al suo posto!</li>

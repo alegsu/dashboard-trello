@@ -63,6 +63,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
   const [smtpUser, setSmtpUser] = useState('');
   const [smtpPass, setSmtpPass] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
+  const [agentApiKey, setAgentApiKey] = useState('');
 
   // Templates
   const [templates, setTemplates] = useState([]);
@@ -85,6 +86,7 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
       if (data.SMTP_USER) setSmtpUser(data.SMTP_USER);
       if (data.SMTP_PASS) setSmtpPass(data.SMTP_PASS);
       if (data.BASE_URL) setBaseUrl(data.BASE_URL);
+      if (data.AGENT_API_KEY) setAgentApiKey(data.AGENT_API_KEY);
       
       if (data.ANNOUNCEMENTS) {
         try {
@@ -149,11 +151,12 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
         SMTP_PORT: smtpPort,
         SMTP_USER: smtpUser,
         SMTP_PASS: smtpPass,
-        BASE_URL: baseUrl
+        BASE_URL: baseUrl,
+        AGENT_API_KEY: agentApiKey
       })
     });
     setLoading(false);
-    alert('Impostazioni SMTP salvate!');
+    alert('Impostazioni salvate con successo!');
   };
 
   const handleAddAnnouncement = async () => {
@@ -801,8 +804,32 @@ export default function SettingsPanel({ members, boards, clients = [], lists = [
           </div>
         )}
 
-
-
+        {/* Gemini Agent AI */}
+        {effectiveCurrentUser?.role === 'admin' && (
+          <div className={styles.card}>
+            <h3>🤖 Integrazione Gemini (Vocale)</h3>
+            <p className={styles.subtitle}>Configura la chiave API per usare Gemini dal telefono.</p>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem'}}>
+              <input 
+                type="text" 
+                value={agentApiKey} 
+                onChange={e => setAgentApiKey(e.target.value)} 
+                placeholder="Lascia vuoto per disabilitare (es. una password complessa)"
+                className={styles.input}
+              />
+              <button onClick={async () => {
+                const key = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+                  .map(b => b.toString(16).padStart(2, '0')).join('');
+                setAgentApiKey(key);
+              }} className={styles.button} style={{background: 'var(--bg-secondary)', color: 'var(--text-primary)'}}>
+                Genera Chiave Casuale
+              </button>
+              <button onClick={handleSaveSmtp} disabled={loading} className={styles.button}>
+                Salva Chiave
+              </button>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

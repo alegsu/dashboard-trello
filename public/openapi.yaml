@@ -1,0 +1,67 @@
+openapi: 3.1.0
+info:
+  title: GestionAle AI API
+  version: 1.0.0
+  description: API per creare task (schede) su GestionAle tramite assistente vocale.
+servers:
+  - url: https://tuo-dominio.com
+    description: Server di Produzione
+paths:
+  /api/ai/agent:
+    post:
+      summary: Crea un nuovo task su GestionAle
+      description: Usa questo endpoint per aggiungere un task. L'assistente cercherà in modo fuzzy il cliente e gli assegnatari.
+      operationId: createGestionAleTask
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  description: Il nome/titolo del task da aggiungere (es. "fare il report").
+                client_name:
+                  type: string
+                  description: Il nome del cliente a cui è associato il task (es. "Sanlorenzo Med"). Lasciare vuoto se non è specificato alcun cliente.
+                assignees:
+                  type: array
+                  items:
+                    type: string
+                  description: Lista dei nomi degli utenti a cui assegnare il task (es. ["ale", "marco"]).
+                description:
+                  type: string
+                  description: Eventuale descrizione estesa del task.
+                board_name:
+                  type: string
+                  description: Il nome della bacheca in cui inserire il task (se non specificato, verrà usata una bacheca associata al cliente o una di default).
+      responses:
+        '200':
+          description: Task creato con successo.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  cardUrl:
+                    type: string
+        '400':
+          description: Richiesta non valida
+        '401':
+          description: Non autorizzato (Token API mancante o errato)
+        '500':
+          description: Errore del server
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
