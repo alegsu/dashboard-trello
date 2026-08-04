@@ -180,6 +180,18 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
                         </div>
                       </div>
 
+                      <div style={{ marginTop: '0.8rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
+                        <strong style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>📶 Stato Accessi e Notifiche Email</strong>
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.3rem', fontSize: '0.7rem', flexWrap: 'wrap' }}>
+                          <span title="L'ultima volta che l'utente ha usato il gestionale">
+                            🚪 Ultimo Accesso: <strong>{m.lastActiveAt ? new Date(m.lastActiveAt).toLocaleString('it-IT') : 'Mai o non tracciato'}</strong>
+                          </span>
+                          <span title="L'ultima volta che il sistema gli ha inviato una mail di notifica per una menzione o task assegnato">
+                            📧 Ultima Mail Inviata: <strong>{m.lastNotificationEmailSentAt ? new Date(m.lastNotificationEmailSentAt).toLocaleString('it-IT') : 'Mai o disabilitata'}</strong>
+                          </span>
+                        </div>
+                      </div>
+
                       {serviceEntries.length > 0 && (
                         <div style={{ marginTop: '0.6rem', display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
                           {serviceEntries.map(([srv, count], idx) => (

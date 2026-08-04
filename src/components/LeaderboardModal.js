@@ -5,27 +5,33 @@ import { X, Trophy, Medal, Star } from 'lucide-react';
 export default function LeaderboardModal({ onClose }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('cards'); // 'cards' | 'tasks'
 
   useEffect(() => {
     fetch('/api/users?t=' + Date.now(), { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
-          // Sort by cardsDone descending
-          const sorted = data.sort((a, b) => {
-            const aCards = a._count?.cardsDone || 0;
-            const bCards = b._count?.cardsDone || 0;
-            if (bCards !== aCards) return bCards - aCards;
-            
-            const aTasks = a._count?.checklistItemsDone || 0;
-            const bTasks = b._count?.checklistItemsDone || 0;
-            return bTasks - aTasks;
-          });
-          setMembers(sorted);
+          setMembers(data);
         }
         setLoading(false);
       });
   }, []);
+
+  const sortedMembers = [...members].sort((a, b) => {
+    const aCards = a._count?.cardsDone || 0;
+    const bCards = b._count?.cardsDone || 0;
+    const aTasks = a._count?.checklistItemsDone || 0;
+    const bTasks = b._count?.checklistItemsDone || 0;
+
+    if (tab === 'cards') {
+      if (bCards !== aCards) return bCards - aCards;
+      return bTasks - aTasks;
+    } else {
+      if (bTasks !== aTasks) return bTasks - aTasks;
+      return bCards - aCards;
+    }
+  });
 
   return (
     <div style={{
@@ -45,18 +51,34 @@ export default function LeaderboardModal({ onClose }) {
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div style={{ background: 'var(--bg-elevated)', padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-primary)' }}>
-            <Trophy size={24} color="#fbbf24" /> Classifica Team
-          </h2>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={24} /></button>
+        <div style={{ background: 'var(--bg-elevated)', padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-primary)' }}>
+              <Trophy size={24} color="#fbbf24" /> Classifica Team
+            </h2>
+            <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={24} /></button>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-secondary)', padding: '0.3rem', borderRadius: '8px' }}>
+            <button 
+              onClick={() => setTab('cards')} 
+              style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: 'none', background: tab === 'cards' ? 'var(--accent-primary)' : 'transparent', color: tab === 'cards' ? '#fff' : 'var(--text-secondary)', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              Top Schede Chiuse
+            </button>
+            <button 
+              onClick={() => setTab('tasks')} 
+              style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: 'none', background: tab === 'tasks' ? 'var(--accent-primary)' : 'transparent', color: tab === 'tasks' ? '#fff' : 'var(--text-secondary)', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              Top Task
+            </button>
+          </div>
         </div>
 
         <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {loading ? (
             <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Caricamento classifica...</div>
           ) : (
-            members.map((m, i) => {
+            sortedMembers.map((m, i) => {
               let badge = null;
               if (i === 0) badge = <span style={{ fontSize: '1.5rem' }}>🥇</span>;
               else if (i === 1) badge = <span style={{ fontSize: '1.5rem' }}>🥈</span>;
