@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.40.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>👑 <strong>Management Tracking:</strong> Nella sezione Management, all'interno della scheda di ciascun collaboratore, ora puoi vedere l'<strong>Ultimo Accesso</strong> (quando ha aperto l'app l'ultima volta) e l'<strong>Ultima Mail Inviata</strong> (l'ultima volta che il sistema gli ha mandato un avviso per un'assegnazione o menzione). Ottimo per capire chi sta ignorando i task!</li>
+                  <li>🏆 <strong>Classifica Divisa (Schede vs Task):</strong> La classifica del team è stata aggiornata! Ora ha due comodi bottoni per vedere sia chi chiude più schede (Bacheca messa su fatto), sia chi completa più singoli sotto-task.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.39.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🤖 <strong>Integrazione Gemini Vocale (Nuova Funzione):</strong> Ora puoi parlare con il tuo telefono e dire a Gemini di creare un task su GestionAle! Vai nelle Impostazioni &gt; "Integrazione Gemini" per generare la tua API Key segreta, e configura il tuo Gem personalizzato usando le specifiche fornite dall'Assistente (su `tuo-dominio.com/openapi.yaml`). GestionAle capirà in automatico chi è il cliente, chi assegnare e dove piazzare la scheda!</li>
