@@ -72,7 +72,16 @@ export async function GET(request) {
       };
 
       let listItems = notifications.map(n => {
-        const fullLink = n.link ? (n.link.startsWith('/') ? BASE_URL + n.link : BASE_URL + '/' + n.link) : '';
+        let fullLink = '';
+        if (n.link) {
+          if (n.link.startsWith('http')) {
+            fullLink = n.link;
+          } else if (n.link.startsWith('/')) {
+            fullLink = BASE_URL + n.link;
+          } else {
+            fullLink = BASE_URL + '/' + n.link;
+          }
+        }
         const linkHtml = fullLink ? ` <a href="${fullLink}" style="color: #3b82f6; text-decoration: none; font-weight: 500; font-size: 13px; margin-left: 8px;">Vai alla scheda ➔</a>` : '';
         const badgeStr = typeMap[n.type] || n.type;
         
