@@ -100,6 +100,9 @@ export async function GET(request) {
 
         const dueRomeStr = new Date(c.due).toLocaleString("en-US", {timeZone: "Europe/Rome"});
         const romeDue = new Date(dueRomeStr);
+        const daysOverdue = (romeNow - romeDue) / (1000 * 60 * 60 * 24);
+
+        if (daysOverdue > 14) return; // Ignore cards overdue by more than 14 days
 
         if (romeDue < romeTomorrow) {
           todayCards.push(c);
