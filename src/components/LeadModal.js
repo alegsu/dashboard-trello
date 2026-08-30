@@ -13,7 +13,8 @@ export default function LeadModal({ lead, onClose, onUpdate, onDelete, users = [
     brand: lead?.brand || 'ShinyUp',
     status: lead?.status || 'LEAD',
     notes: lead?.notes || '',
-    assignedToId: lead?.assignedToId || ''
+    assignedToId: lead?.assignedToId || '',
+    nextActionDate: lead?.nextActionDate ? new Date(lead.nextActionDate).toISOString().split('T')[0] : ''
   });
 
   const [saving, setSaving] = useState(false);
@@ -66,7 +67,7 @@ export default function LeadModal({ lead, onClose, onUpdate, onDelete, users = [
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+      <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', padding: '2rem' }}>
         <button className={styles.closeBtn} onClick={onClose}>&times;</button>
         <h2 style={{ marginBottom: '1.5rem', color: 'var(--text-primary)' }}>{lead?.id ? 'Modifica Lead' : 'Nuovo Lead'}</h2>
         
@@ -96,15 +97,27 @@ export default function LeadModal({ lead, onClose, onUpdate, onDelete, users = [
             </label>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.85rem' }}>
               Valore Stimato (€)
-              <input type="number" step="0.01" name="value" value={formData.value} onChange={handleChange} className={styles.inputField} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+              <input type="number" name="value" value={formData.value} onChange={handleChange} className={styles.inputField} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+            </label>
+            
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.85rem' }}>
+              Reminder (Prossima Azione)
+              <input type="date" name="nextActionDate" value={formData.nextActionDate} onChange={handleChange} className={styles.inputField} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', colorScheme: 'dark' }} />
+            </label>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.85rem' }}>
+              Fonte (Sito, Passaparola...)
+              <input type="text" name="source" value={formData.source} onChange={handleChange} className={styles.inputField} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
             </label>
             
             <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.85rem' }}>
               Brand
-              <select name="brand" value={formData.brand} onChange={handleChange} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
+              <select name="brand" value={formData.brand} onChange={handleChange} className={styles.inputField} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
                 <option value="ShinyUp">ShinyUp</option>
                 <option value="Daphlab">Daphlab</option>
               </select>
@@ -112,7 +125,7 @@ export default function LeadModal({ lead, onClose, onUpdate, onDelete, users = [
 
             <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.85rem' }}>
               Assegnato A
-              <select name="assignedToId" value={formData.assignedToId} onChange={handleChange} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
+              <select name="assignedToId" value={formData.assignedToId} onChange={handleChange} className={styles.inputField} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
                 <option value="">Nessuno</option>
                 {users.map(u => (
                   <option key={u.id} value={u.id}>{u.name}</option>
@@ -122,13 +135,8 @@ export default function LeadModal({ lead, onClose, onUpdate, onDelete, users = [
           </div>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.85rem' }}>
-            Fonte (es. Sito, Passaparola)
-            <input type="text" name="source" value={formData.source} onChange={handleChange} className={styles.inputField} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
-          </label>
-
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.85rem' }}>
             Note / Appunti Commerciali
-            <textarea name="notes" value={formData.notes} onChange={handleChange} rows="4" className={styles.inputField} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}></textarea>
+            <textarea name="notes" value={formData.notes} onChange={handleChange} className={styles.inputField} rows={4} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', resize: 'vertical' }} />
           </label>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>

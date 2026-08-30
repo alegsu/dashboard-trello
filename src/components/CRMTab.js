@@ -259,8 +259,13 @@ export default function CRMTab({ users = [], currentUser }) {
                       )}
                     </div>
                     
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                      {lead.contactName ? `👤 ${lead.contactName}` : 'Nessun referente'}
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', display: 'flex', justifyContent: 'space-between' }}>
+                      <span>{lead.contactName ? `👤 ${lead.contactName}` : 'Nessun referente'}</span>
+                      {lead.nextActionDate && (
+                        <span style={{ color: new Date(lead.nextActionDate) < new Date() ? '#ef4444' : '#3b82f6', fontWeight: 'bold' }}>
+                          📅 {new Date(lead.nextActionDate).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}
+                        </span>
+                      )}
                     </div>
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.6rem' }}>

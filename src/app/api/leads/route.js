@@ -24,7 +24,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { companyName, contactName, email, phone, value, source, brand, assignedToId, notes } = body;
+    const { companyName, contactName, email, phone, value, source, brand, assignedToId, notes, nextActionDate } = body;
 
     if (!companyName) {
       return NextResponse.json({ error: 'Il nome azienda è obbligatorio' }, { status: 400 });
@@ -41,7 +41,8 @@ export async function POST(request) {
         brand: brand || 'ShinyUp',
         status: 'LEAD',
         notes,
-        assignedToId
+        assignedToId,
+        nextActionDate: nextActionDate ? new Date(nextActionDate) : null
       },
       include: {
         assignedTo: true

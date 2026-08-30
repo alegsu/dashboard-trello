@@ -19,6 +19,7 @@ export async function PUT(request, { params }) {
         ...(body.status !== undefined && { status: body.status }),
         ...(body.notes !== undefined && { notes: body.notes }),
         ...(body.assignedToId !== undefined && { assignedToId: body.assignedToId }),
+        ...(body.nextActionDate !== undefined && { nextActionDate: body.nextActionDate ? new Date(body.nextActionDate) : null }),
       },
       include: {
         assignedTo: true

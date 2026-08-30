@@ -350,6 +350,8 @@ model Lead {
   assignedToId String?
   assignedTo   User?   @relation("LeadAssignees", fields: [assignedToId], references: [id], onDelete: SetNull)
   
+  nextActionDate DateTime?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
 }
