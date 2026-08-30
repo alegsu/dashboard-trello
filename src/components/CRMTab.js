@@ -188,6 +188,25 @@ export default function CRMTab({ users = [], currentUser }) {
         </div>
       </div>
 
+      {/* KPI Summary */}
+      <div style={{ padding: '1rem 2rem', display: 'flex', gap: '1.5rem', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
+        <div style={{ padding: '0.5rem 1rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Totale Lead</span>
+          <strong style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>{filteredLeads.length}</strong>
+        </div>
+        
+        {PIPELINE_STAGES.map(stage => {
+          const count = filteredLeads.filter(l => l.status === stage.id).length;
+          if (count === 0) return null; // Nascondi quelli a zero per pulizia
+          return (
+            <div key={stage.id} style={{ padding: '0.5rem 1rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', borderTop: `3px solid ${stage.color}` }}>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stage.label}</span>
+              <strong style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>{count}</strong>
+            </div>
+          );
+        })}
+      </div>
+
       {/* Kanban Board */}
       <div style={{ display: 'flex', gap: '1rem', padding: '1.5rem 2rem', overflowX: 'auto', flex: 1, alignItems: 'flex-start' }}>
         {PIPELINE_STAGES.map(stage => {
@@ -245,7 +264,7 @@ export default function CRMTab({ users = [], currentUser }) {
                       borderRadius: '6px',
                       boxShadow: draggedLeadId === lead.id ? '0 5px 15px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.1)',
                       border: '1px solid var(--border-color)',
-                      borderLeft: `3px solid ${lead.brand === 'Daphlab' ? '#a855f7' : '#3b82f6'}`,
+                      borderLeft: `3px solid ${lead.brand === 'Daphlab' ? '#6d2e37' : '#a1bdcf'}`,
                       opacity: draggedLeadId === lead.id ? 0.5 : 1,
                       cursor: 'grab'
                     }}
@@ -269,7 +288,7 @@ export default function CRMTab({ users = [], currentUser }) {
                     </div>
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.6rem' }}>
-                      <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: lead.brand === 'Daphlab' ? '#a855f7' : '#3b82f6', fontWeight: 'bold' }}>
+                      <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: lead.brand === 'Daphlab' ? '#6d2e37' : '#a1bdcf', fontWeight: 'bold' }}>
                         {lead.brand}
                       </span>
                       
