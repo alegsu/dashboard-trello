@@ -10,6 +10,7 @@ export async function GET(request, { params }) {
       include: { 
         assignees: true, 
         labels: true,
+        list: true,
         checklists: { include: { items: { include: { assignees: true }, orderBy: { order: 'asc' } } }, orderBy: { order: 'asc' } },
         comments: { include: { author: true }, orderBy: { createdAt: 'desc' } }
       }
@@ -86,7 +87,7 @@ export async function PUT(request, { params }) {
     const updated = await prisma.card.update({
       where: { id },
       data: updateData,
-      include: { assignees: true, labels: true, checklists: { include: { items: { select: { isCompleted: true } } } } }
+      include: { assignees: true, labels: true, list: true, checklists: { include: { items: { select: { isCompleted: true } } } } }
     });
 
     // Notify newly assigned users

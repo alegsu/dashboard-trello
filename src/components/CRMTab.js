@@ -169,13 +169,13 @@ export default function CRMTab({ users = [], currentUser }) {
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <select value={brandFilter} onChange={e => setBrandFilter(e.target.value)} style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}>
+          <select value={brandFilter} onChange={e => setBrandFilter(e.target.value)} style={{ fontFamily: 'inherit', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}>
             <option value="ALL">Tutti i Brand</option>
             <option value="ShinyUp">ShinyUp</option>
             <option value="Daphlab">Daphlab</option>
           </select>
 
-          <select value={userFilter} onChange={e => setUserFilter(e.target.value)} style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}>
+          <select value={userFilter} onChange={e => setUserFilter(e.target.value)} style={{ fontFamily: 'inherit', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}>
             <option value="ALL">Tutti i Commerciali</option>
             {users.map(u => (
               <option key={u.id} value={u.id}>{u.name}</option>
@@ -197,7 +197,7 @@ export default function CRMTab({ users = [], currentUser }) {
           return (
             <div 
               key={stage.id} 
-              style={{ minWidth: '300px', width: '300px', background: 'var(--bg-secondary)', borderRadius: '8px', display: 'flex', flexDirection: 'column', maxHeight: '100%' }}
+              style={{ flex: 1, minWidth: '200px', background: 'var(--bg-secondary)', borderRadius: '8px', display: 'flex', flexDirection: 'column', maxHeight: '100%' }}
             >
               
               {/* Stage Header */}
