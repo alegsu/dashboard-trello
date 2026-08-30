@@ -36,6 +36,10 @@ model User {
   socialPosts    SocialPost[]    @relation("SocialPostAssignees")
   completedCards Card[]          @relation("CardCompletedBy")
   completedTasks ChecklistItem[] @relation("ChecklistItemCompletedBy")
+  leads          Lead[]          @relation("LeadAssignees")
+  
+  // Accessi
+  hasCrmAccess         Boolean @default(false)
   
   // Impostazioni Notifiche
   notifyMentions       Boolean @default(true)
@@ -329,4 +333,23 @@ model SocialPost {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Lead {
+  id          String   @id @default(cuid())
+  companyName String
+  contactName String?
+  email       String?
+  phone       String?
+  value       Float?
+  source      String?
+  brand       String   @default("ShinyUp")
+  status      String   @default("LEAD")
+  notes       String?  @db.Text
+  
+  assignedToId String?
+  assignedTo   User?   @relation("LeadAssignees", fields: [assignedToId], references: [id], onDelete: SetNull)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 }

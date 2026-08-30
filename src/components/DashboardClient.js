@@ -21,6 +21,7 @@ import WelcomeToast from './WelcomeToast';
 import RogerMascot from './RogerMascot';
 import NotificationPoller from './NotificationPoller';
 import LeaderboardModal from './LeaderboardModal';
+import CRMTab from './CRMTab';
 import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock, Menu, X, Trophy } from 'lucide-react';
 
 export default function DashboardClient({ initialBoards: initialBoardsProp, initialLists: initialListsProp, initialCards: initialCardsProp, initialMembers, initialClients: initialClientsProp }) {
@@ -334,7 +335,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.40.0
+              v2.41.0
             </span>
             <button 
               className={styles.mobileShow} 
@@ -537,6 +538,9 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <button className={`${styles.navButton} ${view === 'projects' ? styles.active : ''}`} onClick={() => setView('projects')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🏢 Progetti</button>
               <button className={`${styles.navButton} ${view === 'clients' ? styles.active : ''}`} onClick={() => setView('clients')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>👥 Clienti</button>
               <button className={`${styles.navButton} ${view === 'accesses' ? styles.active : ''}`} onClick={() => setView('accesses')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>🔑 Accessi</button>
+              {(currentUser?.role === 'admin' || currentUser?.hasCrmAccess) && (
+                <button className={`${styles.navButton} ${view === 'crm' ? styles.active : ''}`} onClick={() => setView('crm')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: '#10b981' }}>🤝 Commerciale</button>
+              )}
               {currentUser?.role === 'admin' && (
                 <button className={`${styles.navButton} ${view === 'management' ? styles.active : ''}`} onClick={() => setView('management')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-primary)' }}>👑 Management</button>
               )}
@@ -606,6 +610,9 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             <button onClick={() => { setIsMobileMenuOpen(false); setView('projects'); }} className={styles.navButton} style={{ background: view === 'projects' ? 'var(--status-success)' : 'transparent', color: view === 'projects' ? 'white' : 'var(--text-primary)' }}>🎯 Obiettivi</button>
             <button onClick={() => { setIsMobileMenuOpen(false); setView('clients'); }} className={styles.navButton} style={{ background: view === 'clients' ? 'var(--status-success)' : 'transparent', color: view === 'clients' ? 'white' : 'var(--text-primary)' }}>💼 Clienti</button>
             <button onClick={() => { setIsMobileMenuOpen(false); setView('social'); }} className={styles.navButton} style={{ background: view === 'social' ? 'var(--status-success)' : 'transparent', color: view === 'social' ? 'white' : 'var(--text-primary)' }}>📱 Social Calendar</button>
+            {(currentUser?.role === 'admin' || currentUser?.hasCrmAccess) && (
+              <button onClick={() => { setIsMobileMenuOpen(false); setView('crm'); }} className={styles.navButton} style={{ background: view === 'crm' ? 'var(--status-success)' : 'transparent', color: view === 'crm' ? 'white' : '#10b981' }}>🤝 Commerciale</button>
+            )}
             {currentUser?.role === 'admin' && (
               <button onClick={() => { setIsMobileMenuOpen(false); setView('management'); }} className={styles.navButton} style={{ background: view === 'management' ? 'var(--status-success)' : 'transparent', color: view === 'management' ? 'white' : 'var(--accent-primary)' }}>👑 Management</button>
             )}
@@ -683,6 +690,13 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               setView={setView}
             />
           )}
+          {view === 'crm' && (
+            <CRMTab 
+              users={initialMembers}
+              currentUser={currentUser}
+            />
+          )}
+
           {view === 'management' && (
             <ManagementPanel 
               members={initialMembers} 
@@ -760,7 +774,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             </div>
             
             <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '1rem', opacity: 0.7 }}>
-              v2.40.0
+              v2.41.0
             </div>
           </div>
         </div>

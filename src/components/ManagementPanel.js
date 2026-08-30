@@ -21,6 +21,16 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
     return () => clearInterval(interval);
   }, []);
 
+  const toggleCrmAccess = async (userId, currentValue) => {
+    const newValue = !currentValue;
+    setLiveMembers(prev => prev.map(m => m.id === userId ? { ...m, hasCrmAccess: newValue } : m));
+    await fetch(`/api/users/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hasCrmAccess: newValue })
+    });
+  };
+
   const getClientEffortsForUser = (userName) => {
     let clientsData = [];
     clients.forEach(client => {
@@ -201,6 +211,21 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
                           ))}
                         </div>
                       )}
+                      
+                      <div style={{ marginTop: '0.8rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
+                        <strong style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>⚙️ Permessi Speciali</strong>
+                        <div style={{ marginTop: '0.3rem' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.75rem' }}>
+                            <input 
+                              type="checkbox" 
+                              style={{ width: '14px', height: '14px', accentColor: 'var(--accent-primary)' }} 
+                              checked={m.hasCrmAccess === true} 
+                              onChange={() => toggleCrmAccess(m.id, m.hasCrmAccess === true)} 
+                            />
+                            Abilita Tab "Commerciale" (CRM)
+                          </label>
+                        </div>
+                      </div>
                     </td>
                   </tr>
                   {isExpanded && (

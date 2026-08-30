@@ -26,6 +26,7 @@ export async function PUT(request, { params }) {
         ...(body.aiChecklistEnabled !== undefined && { aiChecklistEnabled: body.aiChecklistEnabled }),
         ...(body.aiReportEnabled !== undefined && { aiReportEnabled: body.aiReportEnabled }),
         ...(body.aiCategorizeEnabled !== undefined && { aiCategorizeEnabled: body.aiCategorizeEnabled }),
+        ...(body.hasCrmAccess !== undefined && { hasCrmAccess: body.hasCrmAccess }),
       }
     });
 

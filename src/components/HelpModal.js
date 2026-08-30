@@ -150,6 +150,15 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.41.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🤝 <strong>Nuovo Modulo CRM Commerciale:</strong> Aggiunto un tab dedicato esclusivamente all'acquisizione nuovi clienti! Funziona come una Kanban board ma è slegata dall'operatività: permette di tracciare i Lead per ShinyUp e Daphlab dalla fase di primo contatto fino al preventivo.</li>
+                  <li>🎉 <strong>Conversione Magica:</strong> Quando sposti un Lead nella colonna "Vinto", appare un pulsante magico per trasformare subito quel contatto in un vero e proprio "Cliente" operativo con un click (con tanto di coriandoli virtuali!).</li>
+                  <li>🔒 <strong>Accessi Controllati:</strong> Il modulo commerciale è privato. Solo tu (Amministratore) puoi decidere chi può vederlo, attivando la spunta "Abilita Tab Commerciale" dalla sezione Management.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.40.0</h4>
                 <ul style={noteUlStyle}>
                   <li>👑 <strong>Management Tracking:</strong> Nella sezione Management, all'interno della scheda di ciascun collaboratore, ora puoi vedere l'<strong>Ultimo Accesso</strong> (quando ha aperto l'app l'ultima volta) e l'<strong>Ultima Mail Inviata</strong> (l'ultima volta che il sistema gli ha mandato un avviso per un'assegnazione o menzione). Ottimo per capire chi sta ignorando i task!</li>
