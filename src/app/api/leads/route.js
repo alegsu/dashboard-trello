@@ -1,14 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
-import { getServerSession } from 'next-auth';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
-    const session = await getServerSession();
-    if (!session || !session.user) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
-
     const leads = await prisma.lead.findMany({
       include: {
         assignedTo: true
@@ -27,11 +23,6 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const session = await getServerSession();
-    if (!session || !session.user) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
-
     const body = await request.json();
     const { companyName, contactName, email, phone, value, source, brand, assignedToId, notes } = body;
 

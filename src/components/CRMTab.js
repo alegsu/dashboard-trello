@@ -1,8 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import LeadModal from './LeadModal';
-import styles from './Dashboard.module.css'; // Reusing dashboard styles for consistency
+import styles from '@/app/page.module.css'; // Fixed import
 import confetti from 'canvas-confetti';
 
 const PIPELINE_STAGES = [
@@ -19,6 +18,10 @@ export default function CRMTab({ users = [], currentUser }) {
   const [loading, setLoading] = useState(true);
   const [editingLead, setEditingLead] = useState(null);
   
+  // Drag & Drop State
+  const [draggedLeadId, setDraggedLeadId] = useState(null);
+  const [dragOverStage, setDragOverStage] = useState(null);
+
   // Filters
   const [brandFilter, setBrandFilter] = useState('ALL');
   const [userFilter, setUserFilter] = useState('ALL');
@@ -40,16 +43,44 @@ export default function CRMTab({ users = [], currentUser }) {
     fetchLeads();
   }, []);
 
-  const handleDragEnd = async (result) => {
-    const { destination, source, draggableId } = result;
-    if (!destination) return;
-    if (destination.droppableId === source.droppableId) return;
+  const handleDragStart = (e, leadId) => {
+    setDraggedLeadId(leadId);
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', leadId);
+    }
+  };
 
-    const newStatus = destination.droppableId;
-    const leadId = draggableId;
+  const handleDragOver = (e, stageId) => {
+    e.preventDefault();
+    if (dragOverStage !== stageId) {
+      setDragOverStage(stageId);
+    }
+  };
 
-    // Optimistic UI update
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setDragOverStage(null);
+  };
+
+  const handleDrop = async (e, destStageId) => {
+    e.preventDefault();
+    setDragOverStage(null);
+    
+    if (!draggedLeadId) return;
+
+    const leadToMove = leads.find(l => l.id === draggedLeadId);
+    if (!leadToMove || leadToMove.status === destStageId) {
+      setDraggedLeadId(null);
+      return;
+    }
+
+    const leadId = draggedLeadId;
+    const newStatus = destStageId;
+    
+    // Optimistic update
     setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: newStatus } : l));
+    setDraggedLeadId(null);
 
     try {
       const res = await fetch(`/api/leads/${leadId}`, {
@@ -58,16 +89,20 @@ export default function CRMTab({ users = [], currentUser }) {
         body: JSON.stringify({ status: newStatus })
       });
       if (!res.ok) {
-        // Revert on failure
         fetchLeads();
       } else {
         if (newStatus === 'VINTO') {
           triggerConfetti();
         }
       }
-    } catch (e) {
+    } catch (err) {
       fetchLeads();
     }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedLeadId(null);
+    setDragOverStage(null);
   };
 
   const triggerConfetti = () => {
@@ -154,104 +189,98 @@ export default function CRMTab({ users = [], currentUser }) {
       </div>
 
       {/* Kanban Board */}
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <div style={{ display: 'flex', gap: '1rem', padding: '1.5rem 2rem', overflowX: 'auto', flex: 1, alignItems: 'flex-start' }}>
-          {PIPELINE_STAGES.map(stage => {
-            const stageLeads = filteredLeads.filter(l => l.status === stage.id);
-            const totalValue = stageLeads.reduce((acc, l) => acc + (l.value || 0), 0);
+      <div style={{ display: 'flex', gap: '1rem', padding: '1.5rem 2rem', overflowX: 'auto', flex: 1, alignItems: 'flex-start' }}>
+        {PIPELINE_STAGES.map(stage => {
+          const stageLeads = filteredLeads.filter(l => l.status === stage.id);
+          const totalValue = stageLeads.reduce((acc, l) => acc + (l.value || 0), 0);
 
-            return (
-              <div key={stage.id} style={{ minWidth: '300px', width: '300px', background: 'var(--bg-secondary)', borderRadius: '8px', display: 'flex', flexDirection: 'column', maxHeight: '100%' }}>
-                
-                {/* Stage Header */}
-                <div style={{ padding: '0.8rem 1rem', borderBottom: '2px solid', borderBottomColor: stage.color, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: stage.color }}></span>
-                    {stage.label}
-                  </h3>
-                  <span style={{ fontSize: '0.75rem', background: 'var(--bg-elevated)', padding: '0.1rem 0.4rem', borderRadius: '12px', color: 'var(--text-secondary)' }}>
-                    {stageLeads.length}
-                  </span>
-                </div>
-
-                {/* Stage Value Summary */}
-                <div style={{ padding: '0.4rem 1rem', fontSize: '0.7rem', color: 'var(--text-secondary)', textAlign: 'right', background: 'rgba(0,0,0,0.02)' }}>
-                  Totale: <strong>€{totalValue.toLocaleString('it-IT')}</strong>
-                </div>
-
-                {/* Droppable Area */}
-                <Droppable droppableId={stage.id}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      style={{
-                        padding: '0.5rem',
-                        flex: 1,
-                        overflowY: 'auto',
-                        minHeight: '150px',
-                        background: snapshot.isDraggingOver ? 'rgba(0,0,0,0.05)' : 'transparent',
-                        transition: 'background 0.2s ease'
-                      }}
-                    >
-                      {stageLeads.map((lead, index) => (
-                        <Draggable key={lead.id} draggableId={lead.id} index={index}>
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              onClick={() => setEditingLead(lead)}
-                              style={{
-                                userSelect: 'none',
-                                padding: '0.8rem',
-                                margin: '0 0 0.5rem 0',
-                                background: 'var(--bg-elevated)',
-                                borderRadius: '6px',
-                                boxShadow: snapshot.isDragging ? '0 5px 15px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.1)',
-                                border: '1px solid var(--border-color)',
-                                borderLeft: `3px solid ${lead.brand === 'Daphlab' ? '#a855f7' : '#3b82f6'}`,
-                                ...provided.draggableProps.style,
-                                cursor: 'pointer'
-                              }}
-                            >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
-                                <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)', wordBreak: 'break-word' }}>{lead.companyName}</strong>
-                                {lead.value > 0 && (
-                                  <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>
-                                    €{lead.value.toLocaleString('it-IT')}
-                                  </span>
-                                )}
-                              </div>
-                              
-                              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                                {lead.contactName ? `👤 ${lead.contactName}` : 'Nessun referente'}
-                              </div>
-                              
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.6rem' }}>
-                                <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: lead.brand === 'Daphlab' ? '#a855f7' : '#3b82f6', fontWeight: 'bold' }}>
-                                  {lead.brand}
-                                </span>
-                                
-                                {lead.assignedTo && (
-                                  <span title={`Assegnato a ${lead.assignedTo.name}`} style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent-primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 'bold' }}>
-                                    {lead.assignedTo.name.charAt(0).toUpperCase()}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
+          return (
+            <div 
+              key={stage.id} 
+              style={{ minWidth: '300px', width: '300px', background: 'var(--bg-secondary)', borderRadius: '8px', display: 'flex', flexDirection: 'column', maxHeight: '100%' }}
+            >
+              
+              {/* Stage Header */}
+              <div style={{ padding: '0.8rem 1rem', borderBottom: '2px solid', borderBottomColor: stage.color, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: stage.color }}></span>
+                  {stage.label}
+                </h3>
+                <span style={{ fontSize: '0.75rem', background: 'var(--bg-elevated)', padding: '0.1rem 0.4rem', borderRadius: '12px', color: 'var(--text-secondary)' }}>
+                  {stageLeads.length}
+                </span>
               </div>
-            );
-          })}
-        </div>
-      </DragDropContext>
+
+              {/* Stage Value Summary */}
+              <div style={{ padding: '0.4rem 1rem', fontSize: '0.7rem', color: 'var(--text-secondary)', textAlign: 'right', background: 'rgba(0,0,0,0.02)' }}>
+                Totale: <strong>€{totalValue.toLocaleString('it-IT')}</strong>
+              </div>
+
+              {/* Droppable Area */}
+              <div
+                onDragOver={(e) => handleDragOver(e, stage.id)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, stage.id)}
+                style={{
+                  padding: '0.5rem',
+                  flex: 1,
+                  overflowY: 'auto',
+                  minHeight: '150px',
+                  background: dragOverStage === stage.id ? 'rgba(0,0,0,0.05)' : 'transparent',
+                  transition: 'background 0.2s ease'
+                }}
+              >
+                {stageLeads.map((lead) => (
+                  <div
+                    key={lead.id}
+                    draggable={true}
+                    onDragStart={(e) => handleDragStart(e, lead.id)}
+                    onDragEnd={handleDragEnd}
+                    onClick={() => setEditingLead(lead)}
+                    style={{
+                      userSelect: 'none',
+                      padding: '0.8rem',
+                      margin: '0 0 0.5rem 0',
+                      background: 'var(--bg-elevated)',
+                      borderRadius: '6px',
+                      boxShadow: draggedLeadId === lead.id ? '0 5px 15px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.1)',
+                      border: '1px solid var(--border-color)',
+                      borderLeft: `3px solid ${lead.brand === 'Daphlab' ? '#a855f7' : '#3b82f6'}`,
+                      opacity: draggedLeadId === lead.id ? 0.5 : 1,
+                      cursor: 'grab'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                      <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)', wordBreak: 'break-word' }}>{lead.companyName}</strong>
+                      {lead.value > 0 && (
+                        <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>
+                          €{lead.value.toLocaleString('it-IT')}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+                      {lead.contactName ? `👤 ${lead.contactName}` : 'Nessun referente'}
+                    </div>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.6rem' }}>
+                      <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: lead.brand === 'Daphlab' ? '#a855f7' : '#3b82f6', fontWeight: 'bold' }}>
+                        {lead.brand}
+                      </span>
+                      
+                      {lead.assignedTo && (
+                        <span title={`Assegnato a ${lead.assignedTo.name}`} style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent-primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 'bold' }}>
+                          {lead.assignedTo.name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {editingLead && (
         <LeadModal 

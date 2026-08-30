@@ -1,14 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
-import { getServerSession } from 'next-auth';
 
 export async function PUT(request, { params }) {
   try {
-    const session = await getServerSession();
-    if (!session || !session.user) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
-
     const { id } = await params;
     const body = await request.json();
 
@@ -40,11 +34,6 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const session = await getServerSession();
-    if (!session || !session.user) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
-
     const { id } = await params;
 
     await prisma.lead.delete({
