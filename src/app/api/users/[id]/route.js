@@ -15,6 +15,7 @@ export async function PUT(request, { params }) {
       data: {
         ...(body.role && { role: body.role }),
         ...(body.avatarUrl !== undefined && { avatarUrl: body.avatarUrl }),
+        ...(body.phone !== undefined && { phone: body.phone }),
         ...(body.loginCount !== undefined && { loginCount: body.loginCount }),
         ...(body.totalUsageTime !== undefined && { totalUsageTime: body.totalUsageTime }),
         ...(body.theme !== undefined && { theme: body.theme }),

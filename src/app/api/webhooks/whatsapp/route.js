@@ -64,6 +64,47 @@ async function sendWhatsAppMessage(phoneNumberId, accessToken, to, text) {
   }
 }
 
+// Helper per scaricare audio WhatsApp e trascriverlo con OpenAI Whisper
+async function transcribeWhatsAppAudio(mediaId, accessToken, openai) {
+  try {
+    // 1. Ottieni l'URL del file multimediale da Meta
+    const mediaMetaRes = await fetch(`https://graph.facebook.com/v21.0/${mediaId}`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    if (!mediaMetaRes.ok) {
+      console.error('Errore recupero media Meta:', await mediaMetaRes.text());
+      return null;
+    }
+    const mediaMetaData = await mediaMetaRes.json();
+    const downloadUrl = mediaMetaData.url;
+
+    if (!downloadUrl) return null;
+
+    // 2. Scarica il file audio binario
+    const audioRes = await fetch(downloadUrl, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    if (!audioRes.ok) {
+      console.error('Errore download file audio da Meta:', await audioRes.text());
+      return null;
+    }
+    const audioBuffer = await audioRes.arrayBuffer();
+    const audioFile = new File([audioBuffer], 'whatsapp_voice.ogg', { type: 'audio/ogg' });
+
+    // 3. Trascrivi con Whisper
+    const transcription = await openai.audio.transcriptions.create({
+      file: audioFile,
+      model: 'whisper-1',
+      language: 'it'
+    });
+
+    return transcription.text;
+  } catch (err) {
+    console.error('Errore trascrizione vocale WhatsApp:', err);
+    return null;
+  }
+}
+
 // 2. POST: Ricezione messaggi da WhatsApp
 export async function POST(request) {
   try {
@@ -81,7 +122,6 @@ export async function POST(request) {
     const phoneNumberId = settingMap['WHATSAPP_PHONE_NUMBER_ID'] || process.env.WHATSAPP_PHONE_NUMBER_ID;
     const accessToken = settingMap['WHATSAPP_ACCESS_TOKEN'] || process.env.WHATSAPP_ACCESS_TOKEN;
 
-    // Ispeziona la struttura di Meta Webhook
     const entry = body.entry?.[0];
     const changes = entry?.changes?.[0]?.value;
     const message = changes?.messages?.[0];
@@ -94,78 +134,6 @@ export async function POST(request) {
     const from = message.from; // Es: "393401234567"
     const contactName = changes?.contacts?.[0]?.profile?.name || 'Utente WhatsApp';
     const messageType = message.type;
-
-    if (messageType !== 'text') {
-      // Se è un messaggio non testuale (audio, immagine, ecc.)
-      await sendWhatsAppMessage(
-        phoneNumberId,
-        accessToken,
-        from,
-        `👋 Ciao ${contactName}! Al momento riesco ad elaborare messaggi di testo. Inviami pure una descrizione testuale del task o della nota che vuoi creare!`
-      );
-      return NextResponse.json({ status: 'ok', detail: 'non-text message received' });
-    }
-
-    const textBody = message.text?.body?.trim();
-    if (!textBody) {
-      return NextResponse.json({ status: 'ok', detail: 'empty text' });
-    }
-
-    console.log(`📩 Messaggio WhatsApp ricevuto da ${contactName} (${from}): "${textBody}"`);
-
-    // Carica contesto dal database: Clienti, Utenti/Collaboratori, Progetti
-    const [clients, users, projects] = await Promise.all([
-      prisma.client.findMany({ select: { id: true, name: true, color: true } }),
-      prisma.user.findMany({ select: { id: true, name: true, email: true } }),
-      prisma.project.findMany({
-        where: { status: { not: 'Completato' } },
-        select: { id: true, name: true, clientId: true, client: { select: { name: true } } }
-      })
-    ]);
-
-    const contextClients = clients.map(c => `- ID: "${c.id}" | Nome: "${c.name}"`).join('\n');
-    const contextUsers = users.map(u => `- ID: "${u.id}" | Nome: "${u.name}" (${u.email})`).join('\n');
-    const contextProjects = projects.map(p => `- ID: "${p.id}" | Progetto: "${p.name}" | Cliente: "${p.client?.name || 'Nessuno'}"`).join('\n');
-
-    const todayStr = new Date().toISOString().split('T')[0];
-
-    const systemPrompt = `
-Sei l'assistente IA di GestionAle, un gestionale operativo per agenzie.
-Ricevi messaggi da WhatsApp e devi interpretarli per creare un TASK (Scheda Kanban) oppure aggiungere una NOTA nella Knowledge Base di un cliente.
-
-DATA ODIERNA: ${todayStr} (usa questa per interpretare riferimenti come "domani", "giovedì", "entro venerdì", "fine mese").
-
-CLIENTI REGISTRATI:
-${contextClients || 'Nessun cliente registrato'}
-
-COLLABORATORI / UTENTI:
-${contextUsers || 'Nessun collaboratore'}
-
-PROGETTI ATTIVI:
-${contextProjects || 'Nessun progetto attivo'}
-
-Istruzioni:
-1. Riconosci se l'utente vuole creare un TASK (da fare, promemoria, attività, richiesta) o una NOTA (appunto informativo, sintesi call, appunto generico). Se in dubbio, default su "CREATE_TASK".
-2. Associa il cliente corrispondente (se nominato) estraendo il suo clientId esatto.
-3. Se menziona una persona a cui assegnare il lavoro (es. "assegna a Carlo", "per Carlo", "chiedi a Carlo"), associa il suo assigneeId esatto.
-4. Se viene indicata una scadenza o termine, calcola la data nel formato ISO "YYYY-MM-DD" e mettila in "dueDate".
-5. Se il messaggio contiene più azioni o checklist, inseriscile nell'array "checklists".
-7. Se l'utente chiede di creare o aggiungere il cliente se non esiste (es. "se non esiste il cliente aggiungilo"), oppure se nomina un cliente che non è nella lista e chiede di aggiungerlo, inserisci il nome pulito in "newClientNameToCreate". Altrimenti null.
-
-Rispondi rigorosamente in formato JSON valido con questa struttura:
-{
-  "action": "CREATE_TASK" | "ADD_NOTE",
-  "clientId": "id_cliente_o_null",
-  "newClientNameToCreate": "Nome_nuovo_cliente_o_null",
-  "projectId": "id_progetto_o_null",
-  "assigneeId": "id_utente_o_null",
-  "title": "Titolo conciso del task o della nota",
-  "description": "Descrizione pulita ed esaustiva dell'attività",
-  "dueDate": "YYYY-MM-DD o null",
-  "checklists": ["voce checklist 1", "voce checklist 2"],
-  "replyMessage": "Messaggio di conferma formattato per WhatsApp"
-}
-`;
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -180,6 +148,129 @@ Rispondi rigorosamente in formato JSON valido con questa struttura:
     }
 
     const openai = new OpenAI({ apiKey });
+    let textBody = '';
+
+    // Gestione vocali e audio
+    if (messageType === 'voice' || messageType === 'audio') {
+      const mediaId = message.voice?.id || message.audio?.id;
+      if (mediaId && accessToken) {
+        console.log(`🎙️ Ricevuto vocale da ${contactName}, trascrizione in corso...`);
+        textBody = await transcribeWhatsAppAudio(mediaId, accessToken, openai);
+      }
+      if (!textBody) {
+        await sendWhatsAppMessage(
+          phoneNumberId,
+          accessToken,
+          from,
+          `👋 Ciao ${contactName}! Ho ricevuto il tuo vocale ma non sono riuscito a trascriverlo. Riprova con un messaggio vocale più chiaro o con un messaggio di testo!`
+        );
+        return NextResponse.json({ status: 'ok', detail: 'audio transcription failed' });
+      }
+      console.log(`🎙️ Trascrizione vocale completata: "${textBody}"`);
+    } else if (messageType === 'text') {
+      textBody = message.text?.body?.trim() || '';
+    } else {
+      await sendWhatsAppMessage(
+        phoneNumberId,
+        accessToken,
+        from,
+        `👋 Ciao ${contactName}! Al momento riesco ad elaborare messaggi di testo e note vocali. Inviami pure un testo o un audio del task o della nota che vuoi gestire!`
+      );
+      return NextResponse.json({ status: 'ok', detail: 'unsupported message type' });
+    }
+
+    if (!textBody) {
+      return NextResponse.json({ status: 'ok', detail: 'empty text' });
+    }
+
+    console.log(`📩 Messaggio WhatsApp ricevuto da ${contactName} (${from}): "${textBody}"`);
+
+    // Carica contesto dal database: Clienti, Utenti/Collaboratori, Progetti, Schede aperte (per domande/chiusure)
+    const [clients, users, projects, openCards] = await Promise.all([
+      prisma.client.findMany({ select: { id: true, name: true, color: true } }),
+      prisma.user.findMany({ select: { id: true, name: true, email: true, phone: true } }),
+      prisma.project.findMany({
+        where: { status: { not: 'Completato' } },
+        select: { id: true, name: true, clientId: true, client: { select: { name: true } } }
+      }),
+      prisma.card.findMany({
+        where: { 
+          isArchived: false,
+          list: { NOT: [{ name: { contains: 'fatto', mode: 'insensitive' } }, { name: { contains: 'completat', mode: 'insensitive' } }] }
+        },
+        select: {
+          id: true,
+          name: true,
+          due: true,
+          clientId: true,
+          client: { select: { name: true } },
+          assignees: { select: { id: true, name: true } },
+          list: { select: { name: true } }
+        },
+        take: 60,
+        orderBy: { due: 'asc' }
+      })
+    ]);
+
+    const contextClients = clients.map(c => `- ID: "${c.id}" | Nome: "${c.name}"`).join('\n');
+    const contextUsers = users.map(u => `- ID: "${u.id}" | Nome: "${u.name}" (${u.email}) | Tel: "${u.phone || 'N/D'}"`).join('\n');
+    const contextProjects = projects.map(p => `- ID: "${p.id}" | Progetto: "${p.name}" | Cliente: "${p.client?.name || 'Nessuno'}"`).join('\n');
+    const contextCards = openCards.map(c => `- ID: "${c.id}" | Titolo: "${c.name}" | Cliente: "${c.client?.name || 'Nessuno'}" | Assegnatari: "${c.assignees.map(a => a.name).join(', ') || 'Nessuno'}" | Scadenza: "${c.due ? c.due.toISOString().split('T')[0] : 'Nessuna'}" | Colonna: "${c.list.name}"`).join('\n');
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    const systemPrompt = `
+Sei l'assistente IA di GestionAle, un gestionale operativo per agenzie di marketing e comunicazione.
+Ricevi messaggi da WhatsApp (sia scritti che note vocali) e devi comprenderne l'intento per compiere l'azione giusta o rispondere alla domanda.
+
+DATA ODIERNA: ${todayStr} (usa questa per interpretare riferimenti temporali come "oggi", "domani", "giovedì", "entro venerdì", "fine mese").
+
+CLIENTI REGISTRATI:
+${contextClients || 'Nessun cliente registrato'}
+
+COLLABORATORI / UTENTI:
+${contextUsers || 'Nessun collaboratore'}
+
+PROGETTI ATTIVI:
+${contextProjects || 'Nessun progetto attivo'}
+
+SCHEDE APERTE ATTUALMENTE IN BACHECA (NON ANCORA SU FATTO):
+${contextCards || 'Nessuna scheda aperta'}
+
+Istruzioni:
+1. Riconosci l'intento dell'utente tra:
+   - "CREATE_TASK": creare una nuova scheda/task da fare.
+   - "ADD_NOTE": salvare una nota, promemoria informativo o appunto call nella Knowledge Base del cliente.
+   - "COMPLETE_TASK": l'utente dice di aver finito, completato, smarcato o chiuso un task (es. "Ho completato il task del Guelfo", "Smarca la scheda proposta", "Segna come fatto...").
+   - "QUERY_INFO": l'utente fa una domanda o chiede informazioni (es. "Cosa c'è da fare oggi?", "Quali task ha Carlo?", "Cosa c'è aperto per Guelfo?").
+2. Se "CREATE_TASK":
+   - Associa il cliente corrispondente (se nominato) estraendo il suo clientId esatto.
+   - Se l'utente chiede di creare o aggiungere il cliente se non esiste (es. "se non esiste il cliente aggiungilo"), inserisci il nome in "newClientNameToCreate".
+   - Se menziona una persona a cui assegnare il lavoro (es. "assegna a Carlo", "per Carlo"), associa il suo assigneeId esatto.
+   - Se viene indicata una scadenza o termine, calcola la data nel formato ISO "YYYY-MM-DD" e mettila in "dueDate".
+   - Se il messaggio contiene checklist o sotto-punti, inseriscili nell'array "checklists".
+3. Se "COMPLETE_TASK":
+   - Individua l'ID della scheda più pertinente dalla lista delle schede aperte ("cardIdToComplete").
+4. Se "QUERY_INFO":
+   - Consulta le schede aperte e genera una risposta chiara, puntuale ed elegante in "replyMessage" con punti elenco ed emoji.
+5. In TUTTI i casi genera un messaggio di risposta ("replyMessage") amichevole, conciso, professionale con emoji, perfetto da leggere su WhatsApp.
+
+Rispondi rigorosamente in formato JSON valido con questa struttura:
+{
+  "action": "CREATE_TASK" | "ADD_NOTE" | "COMPLETE_TASK" | "QUERY_INFO",
+  "clientId": "id_cliente_o_null",
+  "newClientNameToCreate": "Nome_nuovo_cliente_o_null",
+  "projectId": "id_progetto_o_null",
+  "assigneeId": "id_utente_o_null",
+  "cardIdToComplete": "id_card_da_completare_o_null",
+  "title": "Titolo conciso del task o della nota",
+  "description": "Descrizione pulita ed esaustiva dell'attività",
+  "dueDate": "YYYY-MM-DD o null",
+  "checklists": ["voce checklist 1", "voce checklist 2"],
+  "replyMessage": "Messaggio di conferma formattato per WhatsApp"
+}
+`;
+
     const aiResponse = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
@@ -210,8 +301,42 @@ Rispondi rigorosamente in formato JSON valido con questa struttura:
       console.log(`✨ Creato nuovo cliente da WhatsApp: "${createdClient.name}"`);
     }
 
+    let confirmationText = aiResult.replyMessage;
+
     // Esecuzione azione
-    if (aiResult.action === 'ADD_NOTE' && aiResult.clientId) {
+    if (aiResult.action === 'QUERY_INFO') {
+      // La risposta è già formattata in aiResult.replyMessage
+      confirmationText = aiResult.replyMessage || "Ecco le informazioni richieste dal gestionale.";
+    } else if (aiResult.action === 'COMPLETE_TASK') {
+      if (aiResult.cardIdToComplete) {
+        // Trova la lista "Fatto" / "Completato" della board
+        const targetCard = await prisma.card.findUnique({
+          where: { id: aiResult.cardIdToComplete },
+          include: { board: { include: { lists: true } } }
+        });
+
+        if (targetCard) {
+          const doneList = targetCard.board.lists.find(l => 
+            l.name.toLowerCase().includes('fatto') || 
+            l.name.toLowerCase().includes('completat')
+          ) || targetCard.board.lists[targetCard.board.lists.length - 1];
+
+          await prisma.card.update({
+            where: { id: targetCard.id },
+            data: {
+              listId: doneList.id,
+              completedAt: new Date()
+            }
+          });
+          console.log(`✅ Scheda "${targetCard.name}" spostata in "${doneList.name}" via WhatsApp`);
+          confirmationText = aiResult.replyMessage || `✅ Ho segnato come completata la scheda *"${targetCard.name}"*! 🎉`;
+        } else {
+          confirmationText = "Non sono riuscito a trovare la scheda specificata tra quelle aperte.";
+        }
+      } else {
+        confirmationText = aiResult.replyMessage || "Non ho trovato nessuna scheda corrispondente da smarcare.";
+      }
+    } else if (aiResult.action === 'ADD_NOTE' && aiResult.clientId) {
       await prisma.knowledgeNote.create({
         data: {
           text: `[WhatsApp - ${aiResult.title || 'Nota'}]\n${aiResult.description || textBody}\n\n(Inviato da ${contactName})`,
@@ -220,6 +345,7 @@ Rispondi rigorosamente in formato JSON valido con questa struttura:
         }
       });
       console.log(`✅ Nota WhatsApp aggiunta per ${clientName}`);
+      confirmationText = aiResult.replyMessage || `📝 Nota salvata con successo per *${clientName}*!`;
     } else {
       // Default: CREATE_TASK
       // Trova board principale e lista TO DO
@@ -306,16 +432,15 @@ Rispondi rigorosamente in formato JSON valido con questa struttura:
       }
 
       console.log(`✅ Nuova Card creata via WhatsApp: "${newCard.name}"`);
+      confirmationText = aiResult.replyMessage || `✅ Ricevuto! Ho inserito il task per ${clientName} su GestionAle.`;
     }
 
     // Rispondi al messaggio su WhatsApp
-    const confirmationText = aiResult.replyMessage || `✅ Ricevuto! Ho inserito il task per ${clientName} su GestionAle.`;
     await sendWhatsAppMessage(phoneNumberId, accessToken, from, confirmationText);
 
     return NextResponse.json({ status: 'success', action: aiResult.action });
   } catch (err) {
     console.error('Errore webhook WhatsApp POST:', err);
-    // Rispondiamo sempre 200 per evitare che Meta disabiliti il webhook per troppi errori 500
     return NextResponse.json({ status: 'error', error: err.message }, { status: 200 });
   }
 }

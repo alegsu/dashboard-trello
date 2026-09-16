@@ -150,6 +150,16 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.43.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🎙️ <strong>Note Vocali WhatsApp:</strong> Ora puoi mandare messaggi vocali su WhatsApp! L'IA li trascrive istantaneamente con Whisper e crea task, assegna persone e fissa scadenze al volo.</li>
+                  <li>🔍 <strong>Chiedi a GestionAle su WhatsApp:</strong> Puoi fare domande su WhatsApp (es. "Cosa c'è in scadenza oggi?", "Quali task ha Carlo?") e l'IA ti risponderà con l'elenco aggiornato in tempo reale.</li>
+                  <li>✅ <strong>Smarca Task via WhatsApp:</strong> Scrivi "Ho completato il task X" o "Smarca la scheda Y" e la scheda verrà spostata automaticamente nella colonna FATTO.</li>
+                  <li>📱 <strong>WhatsApp per i Collaboratori & Briefing:</strong> Nel pannello Management puoi inserire il numero WhatsApp dei collaboratori per fargli ricevere il recap mattutino dei task direttamente sul telefono!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.42.0</h4>
                 <ul style={noteUlStyle}>
                   <li>💬 <strong>Integrazione WhatsApp AI:</strong> Ora puoi inviare un semplice messaggio WhatsApp al tuo numero aziendale per creare task, checklist e note per qualsiasi cliente! L'IA riconosce automaticamente il cliente, l'eventuale collaboratore a cui assegnare l'attività, le scadenze e le sotto-attività, rispondendoti direttamente su WhatsApp con il riepilogo di ciò che ha creato.</li>

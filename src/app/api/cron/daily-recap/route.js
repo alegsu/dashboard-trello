@@ -211,6 +211,51 @@ export async function GET(request) {
         html: htmlEmail
       });
 
+      // Invio notifica WhatsApp opzionale se l'utente ha un numero di telefono salvato
+      if (user.phone && config.WHATSAPP_PHONE_NUMBER_ID && config.WHATSAPP_ACCESS_TOKEN) {
+        try {
+          const cleanPhone = user.phone.replace(/[^0-9]/g, '');
+          let waMessage = `☀️ *Buongiorno ${user.name}!* ☕\n\n🐾 _Roger dice:_ "${aiGreeting}"\n\n`;
+
+          if (todayCards.length > 0) {
+            waMessage += `🔴 *In scadenza oggi (o scadute):*\n`;
+            todayCards.forEach(c => {
+              const clName = c.project?.client?.name ? `[${c.project.client.name}] ` : '';
+              waMessage += `• *${clName}${c.name}*\n`;
+            });
+            waMessage += `\n`;
+          }
+
+          if (tomorrowCards.length > 0) {
+            waMessage += `🟡 *In scadenza domani:*\n`;
+            tomorrowCards.forEach(c => {
+              const clName = c.project?.client?.name ? `[${c.project.client.name}] ` : '';
+              waMessage += `• *${clName}${c.name}*\n`;
+            });
+            waMessage += `\n`;
+          }
+
+          waMessage += `🚀 Apri la bacheca: ${baseUrl}`;
+
+          await fetch(`https://graph.facebook.com/v21.0/${config.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${config.WHATSAPP_ACCESS_TOKEN}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              messaging_product: 'whatsapp',
+              to: cleanPhone,
+              type: 'text',
+              text: { body: waMessage }
+            })
+          });
+          console.log(`📱 WhatsApp Daily Recap inviato a ${user.name} (${cleanPhone})`);
+        } catch (waErr) {
+          console.error(`Errore invio WhatsApp recap a ${user.name}:`, waErr);
+        }
+      }
+
       emailsSent++;
     });
 

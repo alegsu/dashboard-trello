@@ -31,6 +31,15 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
     });
   };
 
+  const updateUserPhone = async (userId, newPhone) => {
+    setLiveMembers(prev => prev.map(m => m.id === userId ? { ...m, phone: newPhone } : m));
+    await fetch(`/api/users/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: newPhone })
+    });
+  };
+
   const getClientEffortsForUser = (userName) => {
     let clientsData = [];
     clients.forEach(client => {
@@ -213,17 +222,42 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
                       )}
                       
                       <div style={{ marginTop: '0.8rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
-                        <strong style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>⚙️ Permessi Speciali</strong>
-                        <div style={{ marginTop: '0.3rem' }}>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.75rem' }}>
-                            <input 
-                              type="checkbox" 
-                              style={{ width: '14px', height: '14px', accentColor: 'var(--accent-primary)' }} 
-                              checked={m.hasCrmAccess === true} 
-                              onChange={() => toggleCrmAccess(m.id, m.hasCrmAccess === true)} 
-                            />
-                            Abilita Tab "Commerciale" (CRM)
-                          </label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          <div>
+                            <strong style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>⚙️ Permessi Speciali</strong>
+                            <div style={{ marginTop: '0.3rem' }}>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.75rem' }}>
+                                <input 
+                                  type="checkbox" 
+                                  style={{ width: '14px', height: '14px', accentColor: 'var(--accent-primary)' }} 
+                                  checked={m.hasCrmAccess === true} 
+                                  onChange={() => toggleCrmAccess(m.id, m.hasCrmAccess === true)} 
+                                />
+                                Abilita Tab "Commerciale" (CRM)
+                              </label>
+                            </div>
+                          </div>
+
+                          <div style={{ minWidth: '180px' }}>
+                            <strong style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>📱 WhatsApp</strong>
+                            <div style={{ marginTop: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                              <input 
+                                type="text"
+                                placeholder="es. 393401234567"
+                                defaultValue={m.phone || ''}
+                                onBlur={(e) => updateUserPhone(m.id, e.target.value.trim())}
+                                style={{
+                                  padding: '0.2rem 0.5rem',
+                                  fontSize: '0.75rem',
+                                  borderRadius: '4px',
+                                  border: '1px solid var(--border-color)',
+                                  background: 'var(--bg-secondary)',
+                                  color: 'var(--text-primary)',
+                                  width: '140px'
+                                }}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </td>

@@ -14,6 +14,7 @@ model User {
   passwordHash String?
   role         String   @default("user")
   avatarUrl    String?
+  phone        String?  // Numero WhatsApp per notifiche e recap
   loginCount     Int      @default(0)
   totalUsageTime Int      @default(0) // in minuti (loggato)
   usageTimeToday Int      @default(0) // in minuti oggi (loggato)
