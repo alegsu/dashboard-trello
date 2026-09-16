@@ -150,12 +150,13 @@ Istruzioni:
 3. Se menziona una persona a cui assegnare il lavoro (es. "assegna a Carlo", "per Carlo", "chiedi a Carlo"), associa il suo assigneeId esatto.
 4. Se viene indicata una scadenza o termine, calcola la data nel formato ISO "YYYY-MM-DD" e mettila in "dueDate".
 5. Se il messaggio contiene più azioni o checklist, inseriscile nell'array "checklists".
-6. Genera un messaggio di risposta cordiale, conciso e professionale ("replyMessage") con emoji, riassumendo chiaramente cosa hai creato nel gestionale.
+7. Se l'utente chiede di creare o aggiungere il cliente se non esiste (es. "se non esiste il cliente aggiungilo"), oppure se nomina un cliente che non è nella lista e chiede di aggiungerlo, inserisci il nome pulito in "newClientNameToCreate". Altrimenti null.
 
 Rispondi rigorosamente in formato JSON valido con questa struttura:
 {
   "action": "CREATE_TASK" | "ADD_NOTE",
   "clientId": "id_cliente_o_null",
+  "newClientNameToCreate": "Nome_nuovo_cliente_o_null",
   "projectId": "id_progetto_o_null",
   "assigneeId": "id_utente_o_null",
   "title": "Titolo conciso del task o della nota",
@@ -196,6 +197,17 @@ Rispondi rigorosamente in formato JSON valido con questa struttura:
     if (aiResult.clientId) {
       const foundClient = clients.find(c => c.id === aiResult.clientId);
       if (foundClient) clientName = foundClient.name;
+    } else if (aiResult.newClientNameToCreate) {
+      // Crea automaticamente il nuovo cliente se richiesto
+      const createdClient = await prisma.client.create({
+        data: {
+          name: aiResult.newClientNameToCreate.trim(),
+          status: 'CLIENTE'
+        }
+      });
+      aiResult.clientId = createdClient.id;
+      clientName = createdClient.name;
+      console.log(`✨ Creato nuovo cliente da WhatsApp: "${createdClient.name}"`);
     }
 
     // Esecuzione azione
