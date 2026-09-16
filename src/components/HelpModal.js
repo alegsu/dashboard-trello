@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.42.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>💬 <strong>Integrazione WhatsApp AI:</strong> Ora puoi inviare un semplice messaggio WhatsApp al tuo numero aziendale per creare task, checklist e note per qualsiasi cliente! L'IA riconosce automaticamente il cliente, l'eventuale collaboratore a cui assegnare l'attività, le scadenze e le sotto-attività, rispondendoti direttamente su WhatsApp con il riepilogo di ciò che ha creato.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.41.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🤝 <strong>Nuovo Modulo CRM Commerciale:</strong> Aggiunto un tab dedicato esclusivamente all'acquisizione nuovi clienti! Funziona come una Kanban board ma è slegata dall'operatività: permette di tracciare i Lead per ShinyUp e Daphlab dalla fase di primo contatto fino al preventivo.</li>
