@@ -237,7 +237,7 @@ export async function GET(request) {
 
           waMessage += `🚀 Apri la bacheca: ${baseUrl}`;
 
-          await fetch(`https://graph.facebook.com/v21.0/${config.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+          const waRes = await fetch(`https://graph.facebook.com/v21.0/${config.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${config.WHATSAPP_ACCESS_TOKEN}`,
@@ -250,7 +250,12 @@ export async function GET(request) {
               text: { body: waMessage }
             })
           });
-          console.log(`📱 WhatsApp Daily Recap inviato a ${user.name} (${cleanPhone})`);
+          if (!waRes.ok) {
+            const errBody = await waRes.text();
+            console.error(`Errore risposta Meta invio recap a ${user.name} (${cleanPhone}):`, errBody);
+          } else {
+            console.log(`📱 WhatsApp Daily Recap inviato a ${user.name} (${cleanPhone})`);
+          }
         } catch (waErr) {
           console.error(`Errore invio WhatsApp recap a ${user.name}:`, waErr);
         }

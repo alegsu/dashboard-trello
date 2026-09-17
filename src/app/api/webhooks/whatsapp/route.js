@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
-import OpenAI from 'openai';
+import OpenAI, { toFile } from 'openai';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,7 +89,7 @@ async function transcribeWhatsAppAudio(mediaId, accessToken, openai) {
       return null;
     }
     const audioBuffer = await audioRes.arrayBuffer();
-    const audioFile = new File([audioBuffer], 'whatsapp_voice.ogg', { type: 'audio/ogg' });
+    const audioFile = await toFile(Buffer.from(audioBuffer), 'whatsapp_voice.ogg', { type: 'audio/ogg' });
 
     // 3. Trascrivi con Whisper
     const transcription = await openai.audio.transcriptions.create({
