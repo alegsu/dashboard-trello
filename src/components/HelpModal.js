@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.43.1</h4>
+                <ul style={noteUlStyle}>
+                  <li>⚡ <strong>Ottimizzazione Daily Recap & WhatsApp:</strong> Potenziato il recap automatico del mattino con estensione del timeout di esecuzione a 60 secondi e invio indipendente di WhatsApp ed Email, garantendo la ricezione puntuale del riepilogo anche con alto carico di task.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.43.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🎙️ <strong>Note Vocali WhatsApp:</strong> Ora puoi mandare messaggi vocali su WhatsApp! L'IA li trascrive istantaneamente con Whisper e crea task, assegna persone e fissa scadenze al volo.</li>

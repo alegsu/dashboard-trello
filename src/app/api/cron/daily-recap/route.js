@@ -3,6 +3,9 @@ import { prisma } from '@/utils/prisma';
 import nodemailer from 'nodemailer';
 import OpenAI from 'openai';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -204,15 +207,11 @@ export async function GET(request) {
         </div>
       </div>`;
 
-      await transporter.sendMail({
-        from: `"GestionAle AI" <${config.SMTP_USER}>`,
-        to: user.email,
-        subject: `Buongiorno ${user.name}! Ecco il tuo Recap di oggi 🚀`,
-        html: htmlEmail
-      });
+      // 1. Invio Notifica WhatsApp (se l'utente ha un numero e le credenziali sono presenti)
+      const waPhoneId = config.WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_NUMBER_ID;
+      const waToken = config.WHATSAPP_ACCESS_TOKEN || process.env.WHATSAPP_ACCESS_TOKEN;
 
-      // Invio notifica WhatsApp opzionale se l'utente ha un numero di telefono salvato
-      if (user.phone && config.WHATSAPP_PHONE_NUMBER_ID && config.WHATSAPP_ACCESS_TOKEN) {
+      if (user.phone && waPhoneId && waToken) {
         try {
           const cleanPhone = user.phone.replace(/[^0-9]/g, '');
           let waMessage = `☀️ *Buongiorno ${user.name}!* ☕\n\n🐾 _Roger dice:_ "${aiGreeting}"\n\n`;
@@ -237,10 +236,10 @@ export async function GET(request) {
 
           waMessage += `🚀 Apri la bacheca: ${baseUrl}`;
 
-          const waRes = await fetch(`https://graph.facebook.com/v21.0/${config.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+          const waRes = await fetch(`https://graph.facebook.com/v21.0/${waPhoneId}/messages`, {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${config.WHATSAPP_ACCESS_TOKEN}`,
+              'Authorization': `Bearer ${waToken}`,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -250,9 +249,10 @@ export async function GET(request) {
               text: { body: waMessage }
             })
           });
+
           if (!waRes.ok) {
             const errBody = await waRes.text();
-            console.error(`Errore risposta Meta invio recap a ${user.name} (${cleanPhone}):`, errBody);
+            console.error(`Errore risposta Meta invio recap WhatsApp a ${user.name} (${cleanPhone}):`, errBody);
           } else {
             console.log(`📱 WhatsApp Daily Recap inviato a ${user.name} (${cleanPhone})`);
           }
@@ -261,7 +261,18 @@ export async function GET(request) {
         }
       }
 
-      emailsSent++;
+      // 2. Invio Email via SMTP
+      try {
+        await transporter.sendMail({
+          from: `"GestionAle AI" <${config.SMTP_USER}>`,
+          to: user.email,
+          subject: `Buongiorno ${user.name}! Ecco il tuo Recap di oggi 🚀`,
+          html: htmlEmail
+        });
+        emailsSent++;
+      } catch (mailErr) {
+        console.error(`Errore invio email recap a ${user.name} (${user.email}):`, mailErr);
+      }
     });
 
     await Promise.all(promises);
