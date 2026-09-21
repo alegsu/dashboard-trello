@@ -219,29 +219,19 @@ export async function GET(request) {
       if (user.phone && waPhoneId && waToken) {
         try {
           const cleanPhone = user.phone.replace(/[^0-9]/g, '');
-          let waMessage = `☀️ *Buongiorno ${user.name}!* ☕\n\n🐾 _Roger dice:_ "${aiGreeting}"\n\n`;
-
+          
+          // Costruisci il sommario compatto su singola riga (richiesto da Meta per i template)
+          const taskItems = [];
           if (todayCards.length > 0) {
-            waMessage += `🔴 *In scadenza oggi (o scadute):*\n`;
-            todayCards.forEach(c => {
-              const clName = c.project?.client?.name ? `[${c.project.client.name}] ` : '';
-              waMessage += `• *${clName}${c.name}*\n`;
-            });
-            waMessage += `\n`;
+            taskItems.push(`🔴 Oggi: ${todayCards.map(c => (c.project?.client?.name ? `[${c.project.client.name}] ` : '') + c.name).join(', ')}`);
           }
-
           if (tomorrowCards.length > 0) {
-            waMessage += `🟡 *In scadenza domani:*\n`;
-            tomorrowCards.forEach(c => {
-              const clName = c.project?.client?.name ? `[${c.project.client.name}] ` : '';
-              waMessage += `• *${clName}${c.name}*\n`;
-            });
-            waMessage += `\n`;
+            taskItems.push(`🟡 Domani: ${tomorrowCards.map(c => (c.project?.client?.name ? `[${c.project.client.name}] ` : '') + c.name).join(', ')}`);
           }
+          const summaryParam = taskItems.join(' | ') || 'Nessun task urgente in scadenza.';
 
-          waMessage += `🚀 Apri la bacheca: ${baseUrl}`;
-
-          const waRes = await fetch(`https://graph.facebook.com/v21.0/${waPhoneId}/messages`, {
+          // Prova prima con il Template WhatsApp approvato "daily_brief" (consegna sempre, anche fuori dalla finestra 24h)
+          let waRes = await fetch(`https://graph.facebook.com/v21.0/${waPhoneId}/messages`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${waToken}`,
@@ -250,17 +240,68 @@ export async function GET(request) {
             body: JSON.stringify({
               messaging_product: 'whatsapp',
               to: cleanPhone,
-              type: 'text',
-              text: { body: waMessage }
+              type: 'template',
+              template: {
+                name: 'daily_brief',
+                language: { code: 'it' },
+                components: [
+                  {
+                    type: 'body',
+                    parameters: [
+                      { type: 'text', parameter_name: 'nome', text: user.name || 'Collaboratore' },
+                      { type: 'text', parameter_name: 'riassunto', text: summaryParam }
+                    ]
+                  }
+                ]
+              }
             })
           });
+
+          // Se il template dovesse fallire, fallback al messaggio di testo libero
+          if (!waRes.ok) {
+            const errTemplate = await waRes.text();
+            console.warn(`Template non riuscito, tento messaggio testo libero per ${user.name}:`, errTemplate);
+
+            let waMessage = `☀️ *Buongiorno ${user.name}!* ☕\n\n🐾 _Roger dice:_ "${aiGreeting}"\n\n`;
+            if (todayCards.length > 0) {
+              waMessage += `🔴 *In scadenza oggi (o scadute):*\n`;
+              todayCards.forEach(c => {
+                const clName = c.project?.client?.name ? `[${c.project.client.name}] ` : '';
+                waMessage += `• *${clName}${c.name}*\n`;
+              });
+              waMessage += `\n`;
+            }
+            if (tomorrowCards.length > 0) {
+              waMessage += `🟡 *In scadenza domani:*\n`;
+              tomorrowCards.forEach(c => {
+                const clName = c.project?.client?.name ? `[${c.project.client.name}] ` : '';
+                waMessage += `• *${clName}${c.name}*\n`;
+              });
+              waMessage += `\n`;
+            }
+            waMessage += `🚀 Apri la bacheca: ${baseUrl}`;
+
+            waRes = await fetch(`https://graph.facebook.com/v21.0/${waPhoneId}/messages`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${waToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                messaging_product: 'whatsapp',
+                to: cleanPhone,
+                type: 'text',
+                text: { body: waMessage }
+              })
+            });
+          }
 
           if (!waRes.ok) {
             const errBody = await waRes.text();
             console.error(`Errore risposta Meta invio recap WhatsApp a ${user.name} (${cleanPhone}):`, errBody);
           } else {
             whatsappSent++;
-            console.log(`📱 WhatsApp Daily Recap inviato a ${user.name} (${cleanPhone})`);
+            console.log(`📱 WhatsApp Daily Recap inviato con successo a ${user.name} (${cleanPhone})`);
           }
         } catch (waErr) {
           console.error(`Errore invio WhatsApp recap a ${user.name}:`, waErr);
