@@ -150,6 +150,13 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.44.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>👑 <strong>Pulsante Invio Manuale & Stato Daily Recap:</strong> Nella dashboard Management è stato aggiunto un nuovo box di controllo per il Daily Recap. Ora puoi vedere data e ora esatta dell'ultimo invio (con conteggio messaggi WhatsApp ed email consegnati) e puoi forzare l'invio immediato in qualsiasi momento con un semplice click!</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.43.1</h4>
                 <ul style={noteUlStyle}>
                   <li>⚡ <strong>Ottimizzazione Daily Recap & WhatsApp:</strong> Potenziato il recap automatico del mattino con estensione del timeout di esecuzione a 60 secondi e invio indipendente di WhatsApp ed Email, garantendo la ricezione puntuale del riepilogo anche con alto carico di task.</li>

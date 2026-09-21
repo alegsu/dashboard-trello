@@ -5,6 +5,40 @@ import styles from './SettingsPanel.module.css';
 export default function ManagementPanel({ members = [], clients = [], currentUser }) {
   const [liveMembers, setLiveMembers] = useState(members || []);
   const [expandedUserId, setExpandedUserId] = useState(null);
+  const [recapLog, setRecapLog] = useState(null);
+  const [isTriggeringRecap, setIsTriggeringRecap] = useState(false);
+  const [recapFeedback, setRecapFeedback] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data.DAILY_RECAP_LOG) {
+          try {
+            setRecapLog(JSON.parse(data.DAILY_RECAP_LOG));
+          } catch(e) {}
+        }
+      });
+  }, []);
+
+  const triggerDailyRecap = async () => {
+    setIsTriggeringRecap(true);
+    setRecapFeedback(null);
+    try {
+      const res = await fetch('/api/cron/daily-recap?force=true');
+      const data = await res.json();
+      if (data.success) {
+        setRecapFeedback(`✅ Inviato con successo! WhatsApp inviati: ${data.whatsappSent || 0}, Email inviate: ${data.emailsSent || 0}`);
+        if (data.log) setRecapLog(data.log);
+      } else {
+        setRecapFeedback(`❌ Errore: ${data.error || 'Impossibile inviare'}`);
+      }
+    } catch(err) {
+      setRecapFeedback(`❌ Errore: ${err.message}`);
+    } finally {
+      setIsTriggeringRecap(false);
+    }
+  };
 
   useEffect(() => {
     const fetchUsers = () => {
@@ -104,6 +138,69 @@ export default function ManagementPanel({ members = [], clients = [], currentUse
     <div className={styles.container}>
       <h2 className={styles.title}>👑 Management Dashboard</h2>
       <p className={styles.subtitle} style={{ marginBottom: '2rem' }}>Riepilogo delle prestazioni e dei carichi di lavoro del team.</p>
+
+      {/* Box Daily Recap Manuale & Stato */}
+      <div style={{
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border-color)',
+        borderRadius: '12px',
+        padding: '1.2rem 1.5rem',
+        marginBottom: '1.5rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '1rem'
+      }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '1.3rem' }}>☀️</span>
+            <strong style={{ fontSize: '1rem' }}>Daily Recap Mattutino (WhatsApp & Email)</strong>
+            <span style={{ 
+              fontSize: '0.7rem', 
+              padding: '0.15rem 0.6rem', 
+              borderRadius: '12px', 
+              background: 'rgba(37, 211, 102, 0.15)', 
+              color: '#25D366', 
+              border: '1px solid rgba(37, 211, 102, 0.4)',
+              fontWeight: 'bold'
+            }}>Schedulato ore 09:10</span>
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+            {recapLog?.lastRun ? (
+              <span>Ultimo invio: <strong>{new Date(recapLog.lastRun).toLocaleString('it-IT')}</strong> — WhatsApp inviati: <strong>{recapLog.whatsappSent ?? 0}</strong>, Email inviate: <strong>{recapLog.emailsSent ?? 0}</strong></span>
+            ) : (
+              <span>Nessun log recente registrato. Clicca il pulsante a destra per inviare subito.</span>
+            )}
+          </div>
+          {recapFeedback && (
+            <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: recapFeedback.startsWith('✅') ? 'var(--status-success)' : 'var(--status-danger)' }}>
+              {recapFeedback}
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={triggerDailyRecap}
+          disabled={isTriggeringRecap}
+          style={{
+            background: isTriggeringRecap ? 'var(--bg-secondary)' : 'linear-gradient(135deg, #25D366, #128C7E)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '0.65rem 1.3rem',
+            fontSize: '0.85rem',
+            fontWeight: 'bold',
+            cursor: isTriggeringRecap ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            boxShadow: '0 2px 10px rgba(37, 211, 102, 0.35)'
+          }}
+        >
+          {isTriggeringRecap ? '⏳ Invio in corso...' : '🚀 Invia Daily Recap Adesso'}
+        </button>
+      </div>
 
       <div className={styles.card}>
         <h3>📊 Prestazioni del Team</h3>

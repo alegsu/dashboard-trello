@@ -11,11 +11,15 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const force = searchParams.get('force');
 
-    // Vercel Cron Auth
+    // Auth: Consenti se è cron di Vercel, o se force=test/true, o se c'è autorizzazione
     const authHeader = request.headers.get('authorization');
-    const isCron = (process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`) || request.headers.get('user-agent')?.includes('vercel-cron');
+    const userAgent = request.headers.get('user-agent') || '';
+    const isCron = (process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`) || 
+                   userAgent.includes('vercel-cron') || 
+                   userAgent.includes('cron') ||
+                   request.headers.get('x-vercel-cron') === '1';
 
-    if (!isCron && force !== 'test') {
+    if (!isCron && force !== 'test' && force !== 'true') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -77,6 +81,7 @@ export async function GET(request) {
     });
 
     let emailsSent = 0;
+    let whatsappSent = 0;
 
     const promises = users.map(async (user) => {
       if (!user.email) return;
@@ -254,6 +259,7 @@ export async function GET(request) {
             const errBody = await waRes.text();
             console.error(`Errore risposta Meta invio recap WhatsApp a ${user.name} (${cleanPhone}):`, errBody);
           } else {
+            whatsappSent++;
             console.log(`📱 WhatsApp Daily Recap inviato a ${user.name} (${cleanPhone})`);
           }
         } catch (waErr) {
@@ -277,7 +283,24 @@ export async function GET(request) {
 
     await Promise.all(promises);
 
-    return NextResponse.json({ success: true, emailsSent });
+    // Salva il log dell'ultimo invio nel database
+    const logData = {
+      lastRun: new Date().toISOString(),
+      emailsSent,
+      whatsappSent
+    };
+
+    try {
+      await prisma.systemSetting.upsert({
+        where: { key: 'DAILY_RECAP_LOG' },
+        update: { value: JSON.stringify(logData) },
+        create: { key: 'DAILY_RECAP_LOG', value: JSON.stringify(logData) }
+      });
+    } catch (dbErr) {
+      console.error("Errore salvataggio DAILY_RECAP_LOG:", dbErr);
+    }
+
+    return NextResponse.json({ success: true, emailsSent, whatsappSent, log: logData });
   } catch (error) {
     console.error("Errore CRON daily-recap:", error);
     return NextResponse.json({ error: 'Errore durante il cronjob: ' + error.message, stack: error.stack }, { status: 500 });
