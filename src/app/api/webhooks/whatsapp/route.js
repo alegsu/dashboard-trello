@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { prisma } from '@/utils/prisma';
 import OpenAI, { toFile } from 'openai';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 // 1. GET: Verifica del Webhook richiesta da Meta
 export async function GET(request) {
@@ -32,10 +33,17 @@ export async function GET(request) {
 
 // Helper per inviare un messaggio WhatsApp tramite Meta Cloud API
 async function sendWhatsAppMessage(phoneNumberId, accessToken, to, text) {
-  if (!phoneNumberId || !accessToken || !to) {
-    console.warn('Parametri mancanti per inviare messaggio WhatsApp:', { phoneNumberId: !!phoneNumberId, accessToken: !!accessToken, to: !!to });
+  if (!phoneNumberId || !accessToken || !to || !text) {
+    console.warn('Parametri mancanti per inviare messaggio WhatsApp:', { 
+      phoneNumberId: !!phoneNumberId, 
+      accessToken: !!accessToken, 
+      to: !!to,
+      hasText: !!text 
+    });
     return;
   }
+
+  const cleanPhone = to.toString().replace(/[^0-9]/g, '');
 
   try {
     const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
@@ -47,7 +55,7 @@ async function sendWhatsAppMessage(phoneNumberId, accessToken, to, text) {
       },
       body: JSON.stringify({
         messaging_product: 'whatsapp',
-        to: to,
+        to: cleanPhone,
         type: 'text',
         text: { body: text }
       })
@@ -57,7 +65,7 @@ async function sendWhatsAppMessage(phoneNumberId, accessToken, to, text) {
       const errText = await res.text();
       console.error('Errore risposta Meta invio messaggio WhatsApp:', errText);
     } else {
-      console.log('✅ Risposta WhatsApp inviata con successo a', to);
+      console.log('✅ Risposta WhatsApp inviata con successo a', cleanPhone);
     }
   } catch (err) {
     console.error("Errore fetch invio WhatsApp:", err);
@@ -105,10 +113,23 @@ async function transcribeWhatsAppAudio(mediaId, accessToken, openai) {
   }
 }
 
-// 2. POST: Ricezione messaggi da WhatsApp
-export async function POST(request) {
+// Elaborazione asincrona in background del messaggio WhatsApp
+async function processWhatsAppMessage(body) {
+  let phoneNumberId = null;
+  let accessToken = null;
+  let from = null;
+  let contactName = 'Utente WhatsApp';
+
   try {
-    const body = await request.json();
+    const entry = body.entry?.[0];
+    const changes = entry?.changes?.[0]?.value;
+    const message = changes?.messages?.[0];
+
+    if (!message) return;
+
+    from = message.from;
+    contactName = changes?.contacts?.[0]?.profile?.name || 'Utente';
+    const messageType = message.type;
 
     // Recupera credenziali WhatsApp dal database o env
     const settings = await prisma.systemSetting.findMany({
@@ -119,21 +140,8 @@ export async function POST(request) {
     const settingMap = {};
     settings.forEach(s => { settingMap[s.key] = s.value; });
 
-    const phoneNumberId = settingMap['WHATSAPP_PHONE_NUMBER_ID'] || process.env.WHATSAPP_PHONE_NUMBER_ID;
-    const accessToken = settingMap['WHATSAPP_ACCESS_TOKEN'] || process.env.WHATSAPP_ACCESS_TOKEN;
-
-    const entry = body.entry?.[0];
-    const changes = entry?.changes?.[0]?.value;
-    const message = changes?.messages?.[0];
-
-    // Se è un aggiornamento di stato (es. "sent", "delivered", "read"), confermiamo e chiudiamo
-    if (!message) {
-      return NextResponse.json({ status: 'ok', detail: 'no message (likely status update)' });
-    }
-
-    const from = message.from; // Es: "393401234567"
-    const contactName = changes?.contacts?.[0]?.profile?.name || 'Utente WhatsApp';
-    const messageType = message.type;
+    phoneNumberId = settingMap['WHATSAPP_PHONE_NUMBER_ID'] || process.env.WHATSAPP_PHONE_NUMBER_ID;
+    accessToken = settingMap['WHATSAPP_ACCESS_TOKEN'] || process.env.WHATSAPP_ACCESS_TOKEN;
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -144,7 +152,7 @@ export async function POST(request) {
         from,
         "⚠️ Ho ricevuto il tuo messaggio ma la chiave OpenAI non è configurata nel gestionale."
       );
-      return NextResponse.json({ status: 'error', message: 'Missing OpenAI key' });
+      return;
     }
 
     const openai = new OpenAI({ apiKey });
@@ -164,7 +172,7 @@ export async function POST(request) {
           from,
           `👋 Ciao ${contactName}! Ho ricevuto il tuo vocale ma non sono riuscito a trascriverlo. Riprova con un messaggio vocale più chiaro o con un messaggio di testo!`
         );
-        return NextResponse.json({ status: 'ok', detail: 'audio transcription failed' });
+        return;
       }
       console.log(`🎙️ Trascrizione vocale completata: "${textBody}"`);
     } else if (messageType === 'text') {
@@ -176,16 +184,14 @@ export async function POST(request) {
         from,
         `👋 Ciao ${contactName}! Al momento riesco ad elaborare messaggi di testo e note vocali. Inviami pure un testo o un audio del task o della nota che vuoi gestire!`
       );
-      return NextResponse.json({ status: 'ok', detail: 'unsupported message type' });
+      return;
     }
 
-    if (!textBody) {
-      return NextResponse.json({ status: 'ok', detail: 'empty text' });
-    }
+    if (!textBody) return;
 
     console.log(`📩 Messaggio WhatsApp ricevuto da ${contactName} (${from}): "${textBody}"`);
 
-    // Carica contesto dal database: Clienti, Utenti/Collaboratori, Progetti, Schede aperte (per domande/chiusure)
+    // Carica contesto dal database: Clienti, Utenti/Collaboratori, Progetti, Schede aperte
     const [clients, users, projects, openCards] = await Promise.all([
       prisma.client.findMany({ select: { id: true, name: true, color: true } }),
       prisma.user.findMany({ select: { id: true, name: true, email: true, phone: true } }),
@@ -215,7 +221,7 @@ export async function POST(request) {
     const contextClients = clients.map(c => `- ID: "${c.id}" | Nome: "${c.name}"`).join('\n');
     const contextUsers = users.map(u => `- ID: "${u.id}" | Nome: "${u.name}" (${u.email}) | Tel: "${u.phone || 'N/D'}"`).join('\n');
     const contextProjects = projects.map(p => `- ID: "${p.id}" | Progetto: "${p.name}" | Cliente: "${p.client?.name || 'Nessuno'}"`).join('\n');
-    const contextCards = openCards.map(c => `- ID: "${c.id}" | Titolo: "${c.name}" | Cliente: "${c.client?.name || 'Nessuno'}" | Assegnatari: "${c.assignees.map(a => a.name).join(', ') || 'Nessuno'}" | Scadenza: "${c.due ? c.due.toISOString().split('T')[0] : 'Nessuna'}" | Colonna: "${c.list.name}"`).join('\n');
+    const contextCards = openCards.map(c => `- ID: "${c.id}" | Titolo: "${c.name}" | Cliente: "${c.client?.name || 'Nessuno'}" | Assegnatari: "${c.assignees.map(a => a.name).join(', ') || 'Nessuno'}" | Scadenza: "${c.due ? c.due.toISOString().split('T')[0] : 'Nessuna'}" | Colonna: "${c.list?.name || 'In corso'}"`).join('\n');
 
     const todayStr = new Date().toISOString().split('T')[0];
 
@@ -275,7 +281,7 @@ Rispondi rigorosamente in formato JSON valido con questa struttura:
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Mittente: ${contactName}\nMessaggio: ${textBody}` }
+        { role: 'user', content: `Mittente: ${contactName} (${from})\nMessaggio: ${textBody}` }
       ],
       response_format: { type: 'json_object' },
       temperature: 0.1
@@ -289,7 +295,6 @@ Rispondi rigorosamente in formato JSON valido con questa struttura:
       const foundClient = clients.find(c => c.id === aiResult.clientId);
       if (foundClient) clientName = foundClient.name;
     } else if (aiResult.newClientNameToCreate) {
-      // Crea automaticamente il nuovo cliente se richiesto
       const createdClient = await prisma.client.create({
         data: {
           name: aiResult.newClientNameToCreate.trim(),
@@ -305,11 +310,9 @@ Rispondi rigorosamente in formato JSON valido con questa struttura:
 
     // Esecuzione azione
     if (aiResult.action === 'QUERY_INFO') {
-      // La risposta è già formattata in aiResult.replyMessage
       confirmationText = aiResult.replyMessage || "Ecco le informazioni richieste dal gestionale.";
     } else if (aiResult.action === 'COMPLETE_TASK') {
       if (aiResult.cardIdToComplete) {
-        // Trova la lista "Fatto" / "Completato" della board
         const targetCard = await prisma.card.findUnique({
           where: { id: aiResult.cardIdToComplete },
           include: { board: { include: { lists: true } } }
@@ -348,7 +351,6 @@ Rispondi rigorosamente in formato JSON valido con questa struttura:
       confirmationText = aiResult.replyMessage || `📝 Nota salvata con successo per *${clientName}*!`;
     } else {
       // Default: CREATE_TASK
-      // Trova board principale e lista TO DO
       const board = await prisma.board.findFirst({
         where: { name: { contains: 'CLIENTI', mode: 'insensitive' } },
         include: { lists: true }
@@ -366,14 +368,12 @@ Rispondi rigorosamente in formato JSON valido con questa struttura:
         l.name.toLowerCase().includes('in coda')
       ) || board.lists[0];
 
-      // Calcola ordine
       const lastCard = await prisma.card.findFirst({
         where: { listId: todoList.id, boardId: board.id },
         orderBy: { order: 'desc' }
       });
       const newOrder = lastCard ? lastCard.order + 1000 : 1000;
 
-      // Trova o crea label "DA WHATSAPP"
       let waLabel = await prisma.label.findFirst({
         where: { boardId: board.id, name: { equals: 'DA WHATSAPP', mode: 'insensitive' } }
       });
@@ -381,7 +381,7 @@ Rispondi rigorosamente in formato JSON valido con questa struttura:
         waLabel = await prisma.label.create({
           data: {
             name: 'DA WHATSAPP',
-            color: '#25D366', // Verde WhatsApp
+            color: '#25D366',
             boardId: board.id
           }
         });
@@ -414,7 +414,6 @@ Rispondi rigorosamente in formato JSON valido con questa struttura:
         data: cardData
       });
 
-      // Se ci sono checklist
       if (aiResult.checklists && Array.isArray(aiResult.checklists) && aiResult.checklists.length > 0) {
         await prisma.checklist.create({
           data: {
@@ -438,9 +437,42 @@ Rispondi rigorosamente in formato JSON valido con questa struttura:
     // Rispondi al messaggio su WhatsApp
     await sendWhatsAppMessage(phoneNumberId, accessToken, from, confirmationText);
 
-    return NextResponse.json({ status: 'success', action: aiResult.action });
   } catch (err) {
-    console.error('Errore webhook WhatsApp POST:', err);
+    console.error('Errore durante l\'elaborazione del messaggio WhatsApp:', err);
+    if (phoneNumberId && accessToken && from) {
+      await sendWhatsAppMessage(
+        phoneNumberId,
+        accessToken,
+        from,
+        "⚠️ Scusa, si è verificato un intoppo momentaneo nell'elaborazione del tuo messaggio. Riprova tra poco!"
+      );
+    }
+  }
+}
+
+// 2. POST: Ricezione messaggi da WhatsApp (Immediata conferma 200 a Meta + elaborazione asincrona in background)
+export async function POST(request) {
+  try {
+    const body = await request.json();
+
+    const entry = body.entry?.[0];
+    const changes = entry?.changes?.[0]?.value;
+    const message = changes?.messages?.[0];
+
+    // Se è un aggiornamento di stato di Meta (es. "sent", "delivered", "read"), confermiamo e chiudiamo subito
+    if (!message) {
+      return NextResponse.json({ status: 'ok', detail: 'status update' });
+    }
+
+    // Esegui l'elaborazione (OpenAI, DB, invio WhatsApp) in background senza bloccare il webhook di Meta
+    after(async () => {
+      await processWhatsAppMessage(body);
+    });
+
+    // Rispondi a Meta in pochissimi millisecondi (<50ms) per evitare qualsiasi timeout a monte
+    return NextResponse.json({ status: 'ok' }, { status: 200 });
+  } catch (err) {
+    console.error('Errore webhook WhatsApp POST root:', err);
     return NextResponse.json({ status: 'error', error: err.message }, { status: 200 });
   }
 }

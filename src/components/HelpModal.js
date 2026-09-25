@@ -150,6 +150,14 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.45.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>⚡ <strong>Webhook WhatsApp Asincrono Ultra-Rapido:</strong> Riscritto il webhook di ricezione per rispondere istantaneamente a Meta (&lt;50ms) e delegare l'elaborazione dell'Intelligenza Artificiale in background con un timeout esteso a 60 secondi. Questo elimina qualsiasi caduta di connessione o mancata risposta dovuta ai tempi di attesa di Whisper e GPT!</li>
+                  <li>🛡️ <strong>Notifica Errori & Resilienza Roger:</strong> Se si verifica un intoppo temporaneo durante l'elaborazione di un vocale o di una domanda, Roger non rimane più in silenzio ma invia un messaggio di avviso direttamente su WhatsApp per avvertire l'utente.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.44.0</h4>
                 <ul style={noteUlStyle}>
                   <li>👑 <strong>Pulsante Invio Manuale & Stato Daily Recap:</strong> Nella dashboard Management è stato aggiunto un nuovo box di controllo per il Daily Recap. Ora puoi vedere data e ora esatta dell'ultimo invio (con conteggio messaggi WhatsApp ed email consegnati) e puoi forzare l'invio immediato in qualsiasi momento con un semplice click!</li>
