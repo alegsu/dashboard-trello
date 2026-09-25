@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
 import { del } from '@vercel/blob';
+import { sendWhatsAppAssignmentNotification } from '@/utils/whatsapp';
 
 export async function GET(request, { params }) {
   try {
@@ -94,17 +95,38 @@ export async function PUT(request, { params }) {
     if (data.assignees) {
       const addedIds = data.assignees.filter(userId => !oldAssigneeIds.includes(userId));
       if (addedIds.length > 0) {
+        let assignerName = 'Un collega';
+        if (data.authorId) {
+          const authorUser = await prisma.user.findUnique({ where: { id: data.authorId } });
+          if (authorUser?.name) assignerName = authorUser.name;
+        }
+
         const usersToNotify = updated.assignees.filter(a => addedIds.includes(a.id));
         for (const user of usersToNotify) {
+          // Se l'utente si è auto-assegnato la scheda, escludiamo le notifiche
+          if (data.authorId && user.id === data.authorId) continue;
+
           if (user.email && user.notifyAssignedCard !== false) {
             await prisma.pendingNotification.create({
               data: {
                 userId: user.id,
                 type: "ASSIGN",
-                message: `Sei stato assegnato alla scheda "${updated.name}"`,
+                message: `${assignerName} ti ha assegnato la scheda "${updated.name}"`,
                 link: baseUrl ? `${baseUrl}/?card=${id}` : `/?card=${id}`
               }
             });
+          }
+
+          if (user.phone && user.notifyAssignedCard !== false) {
+            sendWhatsAppAssignmentNotification({
+              recipientUser: user,
+              assignerName,
+              itemType: 'scheda',
+              itemTitle: updated.name,
+              cardId: id,
+              contextName: updated.list?.name ? `Lista: ${updated.list.name}` : '',
+              baseUrl
+            }).catch(e => console.error("Error sending WhatsApp assignment notification on card update:", e));
           }
         }
       }

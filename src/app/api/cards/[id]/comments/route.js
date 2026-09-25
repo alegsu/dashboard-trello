@@ -34,31 +34,22 @@ export async function POST(request, { params }) {
       include: { author: true }
     });
 
-    const card = await prisma.card.findUnique({ where: { id }});
+    const card = await prisma.card.findUnique({ 
+      where: { id },
+      include: { assignees: true }
+    });
     const link = `${baseUrl || ''}/?card=${id}`;
 
-    // Processa Menzioni!
+    // Processa Menzioni! (chi è taggato riceverà la sua notifica specifica)
     await processMentions(text, authorId, link, `Scheda: ${card?.name || 'Sconosciuta'}`);
 
-    // Notifica tutti i collaboratori della bacheca
-    if (card && card.boardId) {
-      // Trova tutti gli utenti assegnati ad almeno una scheda o lista in questa bacheca
-      const boardMembers = await prisma.user.findMany({
-        where: {
-          OR: [
-            { cards: { some: { boardId: card.boardId } } },
-            { lists: { some: { boardId: card.boardId } } }
-          ]
-        }
-      });
-
-      for (const member of boardMembers) {
-        if (member.id !== authorId && member.email) {
-          // Non duplicare le notifiche se è stato già menzionato?
-          // Per semplicità inseriamo tutto in coda, l'utente vedrà "Nuovo commento" e "Sei stato menzionato"
+    // Notifica SOLO i collaboratori assegnati a questa specifica scheda (escludendo chi ha commentato)
+    if (card && card.assignees && card.assignees.length > 0) {
+      for (const assignee of card.assignees) {
+        if (assignee.id !== authorId && assignee.email) {
           await prisma.pendingNotification.create({
             data: {
-              userId: member.id,
+              userId: assignee.id,
               type: "BOARD_UPDATE",
               message: `${comment.author.name} ha commentato sulla scheda "${card.name}"`,
               link: link

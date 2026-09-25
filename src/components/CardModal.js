@@ -486,7 +486,11 @@ export default function CardModal({ cardId, members, onClose, onRefresh, onDelet
     await fetch(`/api/checklist-items/${item.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ assignees: newAssignees })
+      body: JSON.stringify({ 
+        assignees: newAssignees,
+        baseUrl: window.location.origin,
+        authorId: currentUser?.id || localStorage.getItem('userId')
+      })
     });
     fetchCard();
   };

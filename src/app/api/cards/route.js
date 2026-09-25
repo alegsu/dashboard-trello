@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
+import { sendWhatsAppAssignmentNotification } from '@/utils/whatsapp';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -108,30 +109,32 @@ Non inventare nuovi ID. Restituisci SOLO l'array JSON (es. ["id1", "id2"]).`;
     const listName = parentList?.name || 'Sconosciuta';
     const creatorName = creatorUser?.name || 'Qualcuno';
 
-    // Notifica tutti i collaboratori della bacheca che è stata aggiunta una nuova scheda
-    const boardMembers = await prisma.user.findMany({
-      where: {
-        OR: [
-          { cards: { some: { boardId } } },
-          { lists: { some: { boardId } } }
-        ]
-      },
-      distinct: ['id']
-    });
-
-    const uniqueMembers = Array.from(new Map(boardMembers.map(m => [m.id, m])).values());
-
-    for (const member of uniqueMembers) {
-      // Non notificare chi ha compiuto l'azione
-      if (member.email && member.id !== creatorId) {
-        await prisma.pendingNotification.create({
-          data: {
-            userId: member.id,
-            type: "CARD_ADD",
-            message: `${creatorName} ha aggiunto una nuova scheda "${name}" nella lista "${listName}" (Bacheca: ${boardName})`,
-            link: `/?card=${newCard.id}`
+    // Notifica SOLO i collaboratori a cui la scheda è stata assegnata (se presenti), escludendo chi l'ha creata
+    if (finalCard.assignees && finalCard.assignees.length > 0) {
+      for (const assignee of finalCard.assignees) {
+        if (assignee.id !== creatorId) {
+          if (assignee.email && assignee.notifyAssignedCard !== false) {
+            await prisma.pendingNotification.create({
+              data: {
+                userId: assignee.id,
+                type: "ASSIGN",
+                message: `${creatorName} ti ha assegnato la nuova scheda "${name}" nella lista "${listName}" (Bacheca: ${boardName})`,
+                link: `/?card=${finalCard.id}`
+              }
+            });
           }
-        });
+
+          if (assignee.phone && assignee.notifyAssignedCard !== false) {
+            sendWhatsAppAssignmentNotification({
+              recipientUser: assignee,
+              assignerName: creatorName,
+              itemType: 'scheda',
+              itemTitle: name,
+              cardId: finalCard.id,
+              contextName: `Lista: ${listName} (${boardName})`
+            }).catch(e => console.error("Error sending WhatsApp assignment notification on card create:", e));
+          }
+        }
       }
     }
 

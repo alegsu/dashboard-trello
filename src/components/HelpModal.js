@@ -150,6 +150,16 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.47.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🎯 <strong>Notifiche Email Intelligenti & Mirate:</strong> Eliminate definitivamente le email su attività altrui non di tua competenza! Ora ricevi aggiornamenti via mail <em>esclusivamente</em> per le schede e i task a cui sei direttamente assegnato o in cui sei stato esplicitamente menzionato con <code>@nome</code>.</li>
+                  <li>💬 <strong>Commenti Riservati agli Assegnatari:</strong> I commenti su una scheda inviano una notifica soltanto ai collaboratori assegnati a quella specifica scheda, senza più inviare avvisi a pioggia a tutti i membri della bacheca.</li>
+                  <li>📲 <strong>Avvisi WhatsApp Istantanei per Nuove Assegnazioni:</strong> Quando un collega ti assegna una nuova scheda o un nuovo task della checklist, ricevi immediatamente una notifica su WhatsApp con il titolo dell&apos;attività, chi te l&apos;ha assegnata e il link per aprirla al volo!</li>
+                  <li>🛡️ <strong>Zero Auto-Notifiche & Consegna Multi-Livello:</strong> Se ti auto-assegni una scheda o un task, il sistema non ti invia alcuna notifica per evitare auto-spam. La consegna WhatsApp sfrutta inoltre un sistema intelligente a 3 livelli con fallback per garantire la ricezione al 100% in ogni momento.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.46.0</h4>
                 <ul style={noteUlStyle}>
                   <li>📱 <strong>Esperienza Mobile Rivoluzionata:</strong> Addio alla colonna clienti laterale che occupava il 40% dello schermo! Su smartphone ogni cliente ha ora la sua barra di intestazione full-width dedicata, e le colonne Kanban scorrono a tutto schermo senza sovrapposizioni.</li>
