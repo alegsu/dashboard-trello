@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { flushSync } from 'react-dom';
 import confetti from 'canvas-confetti';
 
@@ -52,6 +52,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     : [unassignedId, ...(clients || []).map(c => c.id)];
 
   const [forcedVisibleClients, setForcedVisibleClients] = useState([]);
+  const [mobileSelectedClientId, setMobileSelectedClientId] = useState('');
 
   const [localCards, setLocalCards] = useState(cards);
   useEffect(() => {
@@ -393,9 +394,52 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
     }
   };
 
+  const allClientIdsWithCards = useMemo(() => {
+    return allClientIds.filter(clientId => {
+      if (forcedVisibleClients.includes(clientId)) return true;
+      const hasCards = lists.some(list => (cardsByCell[`${clientId}-${list.id}`] || []).length > 0);
+      if (!hasCards && clientId !== filterClientId) {
+        if (clientId === unassignedId && !filterClientId && Object.keys(cardsByCell).length === 0) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [allClientIds, forcedVisibleClients, lists, cardsByCell, filterClientId, unassignedId]);
+
   if (!isMounted) return null;
 
   return (
+    <>
+      {!isInternalBoard && allClientIdsWithCards.length > 1 && (
+        <div className={styles.clientFilterChipsBar}>
+          <button 
+            type="button"
+            className={`${styles.clientChip} ${!mobileSelectedClientId ? styles.active : ''}`}
+            onClick={() => setMobileSelectedClientId('')}
+          >
+            🏢 Tutti ({allClientIdsWithCards.length})
+          </button>
+          {allClientIdsWithCards.map(cid => {
+            const client = cid === unassignedId ? { name: 'Senza Cliente', color: '#64748b' } : clientMap.get(cid);
+            const isSelected = mobileSelectedClientId === cid;
+            return (
+              <button
+                key={cid}
+                type="button"
+                className={`${styles.clientChip} ${isSelected ? styles.active : ''}`}
+                onClick={() => setMobileSelectedClientId(isSelected ? '' : cid)}
+                style={client?.color ? { borderLeft: `4px solid ${client.color}` } : {}}
+              >
+                {client?.name || 'Cliente'}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <div className={styles.kanbanContainer} style={{ zoom: zoomLevel / 100 }}>
          <div className={styles.kanbanHeaderRow}>
             {!isInternalBoard && (
@@ -532,6 +576,7 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
 
          <div className={styles.kanbanBody}>
             {allClientIds.filter(clientId => {
+              if (mobileSelectedClientId && clientId !== mobileSelectedClientId) return false;
               if (forcedVisibleClients.includes(clientId)) return true;
               const hasCards = lists.some(list => (cardsByCell[`${clientId}-${list.id}`] || []).length > 0);
               if (!hasCards && clientId !== filterClientId) {
@@ -735,5 +780,6 @@ export default function KanbanView({ boardId, lists, cards, members, clients, on
             })}
          </div>
     </div>
+    </>
   );
 }

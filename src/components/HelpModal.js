@@ -150,6 +150,16 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.46.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>📱 <strong>Esperienza Mobile Rivoluzionata:</strong> Addio alla colonna clienti laterale che occupava il 40% dello schermo! Su smartphone ogni cliente ha ora la sua barra di intestazione full-width dedicata, e le colonne Kanban scorrono a tutto schermo senza sovrapposizioni.</li>
+                  <li>🏷️ <strong>Filtro Rapido Clienti a Chips:</strong> Aggiunta una barra orizzontale a scorrimento in cima alla bacheca mobile: con un semplice tocco puoi isolare istantaneamente le schede di un singolo cliente ("Meggetto", "Biondi Yacht", ecc.) o tornare a vederli tutti!</li>
+                  <li>🎛️ <strong>Header & Navigazione Mobile Completa:</strong> Ripristinate tutte le funzioni su mobile: selettore rapido delle bacheche e campanella notifiche direttamente nell&apos;header, barra rapida con bottoni per <em>La Mia Giornata</em>, <em>I Miei Task</em> e <em>Importa AI</em>, e un menu a cassetto (drawer) completo di tutte le sezioni, profilo utente e logout.</li>
+                  <li>📲 <strong>Installabile come App (PWA):</strong> GestionAle è ora una Progressive Web App! Aggiungendola alla schermata Home del tuo iPhone o Android si aprirà a tutto schermo come una vera app nativa, con icona dedicata e senza barre del browser.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.45.0</h4>
                 <ul style={noteUlStyle}>
                   <li>⚡ <strong>Webhook WhatsApp Asincrono Ultra-Rapido:</strong> Riscritto il webhook di ricezione per rispondere istantaneamente a Meta (&lt;50ms) e delegare l'elaborazione dell'Intelligenza Artificiale in background con un timeout esteso a 60 secondi. Questo elimina qualsiasi caduta di connessione o mancata risposta dovuta ai tempi di attesa di Whisper e GPT!</li>

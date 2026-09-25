@@ -327,22 +327,62 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
       <NotificationPoller currentUser={currentUser} />
       <RogerMascot currentUser={currentUser} cards={liveCards} setView={setView} />
       
-      <header className={`glass-panel ${styles.header}`} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem', padding: '1rem 1.5rem', borderTop: '3px solid var(--accent-primary)' }}>
+      <header className={`glass-panel ${styles.header}`} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '0.6rem', padding: '1rem 1.5rem', borderTop: '3px solid var(--accent-primary)' }}>
         <div className={styles.mobileHeaderRow1} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <img src="/logo.png" alt="ShinyUp Logo" style={{ height: '32px', objectFit: 'contain' }} />
-              <h1 className="text-gradient" style={{ margin: 0, textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
+              <img src="/logo.png" alt="ShinyUp Logo" style={{ height: '30px', objectFit: 'contain' }} />
+              <h1 className="text-gradient" style={{ margin: 0, fontSize: '1.3rem', textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
-            <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-              v2.45.0
+            <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.15rem 0.5rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+              v2.46.0
             </span>
+          </div>
+
+          {/* Mobile Quick Controls (Bacheca + Notifiche + Hamburger) */}
+          <div className={styles.mobileShow} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            {visibleBoards.length > 0 && (
+              <select 
+                value={selectedBoardId} 
+                onChange={(e) => setSelectedBoardId(e.target.value)}
+                className={styles.mobileBoardSelect}
+                title="Cambia Bacheca"
+              >
+                {visibleBoards.map(b => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+            )}
+
             <button 
-              className={styles.mobileShow} 
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', marginLeft: '1rem' }} 
-              onClick={() => setIsMobileMenuOpen(true)}
+              onClick={() => setShowNotificationsModal(!showNotificationsModal)} 
+              style={{ 
+                background: 'transparent', 
+                border: 'none', 
+                color: 'var(--text-primary)', 
+                cursor: 'pointer', 
+                position: 'relative', 
+                padding: '0.3rem',
+                display: 'flex',
+                alignItems: 'center',
+                animation: notifications.filter(n => !n.read).length > 0 ? 'pulse 1.5s infinite' : 'none'
+              }}
+              title="Notifiche"
             >
-              <Menu size={24} />
+              <Bell size={18} />
+              {notifications.filter(n => !n.read).length > 0 && (
+                <span style={{ position: 'absolute', top: -2, right: -2, background: 'var(--status-danger)', color: 'white', fontSize: '0.55rem', padding: '1px 4px', borderRadius: '8px', fontWeight: 'bold' }}>
+                  {notifications.filter(n => !n.read).length}
+                </span>
+              )}
+            </button>
+
+            <button 
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.35rem', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+              onClick={() => setIsMobileMenuOpen(true)}
+              title="Apri Menu"
+            >
+              <Menu size={20} />
             </button>
           </div>
           
@@ -449,6 +489,62 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               </div>
             )}
           </div>
+        </div>
+
+        {/* Mobile Action Bar: bottoni rapidi visibili solo da smartphone */}
+        <div className={styles.mobileActionBar}>
+          <button 
+            type="button"
+            className={`${styles.mobileActionBtn} ${view === 'my-tasks' ? styles.active : ''}`}
+            onClick={() => setView(view === 'my-tasks' ? 'kanban' : 'my-tasks')}
+            style={view === 'my-tasks' ? { background: 'var(--status-success)', color: 'white', borderColor: 'var(--status-success)' } : {}}
+          >
+            🎯 La Mia Giornata
+          </button>
+          
+          {view === 'kanban' && (
+            <button 
+              type="button"
+              className={`${styles.mobileActionBtn} ${filterUserId === currentUser?.id ? styles.active : ''}`}
+              onClick={() => setFilterUserId(filterUserId === currentUser?.id ? '' : currentUser?.id)}
+              style={filterUserId === currentUser?.id ? { background: 'var(--status-warning)', color: '#0f172a', borderColor: 'var(--status-warning)' } : {}}
+            >
+              🙋‍♂️ I Miei Task
+            </button>
+          )}
+
+          {view === 'kanban' && (
+            <button 
+              type="button"
+              className={styles.mobileActionBtn}
+              onClick={() => setShowImportModal(true)}
+              style={{ background: 'rgba(16, 185, 129, 0.15)', borderColor: '#10b981', color: '#10b981' }}
+            >
+              ✨ Importa AI
+            </button>
+          )}
+
+          <button 
+            type="button"
+            className={styles.mobileActionBtn}
+            onClick={() => {
+              setShowAnnouncementsModal(true);
+              setHasNewAnnouncements(false);
+              if (announcements.length > 0) {
+                localStorage.setItem('lastSeenAnnouncementAt', announcements[0].createdAt);
+              }
+            }}
+          >
+            📣 Annunci {hasNewAnnouncements && '🔴'}
+          </button>
+
+          <button 
+            type="button"
+            className={styles.mobileActionBtn}
+            onClick={() => setIsHelpOpen(true)}
+          >
+            ❓ Guida
+          </button>
         </div>
 
         <div className={styles.mobileHide}>
@@ -599,27 +695,97 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
       {isMobileMenuOpen && (
         <div className={styles.hamburgerMenuOverlay}>
           <div className={styles.hamburgerHeader}>
-            <h2 style={{ margin: 0 }}>Menu Principale</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <img src="/logo.png" alt="Logo" style={{ height: '24px', objectFit: 'contain' }} />
+              <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Menu GestionAle</h3>
+            </div>
             <button className={styles.hamburgerCloseBtn} onClick={() => setIsMobileMenuOpen(false)}>
-              <X size={28} />
+              <X size={20} />
             </button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <button onClick={() => { setIsMobileMenuOpen(false); setView('kanban'); }} className={styles.navButton} style={{ background: view === 'kanban' ? 'var(--status-success)' : 'transparent', color: view === 'kanban' ? 'white' : 'var(--text-primary)' }}>📋 Bacheca Kanban</button>
-            <button onClick={() => { setIsMobileMenuOpen(false); setView('my-tasks'); }} className={styles.navButton} style={{ background: view === 'my-tasks' ? 'var(--status-success)' : 'transparent', color: view === 'my-tasks' ? 'white' : 'var(--text-primary)' }}>🎯 La Mia Giornata</button>
-            <button onClick={() => { setIsMobileMenuOpen(false); setView('projects'); }} className={styles.navButton} style={{ background: view === 'projects' ? 'var(--status-success)' : 'transparent', color: view === 'projects' ? 'white' : 'var(--text-primary)' }}>🎯 Obiettivi</button>
-            <button onClick={() => { setIsMobileMenuOpen(false); setView('clients'); }} className={styles.navButton} style={{ background: view === 'clients' ? 'var(--status-success)' : 'transparent', color: view === 'clients' ? 'white' : 'var(--text-primary)' }}>💼 Clienti</button>
-            <button onClick={() => { setIsMobileMenuOpen(false); setView('social'); }} className={styles.navButton} style={{ background: view === 'social' ? 'var(--status-success)' : 'transparent', color: view === 'social' ? 'white' : 'var(--text-primary)' }}>📱 Social Calendar</button>
+
+          {/* User Profile Card */}
+          {currentUser && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'var(--bg-glass)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'var(--accent-primary)', color: '#0f172a', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>
+                {currentUser.name?.[0]?.toUpperCase() || 'U'}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentUser.name}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentUser.email}</div>
+              </div>
+              <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', padding: '0.2rem 0.45rem', borderRadius: '4px', background: currentUser.role === 'admin' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(161, 189, 207, 0.2)', color: currentUser.role === 'admin' ? '#ef4444' : 'var(--accent-primary)', fontWeight: 'bold' }}>
+                {currentUser.role}
+              </span>
+            </div>
+          )}
+
+          {/* Views List */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1, overflowY: 'auto' }}>
+            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 'bold', padding: '0.4rem 0.2rem 0.2rem 0.2rem' }}>Aree Operative</div>
+            
+            <button onClick={() => { setIsMobileMenuOpen(false); setView('kanban'); }} className={styles.navButton} style={{ background: view === 'kanban' ? 'var(--accent-primary)' : 'transparent', color: view === 'kanban' ? '#0f172a' : 'var(--text-primary)', fontWeight: view === 'kanban' ? 'bold' : 'normal', padding: '0.65rem 0.8rem', fontSize: '0.9rem' }}>
+              📋 Bacheca Kanban
+            </button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setView('my-tasks'); }} className={styles.navButton} style={{ background: view === 'my-tasks' ? 'var(--status-success)' : 'transparent', color: view === 'my-tasks' ? 'white' : 'var(--text-primary)', fontWeight: view === 'my-tasks' ? 'bold' : 'normal', padding: '0.65rem 0.8rem', fontSize: '0.9rem' }}>
+              🎯 La Mia Giornata
+            </button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setView('projects'); }} className={styles.navButton} style={{ background: view === 'projects' ? 'var(--accent-primary)' : 'transparent', color: view === 'projects' ? '#0f172a' : 'var(--text-primary)', fontWeight: view === 'projects' ? 'bold' : 'normal', padding: '0.65rem 0.8rem', fontSize: '0.9rem' }}>
+              🏢 Progetti & Obiettivi
+            </button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setView('clients'); }} className={styles.navButton} style={{ background: view === 'clients' ? 'var(--accent-primary)' : 'transparent', color: view === 'clients' ? '#0f172a' : 'var(--text-primary)', fontWeight: view === 'clients' ? 'bold' : 'normal', padding: '0.65rem 0.8rem', fontSize: '0.9rem' }}>
+              👥 Clienti & Knowledge Base
+            </button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setView('accesses'); }} className={styles.navButton} style={{ background: view === 'accesses' ? 'var(--accent-primary)' : 'transparent', color: view === 'accesses' ? '#0f172a' : 'var(--text-primary)', fontWeight: view === 'accesses' ? 'bold' : 'normal', padding: '0.65rem 0.8rem', fontSize: '0.9rem' }}>
+              🔑 Accessi & Password
+            </button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setView('social'); }} className={styles.navButton} style={{ background: view === 'social' ? 'var(--accent-primary)' : 'transparent', color: view === 'social' ? '#0f172a' : 'var(--text-primary)', fontWeight: view === 'social' ? 'bold' : 'normal', padding: '0.65rem 0.8rem', fontSize: '0.9rem' }}>
+              📅 Calendario Social
+            </button>
+            
             {(currentUser?.role === 'admin' || currentUser?.hasCrmAccess) && (
-              <button onClick={() => { setIsMobileMenuOpen(false); setView('crm'); }} className={styles.navButton} style={{ background: view === 'crm' ? 'var(--status-success)' : 'transparent', color: view === 'crm' ? 'white' : '#10b981' }}>🤝 Commerciale</button>
+              <button onClick={() => { setIsMobileMenuOpen(false); setView('crm'); }} className={styles.navButton} style={{ background: view === 'crm' ? '#10b981' : 'transparent', color: view === 'crm' ? 'white' : '#10b981', fontWeight: view === 'crm' ? 'bold' : 'normal', padding: '0.65rem 0.8rem', fontSize: '0.9rem' }}>
+                🤝 Commerciale CRM
+              </button>
             )}
             {currentUser?.role === 'admin' && (
-              <button onClick={() => { setIsMobileMenuOpen(false); setView('management'); }} className={styles.navButton} style={{ background: view === 'management' ? 'var(--status-success)' : 'transparent', color: view === 'management' ? 'white' : 'var(--accent-primary)' }}>👑 Management</button>
+              <button onClick={() => { setIsMobileMenuOpen(false); setView('management'); }} className={styles.navButton} style={{ background: view === 'management' ? 'var(--accent-primary)' : 'transparent', color: view === 'management' ? '#0f172a' : 'var(--accent-primary)', fontWeight: view === 'management' ? 'bold' : 'normal', padding: '0.65rem 0.8rem', fontSize: '0.9rem' }}>
+                👑 Management
+              </button>
             )}
-            <button onClick={() => { setIsMobileMenuOpen(false); setView('settings'); }} className={styles.navButton} style={{ background: view === 'settings' ? 'var(--status-success)' : 'transparent', color: view === 'settings' ? 'white' : 'var(--text-primary)' }}>⚙️ Impostazioni</button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setShowLeaderboard(true); }} className={styles.navButton} style={{ padding: '0.65rem 0.8rem', fontSize: '0.9rem' }}>
+              🏆 Classifica Team
+            </button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setView('settings'); }} className={styles.navButton} style={{ background: view === 'settings' ? 'var(--accent-primary)' : 'transparent', color: view === 'settings' ? '#0f172a' : 'var(--text-primary)', fontWeight: view === 'settings' ? 'bold' : 'normal', padding: '0.65rem 0.8rem', fontSize: '0.9rem' }}>
+              ⚙️ Impostazioni
+            </button>
+
+            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 'bold', padding: '0.8rem 0.2rem 0.2rem 0.2rem' }}>Strumenti & Supporto</div>
+
+            <button onClick={() => { setIsMobileMenuOpen(false); setShowImportModal(true); }} className={styles.navButton} style={{ padding: '0.65rem 0.8rem', fontSize: '0.9rem', color: '#10b981' }}>
+              ✨ Importa Documento AI
+            </button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setShowAnnouncementsModal(true); }} className={styles.navButton} style={{ padding: '0.65rem 0.8rem', fontSize: '0.9rem' }}>
+              📣 Annunci Team {hasNewAnnouncements && '🔴'}
+            </button>
+            <button onClick={() => { setIsMobileMenuOpen(false); setIsHelpOpen(true); }} className={styles.navButton} style={{ padding: '0.65rem 0.8rem', fontSize: '0.9rem' }}>
+              ❓ Guida & Note di Rilascio
+            </button>
+
             <hr style={{ borderColor: 'var(--border-color)', margin: '0.5rem 0' }} />
-            <button onClick={() => { setIsMobileMenuOpen(false); setShowAnnouncementsModal(true); }} className={styles.navButton}>📣 Annunci Team</button>
-            <button onClick={() => { setIsMobileMenuOpen(false); setIsHelpOpen(true); }} className={styles.navButton}><HelpCircle size={16} style={{ verticalAlign: 'middle', marginRight: '0.5rem' }}/> Guida e Aiuto</button>
+
+            <button 
+              onClick={() => {
+                if (confirm('Vuoi davvero uscire da GestionAle?')) {
+                  localStorage.removeItem('token');
+                  router.push('/login');
+                }
+              }} 
+              className={styles.navButton} 
+              style={{ padding: '0.65rem 0.8rem', fontSize: '0.9rem', color: 'var(--status-danger)' }}
+            >
+              🚪 Esci dall&apos;account
+            </button>
           </div>
         </div>
       )}
@@ -774,7 +940,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             </div>
             
             <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '1rem', opacity: 0.7 }}>
-              v2.45.0
+              v2.46.0
             </div>
           </div>
         </div>
