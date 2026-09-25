@@ -150,6 +150,15 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.48.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🎛️ <strong>Header Ultra-Compatto & Pulito:</strong> Addio allo scroll orizzontale della barra di navigazione! I 4 menu a tendina ingombranti (Clienti, Progetti, Etichette, Utenti) sono stati racchiusi in un comodo pulsante a comparsa <em>Filtri</em> con pannello dedicato in stile Linear/Notion.</li>
+                  <li>🏷️ <strong>Badge Filtri Attivi & Reset Rapido:</strong> Quando uno o più filtri sono attivi, il pulsante <em>Filtri</em> mostra un badge con il conteggio e compare un tasto rapido <em>Azzera</em> (✕) per ripristinare la vista completa con un solo click.</li>
+                  <li>🖥️ <strong>Tutte le Schede Sempre Visibili:</strong> Ora tutte le bacheche e sezioni (Kanban, Social, Progetti, Clienti, Accessi, Commerciale, Management, Classifica, Impostazioni) sono perfettamente visibili e accessibili a colpo d&apos;occhio senza mai dover scorrere orizzontalmente.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.47.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🎯 <strong>Notifiche Email Intelligenti & Mirate:</strong> Eliminate definitivamente le email su attività altrui non di tua competenza! Ora ricevi aggiornamenti via mail <em>esclusivamente</em> per le schede e i task a cui sei direttamente assegnato o in cui sei stato esplicitamente menzionato con <code>@nome</code>.</li>

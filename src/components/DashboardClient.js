@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '@/app/page.module.css';
 import KanbanView from './KanbanView';
@@ -131,6 +131,31 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   const [filterClientId, setFilterClientId] = useState('');
   const [filterProjectId, setFilterProjectId] = useState('');
   const [filterLabelId, setFilterLabelId] = useState('');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const filterDropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
+        setShowFilterDropdown(false);
+      }
+    }
+    if (showFilterDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showFilterDropdown]);
+
+  const activeFiltersCount = (filterClientId ? 1 : 0) + (filterProjectId ? 1 : 0) + (filterLabelId ? 1 : 0) + (filterUserId ? 1 : 0);
+
+  const clearAllFilters = () => {
+    setFilterClientId('');
+    setFilterProjectId('');
+    setFilterLabelId('');
+    setFilterUserId('');
+  };
 
   const [showSettings, setShowSettings] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -335,7 +360,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <h1 className="text-gradient" style={{ margin: 0, fontSize: '1.3rem', textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.15rem 0.5rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
-              v2.47.0
+              v2.48.0
             </span>
           </div>
 
@@ -565,62 +590,181 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               />
             </div>
             
-            {/* Filters */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <Filter size={14} color="var(--text-secondary)" />
-              
-              <select 
-                value={filterClientId} 
-                onChange={e => {
-                  const cid = e.target.value;
-                  setFilterClientId(cid);
-                  if (cid) {
-                    const client = initialClients.find(c => c.id === cid);
-                    if (client) {
-                      const board = initialBoards.find(b => b.name.toLowerCase().includes(client.name.toLowerCase()));
-                      if (board) setSelectedBoardId(board.id);
-                    }
-                  }
+            {/* Filter Toggle Button & Dropdown Popover */}
+            <div ref={filterDropdownRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <button
+                type="button"
+                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  background: activeFiltersCount > 0 ? 'rgba(59, 130, 246, 0.18)' : 'var(--bg-primary)',
+                  color: activeFiltersCount > 0 ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  border: activeFiltersCount > 0 ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                  borderRadius: '20px',
+                  padding: '0.3rem 0.75rem',
+                  fontSize: '0.8rem',
+                  fontWeight: activeFiltersCount > 0 ? '600' : 'normal',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: activeFiltersCount > 0 ? '0 0 10px rgba(59, 130, 246, 0.3)' : 'none'
                 }}
-                style={{ padding: '0.2rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
+                title="Filtra schede per cliente, progetto, etichetta o utente"
               >
-                <option value="">Tutti i Clienti</option>
-                {(initialClients || []).filter(c => c.status === 'CLIENTE').sort((a, b) => a.name.localeCompare(b.name)).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+                <Filter size={13} color={activeFiltersCount > 0 ? 'var(--accent-primary)' : 'var(--text-secondary)'} />
+                <span>Filtri</span>
+                {activeFiltersCount > 0 && (
+                  <span style={{
+                    background: 'var(--accent-primary)',
+                    color: '#0f172a',
+                    borderRadius: '10px',
+                    padding: '1px 6px',
+                    fontSize: '0.68rem',
+                    fontWeight: 'bold',
+                    lineHeight: '1.2'
+                  }}>
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </button>
 
-              <select 
-                value={filterProjectId} 
-                onChange={e => setFilterProjectId(e.target.value)}
-                style={{ padding: '0.2rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
-              >
-                <option value="">Tutti i Progetti</option>
-                {allProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
+              {activeFiltersCount > 0 && (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  title="Azzera tutti i filtri"
+                  style={{
+                    background: 'rgba(239, 68, 68, 0.12)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    color: 'var(--status-danger)',
+                    cursor: 'pointer',
+                    borderRadius: '20px',
+                    padding: '0.3rem 0.6rem',
+                    fontSize: '0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <X size={12} />
+                  <span>Azzera</span>
+                </button>
+              )}
 
-              <select 
-                value={filterLabelId} 
-                onChange={e => setFilterLabelId(e.target.value)}
-                style={{ padding: '0.2rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
-              >
-                <option value="">Tutte le Etichette</option>
-                {allLabels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-              </select>
+              {/* Popover Menu a Tendina dei Filtri */}
+              {showFilterDropdown && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  left: 0,
+                  width: '290px',
+                  background: 'rgba(15, 23, 42, 0.96)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '12px',
+                  boxShadow: '0 16px 36px rgba(0, 0, 0, 0.55)',
+                  backdropFilter: 'blur(16px)',
+                  padding: '1rem',
+                  zIndex: 2000,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 'bold', fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                      <Filter size={14} color="var(--accent-primary)" />
+                      <span>Filtri Bacheca</span>
+                    </div>
+                    {activeFiltersCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={clearAllFilters}
+                        style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}
+                      >
+                        Azzera filtri
+                      </button>
+                    )}
+                  </div>
 
-              <select 
-                value={filterUserId} 
-                onChange={e => setFilterUserId(e.target.value)}
-                style={{ padding: '0.2rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
-              >
-                <option value="">Tutti gli Utenti</option>
-                <option value="unassigned">Non Assegnati</option>
-                {initialMembers.map(m => {
-                  const assignedCards = initialCards.filter(c => c.assignees && c.assignees.some(a => a.id === m.id));
-                  let workloadEmoji = '🟢';
-                  if (assignedCards.length >= 5 && assignedCards.length <= 10) workloadEmoji = '🟡';
-                  if (assignedCards.length > 10) workloadEmoji = '🔴';
-                  return <option key={m.id} value={m.id}>{workloadEmoji} {m.name} ({assignedCards.length})</option>;
-                })}
-              </select>
+                  {/* 1. Cliente */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', fontWeight: 600 }}>
+                      🏢 Cliente
+                    </label>
+                    <select
+                      value={filterClientId}
+                      onChange={e => {
+                        const cid = e.target.value;
+                        setFilterClientId(cid);
+                        if (cid) {
+                          const client = initialClients.find(c => c.id === cid);
+                          if (client) {
+                            const board = initialBoards.find(b => b.name.toLowerCase().includes(client.name.toLowerCase()));
+                            if (board) setSelectedBoardId(board.id);
+                          }
+                        }
+                      }}
+                      style={{ width: '100%', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
+                    >
+                      <option value="">Tutti i Clienti</option>
+                      {(initialClients || []).filter(c => c.status === 'CLIENTE').sort((a, b) => a.name.localeCompare(b.name)).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+
+                  {/* 2. Progetto */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', fontWeight: 600 }}>
+                      📁 Progetto
+                    </label>
+                    <select
+                      value={filterProjectId}
+                      onChange={e => setFilterProjectId(e.target.value)}
+                      style={{ width: '100%', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
+                    >
+                      <option value="">Tutti i Progetti</option>
+                      {allProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </div>
+
+                  {/* 3. Etichetta */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', fontWeight: 600 }}>
+                      🏷️ Etichetta
+                    </label>
+                    <select
+                      value={filterLabelId}
+                      onChange={e => setFilterLabelId(e.target.value)}
+                      style={{ width: '100%', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
+                    >
+                      <option value="">Tutte le Etichette</option>
+                      {allLabels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                    </select>
+                  </div>
+
+                  {/* 4. Utente */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', fontWeight: 600 }}>
+                      👤 Collaboratore
+                    </label>
+                    <select
+                      value={filterUserId}
+                      onChange={e => setFilterUserId(e.target.value)}
+                      style={{ width: '100%', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
+                    >
+                      <option value="">Tutti gli Utenti</option>
+                      <option value="unassigned">Non Assegnati</option>
+                      {initialMembers.map(m => {
+                        const assignedCards = initialCards.filter(c => c.assignees && c.assignees.some(a => a.id === m.id));
+                        let workloadEmoji = '🟢';
+                        if (assignedCards.length >= 5 && assignedCards.length <= 10) workloadEmoji = '🟡';
+                        if (assignedCards.length > 10) workloadEmoji = '🔴';
+                        return <option key={m.id} value={m.id}>{workloadEmoji} {m.name} ({assignedCards.length})</option>;
+                      })}
+                    </select>
+                  </div>
+                </div>
+              )}
             </div>
             </>)}
 
@@ -940,7 +1084,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             </div>
             
             <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '1rem', opacity: 0.7 }}>
-              v2.47.0
+              v2.48.0
             </div>
           </div>
         </div>
