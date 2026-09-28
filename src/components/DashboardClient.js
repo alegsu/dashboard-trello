@@ -132,21 +132,6 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   const [filterProjectId, setFilterProjectId] = useState('');
   const [filterLabelId, setFilterLabelId] = useState('');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-  const filterDropdownRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
-        setShowFilterDropdown(false);
-      }
-    }
-    if (showFilterDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showFilterDropdown]);
 
   const activeFiltersCount = (filterClientId ? 1 : 0) + (filterProjectId ? 1 : 0) + (filterLabelId ? 1 : 0) + (filterUserId ? 1 : 0);
 
@@ -360,7 +345,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <h1 className="text-gradient" style={{ margin: 0, fontSize: '1.3rem', textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.15rem 0.5rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
-              v2.48.0
+              v2.49.0
             </span>
           </div>
 
@@ -573,7 +558,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
         </div>
 
         <div className={styles.mobileHide}>
-          <div className="header-row-scroll" style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-glass)', padding: '0.4rem', borderRadius: '8px', flexWrap: 'nowrap', overflowX: 'auto', alignItems: 'center', border: '1px solid var(--border-color)', backdropFilter: 'blur(12px)' }}>
+          <div className="header-row-scroll" style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-glass)', padding: '0.4rem 0.6rem', borderRadius: '8px', flexWrap: 'nowrap', alignItems: 'center', border: '1px solid var(--border-color)', backdropFilter: 'blur(12px)' }}>
             
             {view !== 'settings' && (<>
             {/* Search */}
@@ -590,8 +575,8 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               />
             </div>
             
-            {/* Filter Toggle Button & Dropdown Popover */}
-            <div ref={filterDropdownRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            {/* Filter Toggle Button */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <button
                 type="button"
                 onClick={() => setShowFilterDropdown(!showFilterDropdown)}
@@ -599,20 +584,20 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  background: activeFiltersCount > 0 ? 'rgba(59, 130, 246, 0.18)' : 'var(--bg-primary)',
-                  color: activeFiltersCount > 0 ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                  border: activeFiltersCount > 0 ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                  background: showFilterDropdown ? 'rgba(59, 130, 246, 0.25)' : (activeFiltersCount > 0 ? 'rgba(59, 130, 246, 0.18)' : 'var(--bg-primary)'),
+                  color: (showFilterDropdown || activeFiltersCount > 0) ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  border: (showFilterDropdown || activeFiltersCount > 0) ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
                   borderRadius: '20px',
                   padding: '0.3rem 0.75rem',
                   fontSize: '0.8rem',
-                  fontWeight: activeFiltersCount > 0 ? '600' : 'normal',
+                  fontWeight: (showFilterDropdown || activeFiltersCount > 0) ? '600' : 'normal',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  boxShadow: activeFiltersCount > 0 ? '0 0 10px rgba(59, 130, 246, 0.3)' : 'none'
+                  boxShadow: (showFilterDropdown || activeFiltersCount > 0) ? '0 0 10px rgba(59, 130, 246, 0.3)' : 'none'
                 }}
-                title="Filtra schede per cliente, progetto, etichetta o utente"
+                title={showFilterDropdown ? "Nascondi barra filtri" : "Mostra menu filtri"}
               >
-                <Filter size={13} color={activeFiltersCount > 0 ? 'var(--accent-primary)' : 'var(--text-secondary)'} />
+                <Filter size={13} color={(showFilterDropdown || activeFiltersCount > 0) ? 'var(--accent-primary)' : 'var(--text-secondary)'} />
                 <span>Filtri</span>
                 {activeFiltersCount > 0 && (
                   <span style={{
@@ -651,119 +636,6 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
                   <X size={12} />
                   <span>Azzera</span>
                 </button>
-              )}
-
-              {/* Popover Menu a Tendina dei Filtri */}
-              {showFilterDropdown && (
-                <div style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 8px)',
-                  left: 0,
-                  width: '290px',
-                  background: 'rgba(15, 23, 42, 0.96)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '12px',
-                  boxShadow: '0 16px 36px rgba(0, 0, 0, 0.55)',
-                  backdropFilter: 'blur(16px)',
-                  padding: '1rem',
-                  zIndex: 2000,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.75rem'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 'bold', fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                      <Filter size={14} color="var(--accent-primary)" />
-                      <span>Filtri Bacheca</span>
-                    </div>
-                    {activeFiltersCount > 0 && (
-                      <button
-                        type="button"
-                        onClick={clearAllFilters}
-                        style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}
-                      >
-                        Azzera filtri
-                      </button>
-                    )}
-                  </div>
-
-                  {/* 1. Cliente */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', fontWeight: 600 }}>
-                      🏢 Cliente
-                    </label>
-                    <select
-                      value={filterClientId}
-                      onChange={e => {
-                        const cid = e.target.value;
-                        setFilterClientId(cid);
-                        if (cid) {
-                          const client = initialClients.find(c => c.id === cid);
-                          if (client) {
-                            const board = initialBoards.find(b => b.name.toLowerCase().includes(client.name.toLowerCase()));
-                            if (board) setSelectedBoardId(board.id);
-                          }
-                        }
-                      }}
-                      style={{ width: '100%', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
-                    >
-                      <option value="">Tutti i Clienti</option>
-                      {(initialClients || []).filter(c => c.status === 'CLIENTE').sort((a, b) => a.name.localeCompare(b.name)).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
-                  </div>
-
-                  {/* 2. Progetto */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', fontWeight: 600 }}>
-                      📁 Progetto
-                    </label>
-                    <select
-                      value={filterProjectId}
-                      onChange={e => setFilterProjectId(e.target.value)}
-                      style={{ width: '100%', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
-                    >
-                      <option value="">Tutti i Progetti</option>
-                      {allProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                  </div>
-
-                  {/* 3. Etichetta */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', fontWeight: 600 }}>
-                      🏷️ Etichetta
-                    </label>
-                    <select
-                      value={filterLabelId}
-                      onChange={e => setFilterLabelId(e.target.value)}
-                      style={{ width: '100%', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
-                    >
-                      <option value="">Tutte le Etichette</option>
-                      {allLabels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                    </select>
-                  </div>
-
-                  {/* 4. Utente */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', fontWeight: 600 }}>
-                      👤 Collaboratore
-                    </label>
-                    <select
-                      value={filterUserId}
-                      onChange={e => setFilterUserId(e.target.value)}
-                      style={{ width: '100%', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
-                    >
-                      <option value="">Tutti gli Utenti</option>
-                      <option value="unassigned">Non Assegnati</option>
-                      {initialMembers.map(m => {
-                        const assignedCards = initialCards.filter(c => c.assignees && c.assignees.some(a => a.id === m.id));
-                        let workloadEmoji = '🟢';
-                        if (assignedCards.length >= 5 && assignedCards.length <= 10) workloadEmoji = '🟡';
-                        if (assignedCards.length > 10) workloadEmoji = '🔴';
-                        return <option key={m.id} value={m.id}>{workloadEmoji} {m.name} ({assignedCards.length})</option>;
-                      })}
-                    </select>
-                  </div>
-                </div>
               )}
             </div>
             </>)}
@@ -832,6 +704,142 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               </div>
             </div>
           </div>
+
+          {/* Dedicated Expandable Filter Toolbar (Row 3) */}
+          {showFilterDropdown && view !== 'settings' && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              background: 'var(--bg-glass)',
+              padding: '0.5rem 0.8rem',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color)',
+              backdropFilter: 'blur(12px)',
+              marginTop: '0.4rem',
+              flexWrap: 'wrap',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+              animation: 'fadeIn 0.2s ease'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent-primary)', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                <Filter size={13} color="var(--accent-primary)" />
+                <span>Filtra per:</span>
+              </div>
+
+              {/* 1. Cliente */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>🏢</span>
+                <select
+                  value={filterClientId}
+                  onChange={e => {
+                    const cid = e.target.value;
+                    setFilterClientId(cid);
+                    if (cid) {
+                      const client = initialClients.find(c => c.id === cid);
+                      if (client) {
+                        const board = initialBoards.find(b => b.name.toLowerCase().includes(client.name.toLowerCase()));
+                        if (board) setSelectedBoardId(board.id);
+                      }
+                    }
+                  }}
+                  style={{ padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.78rem' }}
+                >
+                  <option value="">Tutti i Clienti</option>
+                  {(initialClients || []).filter(c => c.status === 'CLIENTE').sort((a, b) => a.name.localeCompare(b.name)).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+
+              {/* 2. Progetto */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>📁</span>
+                <select
+                  value={filterProjectId}
+                  onChange={e => setFilterProjectId(e.target.value)}
+                  style={{ padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.78rem' }}
+                >
+                  <option value="">Tutti i Progetti</option>
+                  {allProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+
+              {/* 3. Etichetta */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>🏷️</span>
+                <select
+                  value={filterLabelId}
+                  onChange={e => setFilterLabelId(e.target.value)}
+                  style={{ padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.78rem' }}
+                >
+                  <option value="">Tutte le Etichette</option>
+                  {allLabels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                </select>
+              </div>
+
+              {/* 4. Utente */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>👤</span>
+                <select
+                  value={filterUserId}
+                  onChange={e => setFilterUserId(e.target.value)}
+                  style={{ padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.78rem' }}
+                >
+                  <option value="">Tutti gli Utenti</option>
+                  <option value="unassigned">Non Assegnati</option>
+                  {initialMembers.map(m => {
+                    const assignedCards = initialCards.filter(c => c.assignees && c.assignees.some(a => a.id === m.id));
+                    let workloadEmoji = '🟢';
+                    if (assignedCards.length >= 5 && assignedCards.length <= 10) workloadEmoji = '🟡';
+                    if (assignedCards.length > 10) workloadEmoji = '🔴';
+                    return <option key={m.id} value={m.id}>{workloadEmoji} {m.name} ({assignedCards.length})</option>;
+                  })}
+                </select>
+              </div>
+
+              {activeFiltersCount > 0 && (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  style={{
+                    background: 'rgba(239, 68, 68, 0.12)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    color: 'var(--status-danger)',
+                    cursor: 'pointer',
+                    borderRadius: '6px',
+                    padding: '0.25rem 0.6rem',
+                    fontSize: '0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontWeight: 600
+                  }}
+                >
+                  <X size={12} /> Azzera tutti ({activeFiltersCount})
+                </button>
+              )}
+
+              <div style={{ flex: 1 }}></div>
+
+              <button
+                type="button"
+                onClick={() => setShowFilterDropdown(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.2rem',
+                  padding: '0.2rem 0.4rem',
+                  borderRadius: '4px'
+                }}
+                title="Chiudi barra filtri"
+              >
+                <X size={13} /> Chiudi
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -1084,7 +1092,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             </div>
             
             <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '1rem', opacity: 0.7 }}>
-              v2.48.0
+              v2.49.0
             </div>
           </div>
         </div>

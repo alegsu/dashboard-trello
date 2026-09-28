@@ -150,6 +150,15 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.49.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>🎛️ <strong>Barra Filtri Espandibile ad Alta Affidabilità:</strong> Risolto il problema di apertura del menu filtri! Cliccando sul pulsante <em>Filtri</em> si apre ora istantaneamente una barra strumenti dedicata subito sotto l&apos;header, con i 4 selettori (Cliente, Progetto, Etichetta, Collaboratore) disposti in modo chiaro, comodo e senza alcun ritaglio grafico.</li>
+                  <li>⚡ <strong>Zero Sovrapposizioni o Conflitti:</strong> La barra filtri compare in modo pulito ed è facilmente richiudibile con il tasto <em>Chiudi ✕</em> o ri-cliccando su <em>Filtri</em>. Tutti i filtri continuano ad aggiornare la bacheca in tempo reale!</li>
+                  <li>🏷️ <strong>Reset Rapido & Badge Intelligente:</strong> Mostra il conteggio esatto dei filtri attivi sia sul pulsante che nella barra, con tasto rapido per azzerarli tutti con un solo click.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.48.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🎛️ <strong>Header Ultra-Compatto & Pulito:</strong> Addio allo scroll orizzontale della barra di navigazione! I 4 menu a tendina ingombranti (Clienti, Progetti, Etichette, Utenti) sono stati racchiusi in un comodo pulsante a comparsa <em>Filtri</em> con pannello dedicato in stile Linear/Notion.</li>
