@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './ProjectsView.module.css'; // Possiamo riusare questo CSS per comodità
 import { FaSync, FaGoogle, FaTrash } from 'react-icons/fa';
 
-export default function ClientsView({ clients: initialClients, cards = [], onRefresh, onOpenNotebook }) {
+export default function ClientsView({ clients: initialClients, cards = [], members = [], onRefresh, onOpenNotebook }) {
   const [clients, setClients] = useState(initialClients);
   const [selectedClient, setSelectedClient] = useState(null);
   const [notebookModalClient, setNotebookModalClient] = useState(null);
@@ -14,6 +14,8 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
   const [notes, setNotes] = useState('');
   const [color, setColor] = useState('');
   const [status, setStatus] = useState('CLIENTE');
+  const [selectedCollaboratorIds, setSelectedCollaboratorIds] = useState([]);
+  const [collaboratorSearch, setCollaboratorSearch] = useState('');
   
   const [mergeTargetId, setMergeTargetId] = useState('');
 
@@ -45,12 +47,33 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
 
   useEffect(() => {
     setClients(initialClients);
+    if (selectedClient) {
+      const freshSelected = (initialClients || []).find(c => c.id === selectedClient.id);
+      if (freshSelected) {
+        setSelectedClient(freshSelected);
+        setSelectedCollaboratorIds((freshSelected.collaborators || []).map(u => u.id));
+      }
+    }
 
     // Fetch global settings for CSV URL
     fetch('/api/settings').then(res => res.json()).then(data => {
       if (data.SHEETS_CSV_URL) setCsvUrl(data.SHEETS_CSV_URL);
     });
   }, [initialClients]);
+
+  const toggleCollaborator = (userId) => {
+    setSelectedCollaboratorIds(prev => 
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
+    );
+  };
+
+  const selectAllCollaborators = () => {
+    setSelectedCollaboratorIds((members || []).map(m => m.id));
+  };
+
+  const deselectAllCollaborators = () => {
+    setSelectedCollaboratorIds([]);
+  };
 
   const handleSelectClient = (c) => {
     setSelectedClient(c);
@@ -61,6 +84,8 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
     setColor(c.color || '');
     setStatus(c.status || 'CLIENTE');
     setMergeTargetId('');
+    setSelectedCollaboratorIds((c.collaborators || []).map(u => u.id));
+    setCollaboratorSearch('');
     try {
       setSocialPlan(c.socialPlan ? JSON.parse(c.socialPlan) : defaultPlan);
     } catch {
@@ -133,14 +158,18 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
           color,
           status,
           socialPlan: JSON.stringify(socialPlan),
-          pedSheets: JSON.stringify(pedSheets)
+          pedSheets: JSON.stringify(pedSheets),
+          collaborators: selectedCollaboratorIds
         })
       });
 
       if (res.ok) {
+        const updatedClient = await res.json();
         if (onRefresh) onRefresh();
         alert('Dati cliente salvati con successo!');
-        setSelectedClient({ ...selectedClient, name, notebookLmUrl, claudeUrl, notes, color, status, socialPlan: JSON.stringify(socialPlan), pedSheets: JSON.stringify(pedSheets) });
+        setSelectedClient(updatedClient);
+        setClients(prev => (prev || []).map(item => item.id === updatedClient.id ? updatedClient : item));
+        setSelectedCollaboratorIds((updatedClient.collaborators || []).map(u => u.id));
       } else {
         alert('Errore durante il salvataggio.');
       }
@@ -301,7 +330,34 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                   alignItems: 'center'
                 }}
               >
-                <span>{c.name}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{c.name}</span>
+                    {c.collaborators && c.collaborators.length > 0 && (
+                      <span 
+                        style={{ 
+                          fontSize: '0.65rem', 
+                          background: 'rgba(34, 197, 94, 0.15)', 
+                          color: 'var(--accent-primary, #22c55e)', 
+                          padding: '0.05rem 0.4rem', 
+                          borderRadius: '10px',
+                          border: '1px solid rgba(34, 197, 94, 0.3)',
+                          whiteSpace: 'nowrap',
+                          fontWeight: 'bold'
+                        }} 
+                        title={`Collaboratori: ${c.collaborators.map(u => u.name).join(', ')}`}
+                      >
+                        👥 {c.collaborators.length}
+                      </span>
+                    )}
+                  </div>
+                  {c.collaborators && c.collaborators.length > 0 && (
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                      {c.collaborators.slice(0, 3).map(u => u.name?.split(' ')[0]).join(', ')}
+                      {c.collaborators.length > 3 ? ` +${c.collaborators.length - 3}` : ''}
+                    </div>
+                  )}
+                </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); if (onOpenNotebook) onOpenNotebook(c); }}
                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem', transition: 'transform 0.2s' }}
@@ -350,6 +406,148 @@ export default function ClientsView({ clients: initialClients, cards = [], onRef
                 <button type="submit" style={{ padding: '0.5rem 1.5rem', background: 'var(--accent-primary)', color: 'black', borderRadius: '4px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.9rem', whiteSpace: 'nowrap', marginTop: '1.2rem' }}>
                   Salva Modifiche
                 </button>
+              </div>
+
+              {/* Sezione Collaboratori Assegnati */}
+              <div style={{
+                marginTop: '0.8rem',
+                padding: '0.9rem',
+                background: 'rgba(255, 255, 255, 0.03)',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.6rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1.1rem' }}>👥</span>
+                    <div>
+                      <div style={{ fontWeight: 'bold', fontSize: '0.88rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span>Collaboratori Assegnati</span>
+                        <span style={{
+                          fontSize: '0.72rem',
+                          background: selectedCollaboratorIds.length > 0 ? 'var(--accent-primary, #22c55e)' : 'var(--bg-elevated)',
+                          color: selectedCollaboratorIds.length > 0 ? '#000' : 'var(--text-secondary)',
+                          padding: '0.1rem 0.45rem',
+                          borderRadius: '10px',
+                          fontWeight: 'bold'
+                        }}>
+                          {selectedCollaboratorIds.length}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                        I collaboratori selezionati gestiscono questo cliente e ricevono i relativi avvisi.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      onClick={selectAllCollaborators}
+                      style={{
+                        padding: '0.2rem 0.5rem',
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-color)',
+                        color: 'var(--text-secondary)',
+                        borderRadius: '4px',
+                        fontSize: '0.72rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Tutti
+                    </button>
+                    <button
+                      type="button"
+                      onClick={deselectAllCollaborators}
+                      style={{
+                        padding: '0.2rem 0.5rem',
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-color)',
+                        color: 'var(--text-secondary)',
+                        borderRadius: '4px',
+                        fontSize: '0.72rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Nessuno
+                    </button>
+                  </div>
+                </div>
+
+                {members.length > 6 && (
+                  <input
+                    type="text"
+                    placeholder="🔍 Filtra collaboratori per nome..."
+                    value={collaboratorSearch}
+                    onChange={e => setCollaboratorSearch(e.target.value)}
+                    style={{
+                      padding: '0.3rem 0.6rem',
+                      borderRadius: '4px',
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-primary)',
+                      color: 'var(--text-primary)',
+                      fontSize: '0.78rem',
+                      maxWidth: '260px'
+                    }}
+                  />
+                )}
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', marginTop: '0.2rem' }}>
+                  {members
+                    .filter(m => !collaboratorSearch || (m.name || '').toLowerCase().includes(collaboratorSearch.toLowerCase()))
+                    .map(m => {
+                      const isSelected = selectedCollaboratorIds.includes(m.id);
+                      const initials = (m.name || 'U').split(' ').filter(Boolean).map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => toggleCollaborator(m.id)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            padding: '0.35rem 0.65rem',
+                            borderRadius: '20px',
+                            border: isSelected ? '1px solid var(--accent-primary, #22c55e)' : '1px solid var(--border-color)',
+                            background: isSelected ? 'rgba(34, 197, 94, 0.16)' : 'var(--bg-secondary)',
+                            color: isSelected ? 'var(--accent-primary, #22c55e)' : 'var(--text-secondary)',
+                            fontWeight: isSelected ? '600' : 'normal',
+                            cursor: 'pointer',
+                            fontSize: '0.78rem',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: '18px',
+                              height: '18px',
+                              borderRadius: '50%',
+                              background: isSelected ? 'var(--accent-primary, #22c55e)' : 'var(--bg-elevated)',
+                              color: isSelected ? '#000' : 'var(--text-primary)',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.62rem',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            {initials}
+                          </span>
+                          <span>{m.name}</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: isSelected ? 'bold' : 'normal' }}>
+                            {isSelected ? '✓' : '+'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  {members.length === 0 && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Nessun collaboratore disponibile.</span>
+                  )}
+                </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.5rem' }}>

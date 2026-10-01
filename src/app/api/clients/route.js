@@ -5,6 +5,9 @@ export async function GET() {
   try {
     const clients = await prisma.client.findMany({
       orderBy: { name: 'asc' },
+      include: {
+        collaborators: true
+      }
     });
     return NextResponse.json(clients);
   } catch (err) {

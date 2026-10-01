@@ -16,12 +16,22 @@ export async function PUT(request, { params }) {
         ...(body.color !== undefined && { color: body.color }),
         ...(body.status !== undefined && { status: body.status }),
         ...(body.socialPlan !== undefined && { socialPlan: body.socialPlan }),
-        ...(body.pedSheets !== undefined && { pedSheets: body.pedSheets })
+        ...(body.pedSheets !== undefined && { pedSheets: body.pedSheets }),
+        ...(body.collaborators !== undefined && {
+          collaborators: {
+            set: (Array.isArray(body.collaborators) ? body.collaborators : []).map(userId => ({ id: userId }))
+          }
+        })
+      },
+      include: {
+        collaborators: true,
+        accesses: true
       }
     });
 
     return NextResponse.json(updatedClient);
   } catch (err) {
+    console.error('Errore durante aggiornamento cliente:', err);
     return NextResponse.json({ error: 'Errore durante aggiornamento cliente' }, { status: 500 });
   }
 }

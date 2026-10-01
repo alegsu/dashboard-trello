@@ -150,6 +150,16 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.50.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>👥 <strong>Assegnazione Collaboratori Diretta ai Clienti:</strong> Nella sezione <em>Clienti</em>, aprendo la scheda di qualsiasi cliente trovi ora il nuovo pannello interattivo "Collaboratori Assegnati". Con un semplice click sui chip dei membri del team puoi associare o disassociare ciascun collaboratore in tempo reale!</li>
+                  <li>🎯 <strong>Gestione Libera & Flessibile:</strong> Non serve più dipendere esclusivamente dalla sincronizzazione automatica dei fogli Google: puoi configurare e affinare manualmente il team di lavoro per qualsiasi cliente in pochi secondi.</li>
+                  <li>⚡ <strong>Filtro Veloce & Tasti Rapidi:</strong> Include pulsanti istantanei <em>Tutti</em> e <em>Nessuno</em>, badge numerico del team assegnato e campo di ricerca rapido per filtrare i colleghi per nome.</li>
+                  <li>🏷️ <strong>Visualizzazione Rubrica a Colpo d&apos;Occhio:</strong> Nella lista clienti a sinistra viene mostrato un badge con il conteggio e i nomi dei colleghi assegnati, rendendo subito chiaro chi segue ciascun account.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.49.0</h4>
                 <ul style={noteUlStyle}>
                   <li>🎛️ <strong>Barra Filtri Espandibile ad Alta Affidabilità:</strong> Risolto il problema di apertura del menu filtri! Cliccando sul pulsante <em>Filtri</em> si apre ora istantaneamente una barra strumenti dedicata subito sotto l&apos;header, con i 4 selettori (Cliente, Progetto, Etichetta, Collaboratore) disposti in modo chiaro, comodo e senza alcun ritaglio grafico.</li>
