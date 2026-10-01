@@ -150,6 +150,16 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.51.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>📊 <strong>Nuova Tabella Matrice Clienti & Utenti:</strong> Arriva la vista tabellare panoramica per monitorare l&apos;intero ecosistema dei clienti e dei collaboratori assegnati! Accessibile con il nuovo selettore <em>📊 Tabella Matrice</em> nella sezione Clienti.</li>
+                  <li>▦ <strong>Griglia Matrice 2D con Assegnazione Istantanea:</strong> Righe per i Clienti e colonne per i Collaboratori: clicca direttamente sulle celle della matrice per assegnare o rimuovere un collega da un cliente in un millisecondo, con salvataggio immediato nel database!</li>
+                  <li>📈 <strong>Monitoraggio Carico di Lavoro Team:</strong> Barra superiore con contatori in tempo reale di quanti clienti segue ciascun membro del team. Con un semplice tocco su un collaboratore, la tabella isola all&apos;istante solo i suoi clienti.</li>
+                  <li>📋 <strong>Doppia Vista (Griglia Matrice & Elenco Compatto):</strong> Scegli se visualizzare la griglia a matrice o l&apos;elenco tabellare con chip del team, conteggio delle schede Kanban attive, stato e accesso diretto a Brain IA e dettagli.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.50.0</h4>
                 <ul style={noteUlStyle}>
                   <li>👥 <strong>Assegnazione Collaboratori Diretta ai Clienti:</strong> Nella sezione <em>Clienti</em>, aprendo la scheda di qualsiasi cliente trovi ora il nuovo pannello interattivo "Collaboratori Assegnati". Con un semplice click sui chip dei membri del team puoi associare o disassociare ciascun collaboratore in tempo reale!</li>

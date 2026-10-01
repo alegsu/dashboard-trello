@@ -17,6 +17,14 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
   const [selectedCollaboratorIds, setSelectedCollaboratorIds] = useState([]);
   const [collaboratorSearch, setCollaboratorSearch] = useState('');
   
+  // Vista Tabella / Matrice
+  const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
+  const [tableSearch, setTableSearch] = useState('');
+  const [tableStatusFilter, setTableStatusFilter] = useState('ALL');
+  const [tableCollaboratorFilter, setTableCollaboratorFilter] = useState(null);
+  const [tableMode, setTableMode] = useState('matrix'); // 'matrix' | 'list'
+  const [updatingAssignmentKey, setUpdatingAssignmentKey] = useState(null);
+  
   const [mergeTargetId, setMergeTargetId] = useState('');
 
   const defaultPlan = {
@@ -74,6 +82,79 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
   const deselectAllCollaborators = () => {
     setSelectedCollaboratorIds([]);
   };
+
+  const handleToggleAssignmentInTable = async (client, userId) => {
+    const key = `${client.id}-${userId}`;
+    setUpdatingAssignmentKey(key);
+
+    const currentIds = (client.collaborators || []).map(u => u.id);
+    const isCurrentlyAssigned = currentIds.includes(userId);
+    const newIds = isCurrentlyAssigned
+      ? currentIds.filter(id => id !== userId)
+      : [...currentIds, userId];
+
+    const targetMember = (members || []).find(m => m.id === userId);
+    const updatedCollaborators = isCurrentlyAssigned
+      ? (client.collaborators || []).filter(u => u.id !== userId)
+      : [...(client.collaborators || []), targetMember].filter(Boolean);
+
+    const updatedClient = {
+      ...client,
+      collaborators: updatedCollaborators
+    };
+
+    setClients(prev => (prev || []).map(c => c.id === client.id ? updatedClient : c));
+    if (selectedClient?.id === client.id) {
+      setSelectedClient(updatedClient);
+      setSelectedCollaboratorIds(newIds);
+    }
+
+    try {
+      const res = await fetch(`/api/clients/${client.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collaborators: newIds })
+      });
+      if (!res.ok) {
+        if (onRefresh) onRefresh();
+      }
+    } catch (err) {
+      console.error(err);
+      if (onRefresh) onRefresh();
+    } finally {
+      setUpdatingAssignmentKey(null);
+    }
+  };
+
+  const openClientDetailsFromTable = (client) => {
+    handleSelectClient(client);
+    setViewMode('cards');
+  };
+
+  const getClientActiveCardsCount = (clientId) => {
+    return (cards || []).filter(card => card.clientId === clientId && !card.isArchived).length;
+  };
+
+  const filteredTableClients = clients.filter(c => {
+    if (tableSearch) {
+      const q = tableSearch.toLowerCase();
+      const matchName = (c.name || '').toLowerCase().includes(q);
+      const matchCollaborator = (c.collaborators || []).some(u => (u.name || '').toLowerCase().includes(q));
+      if (!matchName && !matchCollaborator) return false;
+    }
+
+    if (tableStatusFilter !== 'ALL') {
+      if ((c.status || 'CLIENTE') !== tableStatusFilter) return false;
+    }
+
+    if (tableCollaboratorFilter === 'UNASSIGNED') {
+      if ((c.collaborators || []).length > 0) return false;
+    } else if (tableCollaboratorFilter) {
+      if (!(c.collaborators || []).some(u => u.id === tableCollaboratorFilter)) return false;
+    }
+
+    return true;
+  });
 
   const handleSelectClient = (c) => {
     setSelectedClient(c);
@@ -283,20 +364,66 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
+      <header className={styles.header} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem', marginBottom: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '1rem', flexWrap: 'wrap' }}>
-          <h2 style={{ margin: 0 }}>👥 Rubrica e Hub Clienti</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <h2 style={{ margin: 0 }}>👥 Rubrica e Hub Clienti</h2>
+
+            {/* Switch tra Vista Rubrica e Vista Tabella Matrice */}
+            <div style={{ display: 'flex', gap: '0.3rem', background: 'var(--bg-elevated)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              <button
+                type="button"
+                onClick={() => setViewMode('cards')}
+                style={{
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: viewMode === 'cards' ? 'var(--accent-primary)' : 'transparent',
+                  color: viewMode === 'cards' ? '#000' : 'var(--text-secondary)',
+                  fontWeight: viewMode === 'cards' ? 'bold' : 'normal',
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span>📇</span> Rubrica & Schede
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                style={{
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: viewMode === 'table' ? 'var(--accent-primary)' : 'transparent',
+                  color: viewMode === 'table' ? '#000' : 'var(--text-secondary)',
+                  fontWeight: viewMode === 'table' ? 'bold' : 'normal',
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span>📊</span> Tabella Matrice Clienti / Utenti
+              </button>
+            </div>
+          </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-elevated)', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-elevated)', padding: '0.4rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
             <FaGoogle color="#4285F4" />
             <input 
               type="url" 
               placeholder="Link Pubblica sul Web (CSV)"
               value={csvUrl}
               onChange={e => setCsvUrl(e.target.value)}
-              style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', width: '250px' }}
+              style={{ padding: '0.35rem 0.6rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', width: '220px', fontSize: '0.8rem' }}
             />
-            <button onClick={handleSyncSheets} disabled={isSyncing} style={{ padding: '0.4rem 0.8rem', background: 'var(--status-in-progress, #3b82f6)', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
+            <button onClick={handleSyncSheets} disabled={isSyncing} style={{ padding: '0.35rem 0.75rem', background: 'var(--status-in-progress, #3b82f6)', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 'bold', fontSize: '0.8rem' }}>
               <FaSync className={isSyncing ? 'fa-spin' : ''} />
               {isSyncing ? 'Sincronizzo...' : 'Sincronizza da Fogli'}
             </button>
@@ -304,7 +431,8 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
         </div>
       </header>
 
-      <div style={{ display: 'flex', gap: '2rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+      {viewMode === 'cards' && (
+        <div style={{ display: 'flex', gap: '2rem', marginTop: '1rem', flexWrap: 'wrap' }}>
         {/* Lista Clienti */}
         <div style={{ flex: '1 1 300px', background: 'var(--bg-glass)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', alignSelf: 'flex-start' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -771,6 +899,568 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
           </div>
         )}
       </div>
+      )}
+
+      {/* VISTA TABELLA MATRICE CLIENTI & UTENTI */}
+      {viewMode === 'table' && (
+        <div style={{ background: 'var(--bg-glass)', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '1.2rem', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          
+          {/* Barra Statistiche & Carico di Lavoro per Collaboratore */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', background: 'rgba(255, 255, 255, 0.02)', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: 'bold', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span>👥</span> Carico di Lavoro / Filtro Collaboratore (clicca per isolare i clienti):
+              </span>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                Totale: <strong>{clients.length}</strong> clienti
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => setTableCollaboratorFilter(null)}
+                style={{
+                  padding: '0.25rem 0.6rem',
+                  borderRadius: '16px',
+                  border: tableCollaboratorFilter === null ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                  background: tableCollaboratorFilter === null ? 'rgba(34, 197, 94, 0.15)' : 'var(--bg-secondary)',
+                  color: tableCollaboratorFilter === null ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  fontWeight: tableCollaboratorFilter === null ? 'bold' : 'normal',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Tutti ({clients.length})
+              </button>
+
+              {members.map(m => {
+                const count = clients.filter(c => (c.collaborators || []).some(u => u.id === m.id)).length;
+                const isSelected = tableCollaboratorFilter === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setTableCollaboratorFilter(isSelected ? null : m.id)}
+                    style={{
+                      padding: '0.25rem 0.6rem',
+                      borderRadius: '16px',
+                      border: isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                      background: isSelected ? 'rgba(34, 197, 94, 0.15)' : 'var(--bg-secondary)',
+                      color: isSelected ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                      fontWeight: isSelected ? 'bold' : 'normal',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem'
+                    }}
+                  >
+                    <span>{m.name}</span>
+                    <span style={{
+                      background: isSelected ? 'var(--accent-primary)' : 'var(--bg-elevated)',
+                      color: isSelected ? '#000' : 'var(--text-secondary)',
+                      padding: '0.05rem 0.35rem',
+                      borderRadius: '10px',
+                      fontSize: '0.68rem',
+                      fontWeight: 'bold'
+                    }}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={() => setTableCollaboratorFilter(tableCollaboratorFilter === 'UNASSIGNED' ? null : 'UNASSIGNED')}
+                style={{
+                  padding: '0.25rem 0.6rem',
+                  borderRadius: '16px',
+                  border: tableCollaboratorFilter === 'UNASSIGNED' ? '1px solid var(--status-warning)' : '1px solid var(--border-color)',
+                  background: tableCollaboratorFilter === 'UNASSIGNED' ? 'rgba(234, 179, 8, 0.15)' : 'var(--bg-secondary)',
+                  color: tableCollaboratorFilter === 'UNASSIGNED' ? 'var(--status-warning)' : 'var(--text-secondary)',
+                  fontWeight: tableCollaboratorFilter === 'UNASSIGNED' ? 'bold' : 'normal',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Senza Team ({clients.filter(c => !c.collaborators || c.collaborators.length === 0).length})
+              </button>
+            </div>
+          </div>
+
+          {/* Toolbar Filtri Tabella e Switch Modalità */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem' }}>
+            <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap', flex: 1 }}>
+              <input
+                type="text"
+                placeholder="🔍 Cerca per nome cliente o collaboratore..."
+                value={tableSearch}
+                onChange={e => setTableSearch(e.target.value)}
+                style={{
+                  padding: '0.45rem 0.8rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.85rem',
+                  minWidth: '260px'
+                }}
+              />
+
+              <select
+                value={tableStatusFilter}
+                onChange={e => setTableStatusFilter(e.target.value)}
+                style={{
+                  padding: '0.45rem 0.8rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.85rem'
+                }}
+              >
+                <option value="ALL">Tutti gli Stati</option>
+                <option value="CLIENTE">Solo Attivi</option>
+                <option value="PROSPECT">Prospect</option>
+                <option value="OBSOLETO">Obsoleto</option>
+              </select>
+
+              {(tableSearch || tableStatusFilter !== 'ALL' || tableCollaboratorFilter) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTableSearch('');
+                    setTableStatusFilter('ALL');
+                    setTableCollaboratorFilter(null);
+                  }}
+                  style={{
+                    padding: '0.35rem 0.6rem',
+                    background: 'rgba(239, 68, 68, 0.12)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    color: 'var(--status-danger)',
+                    borderRadius: '6px',
+                    fontSize: '0.78rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Azzera Filtri
+                </button>
+              )}
+            </div>
+
+            {/* Switch Visualizzazione: Matrice vs Elenco */}
+            <div style={{ display: 'flex', gap: '0.3rem', background: 'var(--bg-elevated)', padding: '0.2rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+              <button
+                type="button"
+                onClick={() => setTableMode('matrix')}
+                style={{
+                  padding: '0.35rem 0.7rem',
+                  borderRadius: '4px',
+                  border: 'none',
+                  background: tableMode === 'matrix' ? 'var(--bg-secondary)' : 'transparent',
+                  color: tableMode === 'matrix' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  fontWeight: tableMode === 'matrix' ? 'bold' : 'normal',
+                  fontSize: '0.78rem',
+                  cursor: 'pointer'
+                }}
+              >
+                ▦ Griglia Matrice
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableMode('list')}
+                style={{
+                  padding: '0.35rem 0.7rem',
+                  borderRadius: '4px',
+                  border: 'none',
+                  background: tableMode === 'list' ? 'var(--bg-secondary)' : 'transparent',
+                  color: tableMode === 'list' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  fontWeight: tableMode === 'list' ? 'bold' : 'normal',
+                  fontSize: '0.78rem',
+                  cursor: 'pointer'
+                }}
+              >
+                📋 Elenco Compatto
+              </button>
+            </div>
+          </div>
+
+          {/* Tabella Dati */}
+          <div style={{
+            overflowX: 'auto',
+            maxHeight: '68vh',
+            overflowY: 'auto',
+            borderRadius: '8px',
+            border: '1px solid var(--border-color)',
+            background: 'var(--bg-secondary)'
+          }}>
+            {tableMode === 'matrix' ? (
+              /* GRIGLIA MATRICE: CLIENTE × COLLABORATORI */
+              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left', fontSize: '0.82rem' }}>
+                <thead>
+                  <tr style={{ background: 'var(--bg-elevated)', position: 'sticky', top: 0, zIndex: 10 }}>
+                    <th style={{
+                      padding: '0.75rem 1rem',
+                      borderBottom: '2px solid var(--border-color)',
+                      position: 'sticky',
+                      left: 0,
+                      zIndex: 12,
+                      background: 'var(--bg-elevated)',
+                      minWidth: '220px',
+                      boxShadow: '2px 0 5px rgba(0,0,0,0.2)'
+                    }}>
+                      Cliente ({filteredTableClients.length})
+                    </th>
+                    <th style={{ padding: '0.75rem', borderBottom: '2px solid var(--border-color)', minWidth: '90px', textAlign: 'center' }}>
+                      Stato
+                    </th>
+                    {members.map(m => {
+                      const initials = (m.name || 'U').split(' ').filter(Boolean).map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                      const memberClientCount = clients.filter(c => (c.collaborators || []).some(u => u.id === m.id)).length;
+                      return (
+                        <th key={m.id} style={{
+                          padding: '0.6rem 0.5rem',
+                          borderBottom: '2px solid var(--border-color)',
+                          textAlign: 'center',
+                          minWidth: '100px',
+                          borderLeft: '1px solid rgba(255,255,255,0.05)'
+                        }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem' }}>
+                            <span style={{
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '50%',
+                              background: 'var(--bg-primary)',
+                              color: 'var(--accent-primary)',
+                              border: '1px solid var(--border-color)',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.7rem',
+                              fontWeight: 'bold'
+                            }}>
+                              {initials}
+                            </span>
+                            <span style={{ fontSize: '0.75rem', maxWidth: '85px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {m.name}
+                            </span>
+                            <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', opacity: 0.8 }}>
+                              ({memberClientCount})
+                            </span>
+                          </div>
+                        </th>
+                      );
+                    })}
+                    <th style={{ padding: '0.75rem', borderBottom: '2px solid var(--border-color)', textAlign: 'center', minWidth: '85px' }}>
+                      Tot. Team
+                    </th>
+                    <th style={{ padding: '0.75rem', borderBottom: '2px solid var(--border-color)', textAlign: 'center', minWidth: '80px' }}>
+                      Schede
+                    </th>
+                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)', textAlign: 'center', minWidth: '120px' }}>
+                      Azioni
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTableClients.map((client, idx) => {
+                    const activeCardsCount = getClientActiveCardsCount(client.id);
+                    const clientColor = client.color || 'var(--accent-primary)';
+                    const isEven = idx % 2 === 0;
+
+                    return (
+                      <tr key={client.id} style={{
+                        background: isEven ? 'transparent' : 'rgba(255, 255, 255, 0.02)',
+                        transition: 'background 0.15s ease'
+                      }}>
+                        {/* Nome Cliente Sticky */}
+                        <td style={{
+                          padding: '0.65rem 1rem',
+                          borderBottom: '1px solid var(--border-color)',
+                          position: 'sticky',
+                          left: 0,
+                          zIndex: 5,
+                          background: isEven ? 'var(--bg-secondary)' : '#192231',
+                          boxShadow: '2px 0 5px rgba(0,0,0,0.15)'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: clientColor, flexShrink: 0 }} />
+                            <span 
+                              onClick={() => openClientDetailsFromTable(client)}
+                              style={{ fontWeight: '600', color: 'var(--text-primary)', cursor: 'pointer', transition: 'color 0.15s ease' }}
+                              onMouseOver={e => e.currentTarget.style.color = 'var(--accent-primary)'}
+                              onMouseOut={e => e.currentTarget.style.color = 'var(--text-primary)'}
+                              title="Clicca per aprire la scheda del cliente"
+                            >
+                              {client.name}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Stato */}
+                        <td style={{ padding: '0.65rem 0.5rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center' }}>
+                          <span style={{
+                            fontSize: '0.7rem',
+                            padding: '0.15rem 0.45rem',
+                            borderRadius: '10px',
+                            fontWeight: 'bold',
+                            background: client.status === 'PROSPECT' ? 'rgba(234, 179, 8, 0.15)' : (client.status === 'OBSOLETO' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(34, 197, 94, 0.15)'),
+                            color: client.status === 'PROSPECT' ? 'var(--status-warning)' : (client.status === 'OBSOLETO' ? 'var(--text-secondary)' : 'var(--accent-primary)')
+                          }}>
+                            {client.status || 'CLIENTE'}
+                          </span>
+                        </td>
+
+                        {/* Celle Collaboratori con Toggle Interattivo */}
+                        {members.map(m => {
+                          const isAssigned = (client.collaborators || []).some(u => u.id === m.id);
+                          const isUpdating = updatingAssignmentKey === `${client.id}-${m.id}`;
+
+                          return (
+                            <td key={m.id} style={{
+                              padding: '0.4rem 0.5rem',
+                              borderBottom: '1px solid var(--border-color)',
+                              textAlign: 'center',
+                              borderLeft: '1px solid rgba(255,255,255,0.04)'
+                            }}>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleAssignmentInTable(client, m.id)}
+                                disabled={isUpdating}
+                                title={isAssigned ? `Rimuovi ${m.name} da ${client.name}` : `Assegna ${m.name} a ${client.name}`}
+                                style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '8px',
+                                  border: isAssigned ? '1px solid var(--accent-primary)' : '1px dashed rgba(255,255,255,0.18)',
+                                  background: isAssigned ? 'rgba(34, 197, 94, 0.18)' : 'transparent',
+                                  color: isAssigned ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '0.85rem',
+                                  fontWeight: isAssigned ? 'bold' : 'normal',
+                                  transition: 'all 0.15s ease'
+                                }}
+                                onMouseOver={e => {
+                                  if (!isAssigned) {
+                                    e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                                    e.currentTarget.style.borderColor = 'var(--text-secondary)';
+                                  }
+                                }}
+                                onMouseOut={e => {
+                                  if (!isAssigned) {
+                                    e.currentTarget.style.background = 'transparent';
+                                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)';
+                                  }
+                                }}
+                              >
+                                {isUpdating ? '...' : (isAssigned ? '✓' : '+')}
+                              </button>
+                            </td>
+                          );
+                        })}
+
+                        {/* Conteggio Collaboratori */}
+                        <td style={{ padding: '0.65rem 0.5rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center' }}>
+                          <span style={{
+                            fontSize: '0.75rem',
+                            fontWeight: 'bold',
+                            padding: '0.15rem 0.45rem',
+                            borderRadius: '10px',
+                            background: (client.collaborators || []).length > 0 ? 'rgba(34, 197, 94, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                            color: (client.collaborators || []).length > 0 ? 'var(--accent-primary)' : 'var(--text-secondary)'
+                          }}>
+                            👥 {(client.collaborators || []).length}
+                          </span>
+                        </td>
+
+                        {/* Conteggio Schede */}
+                        <td style={{ padding: '0.65rem 0.5rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center' }}>
+                          <span style={{
+                            fontSize: '0.75rem',
+                            padding: '0.15rem 0.45rem',
+                            borderRadius: '10px',
+                            background: activeCardsCount > 0 ? 'rgba(66, 133, 244, 0.12)' : 'transparent',
+                            color: activeCardsCount > 0 ? '#4285F4' : 'var(--text-secondary)'
+                          }}>
+                            {activeCardsCount > 0 ? activeCardsCount : '—'}
+                          </span>
+                        </td>
+
+                        {/* Azioni */}
+                        <td style={{ padding: '0.65rem 1rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => openClientDetailsFromTable(client)}
+                              style={{
+                                padding: '0.25rem 0.55rem',
+                                background: 'var(--bg-elevated)',
+                                border: '1px solid var(--border-color)',
+                                color: 'var(--text-primary)',
+                                borderRadius: '4px',
+                                fontSize: '0.75rem',
+                                cursor: 'pointer'
+                              }}
+                              title="Modifica cliente e impostazioni"
+                            >
+                              ✏️ Scheda
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); if (onOpenNotebook) onOpenNotebook(client); }}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '1.1rem',
+                                padding: '0.1rem 0.3rem'
+                              }}
+                              title="Apri Brain IA"
+                            >
+                              🧠
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {filteredTableClients.length === 0 && (
+                    <tr>
+                      <td colSpan={members.length + 5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                        Nessun cliente trovato con i filtri attuali.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            ) : (
+              /* MODALITÀ ELENCO COMPATTO */
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+                <thead>
+                  <tr style={{ background: 'var(--bg-elevated)', position: 'sticky', top: 0, zIndex: 10 }}>
+                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)' }}>Cliente</th>
+                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)' }}>Stato</th>
+                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)' }}>Team Assegnato</th>
+                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)', textAlign: 'center' }}>Schede Attive</th>
+                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)', textAlign: 'center' }}>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTableClients.map((client, idx) => {
+                    const activeCardsCount = getClientActiveCardsCount(client.id);
+                    const clientColor = client.color || 'var(--accent-primary)';
+
+                    return (
+                      <tr key={client.id} style={{
+                        background: idx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.02)',
+                        borderBottom: '1px solid var(--border-color)'
+                      }}>
+                        <td style={{ padding: '0.75rem 1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: clientColor, flexShrink: 0 }} />
+                            <strong 
+                              onClick={() => openClientDetailsFromTable(client)}
+                              style={{ color: 'var(--text-primary)', cursor: 'pointer' }}
+                              onMouseOver={e => e.currentTarget.style.color = 'var(--accent-primary)'}
+                              onMouseOut={e => e.currentTarget.style.color = 'var(--text-primary)'}
+                            >
+                              {client.name}
+                            </strong>
+                          </div>
+                        </td>
+                        <td style={{ padding: '0.75rem 1rem' }}>
+                          <span style={{
+                            fontSize: '0.72rem',
+                            padding: '0.15rem 0.45rem',
+                            borderRadius: '10px',
+                            fontWeight: 'bold',
+                            background: client.status === 'PROSPECT' ? 'rgba(234, 179, 8, 0.15)' : (client.status === 'OBSOLETO' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(34, 197, 94, 0.15)'),
+                            color: client.status === 'PROSPECT' ? 'var(--status-warning)' : (client.status === 'OBSOLETO' ? 'var(--text-secondary)' : 'var(--accent-primary)')
+                          }}>
+                            {client.status || 'CLIENTE'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '0.75rem 1rem' }}>
+                          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                            {(client.collaborators || []).map(u => (
+                              <span key={u.id} style={{
+                                background: 'rgba(34, 197, 94, 0.12)',
+                                border: '1px solid rgba(34, 197, 94, 0.25)',
+                                color: 'var(--accent-primary)',
+                                padding: '0.15rem 0.5rem',
+                                borderRadius: '12px',
+                                fontSize: '0.72rem',
+                                fontWeight: '600'
+                              }}>
+                                {u.name}
+                              </span>
+                            ))}
+                            {(!client.collaborators || client.collaborators.length === 0) && (
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                Nessun collaboratore
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
+                          <span style={{
+                            fontSize: '0.75rem',
+                            padding: '0.15rem 0.5rem',
+                            borderRadius: '10px',
+                            background: activeCardsCount > 0 ? 'rgba(66, 133, 244, 0.12)' : 'transparent',
+                            color: activeCardsCount > 0 ? '#4285F4' : 'var(--text-secondary)'
+                          }}>
+                            {activeCardsCount > 0 ? `${activeCardsCount} schede` : '—'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => openClientDetailsFromTable(client)}
+                              style={{
+                                padding: '0.25rem 0.6rem',
+                                background: 'var(--bg-elevated)',
+                                border: '1px solid var(--border-color)',
+                                color: 'var(--text-primary)',
+                                borderRadius: '4px',
+                                fontSize: '0.75rem',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              ✏️ Scheda
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); if (onOpenNotebook) onOpenNotebook(client); }}
+                              style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}
+                              title="Apri Brain IA"
+                            >
+                              🧠
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {filteredTableClients.length === 0 && (
+                    <tr>
+                      <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                        Nessun cliente trovato con i filtri attuali.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
