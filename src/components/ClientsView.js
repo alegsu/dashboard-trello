@@ -1,6 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ProjectsView.module.css'; // Possiamo riusare questo CSS per comodità
-import { FaSync, FaGoogle, FaTrash } from 'react-icons/fa';
+import { FaSync, FaGoogle, FaTrash, FaEye, FaEyeSlash, FaEdit, FaCheck, FaTimes, FaCog, FaPlus } from 'react-icons/fa';
+
+export const PRESET_SERVICES = [
+  { key: 'POST SOCIAL', label: '📱 Post Social', short: 'Social' },
+  { key: 'STORIE', label: '📸 Storie / Reels', short: 'Storie' },
+  { key: 'NEWSLETTER', label: '✉️ Newsletter / DEM', short: 'Newsletter' },
+  { key: 'ADV', label: '🎯 ADV / Ads', short: 'ADV' },
+  { key: 'SHOOTING', label: '🎬 Shooting Foto/Video', short: 'Shooting' },
+  { key: 'BLOG POST', label: '✍️ Blog Post / Copy', short: 'Blog' },
+  { key: 'SITO WEB', label: '💻 Sito Web / Dev', short: 'Sito' },
+  { key: 'GRAFICA', label: '🎨 Grafica / Brand', short: 'Grafica' }
+];
+
+export const parseClientServices = (sheetDataStr) => {
+  if (!sheetDataStr) return { services: [], servicesDetails: {}, effort: '' };
+  try {
+    const data = JSON.parse(sheetDataStr);
+    return {
+      effort: data.effort || '',
+      services: Array.isArray(data.services) ? data.services : Object.keys(data.servicesDetails || {}),
+      servicesDetails: data.servicesDetails || {}
+    };
+  } catch {
+    return { services: [], servicesDetails: {}, effort: '' };
+  }
+};
+
+export const getMemberServicesForClient = (client, memberName) => {
+  if (!client || !memberName) return [];
+  const { servicesDetails } = parseClientServices(client.sheetData);
+  const target = memberName.trim().toUpperCase();
+  const matched = [];
+  Object.entries(servicesDetails || {}).forEach(([serviceKey, users]) => {
+    if (Array.isArray(users) && users.some(u => (u.name || '').trim().toUpperCase() === target)) {
+      matched.push(serviceKey);
+    }
+  });
+  return matched;
+};
 
 export default function ClientsView({ clients: initialClients, cards = [], members = [], onRefresh, onOpenNotebook }) {
   const [clients, setClients] = useState(initialClients);
@@ -17,13 +55,24 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
   const [selectedCollaboratorIds, setSelectedCollaboratorIds] = useState([]);
   const [collaboratorSearch, setCollaboratorSearch] = useState('');
   
-  // Vista Tabella / Matrice
+  // Vista Tabella / Matrice & Filtri
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
   const [tableSearch, setTableSearch] = useState('');
   const [tableStatusFilter, setTableStatusFilter] = useState('ALL');
   const [tableCollaboratorFilter, setTableCollaboratorFilter] = useState(null);
   const [tableMode, setTableMode] = useState('matrix'); // 'matrix' | 'list'
   const [updatingAssignmentKey, setUpdatingAssignmentKey] = useState(null);
+  const [showHiddenAndOld, setShowHiddenAndOld] = useState(false);
+
+  // Rinomina Rapida Inline
+  const [editingClientId, setEditingClientId] = useState(null);
+  const [editingClientName, setEditingClientName] = useState('');
+
+  // Modale Assegnazione Compiti (Newsletter, Social, ecc.)
+  const [taskModalData, setTaskModalData] = useState(null); // { client, member }
+  const [taskModalSelectedKeys, setTaskModalSelectedKeys] = useState([]);
+  const [newCustomTaskInput, setNewCustomTaskInput] = useState('');
+  const [rubricaNewServiceInput, setRubricaNewServiceInput] = useState('');
   
   const [mergeTargetId, setMergeTargetId] = useState('');
 
@@ -83,47 +132,188 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
     setSelectedCollaboratorIds([]);
   };
 
-  const handleToggleAssignmentInTable = async (client, userId) => {
-    const key = `${client.id}-${userId}`;
-    setUpdatingAssignmentKey(key);
+  // Rinomina Rapida
+  const handleRenameClient = async (clientId, newName) => {
+    if (!newName || !newName.trim()) {
+      setEditingClientId(null);
+      return;
+    }
+    const trimmed = newName.trim();
+    setClients(prev => (prev || []).map(c => c.id === clientId ? { ...c, name: trimmed } : c));
+    if (selectedClient?.id === clientId) {
+      setSelectedClient(prev => ({ ...prev, name: trimmed }));
+      setName(trimmed);
+    }
+    setEditingClientId(null);
 
-    const currentIds = (client.collaborators || []).map(u => u.id);
-    const isCurrentlyAssigned = currentIds.includes(userId);
-    const newIds = isCurrentlyAssigned
-      ? currentIds.filter(id => id !== userId)
-      : [...currentIds, userId];
+    try {
+      const res = await fetch(`/api/clients/${clientId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed })
+      });
+      if (res.ok && onRefresh) onRefresh();
+    } catch (err) {
+      console.error(err);
+      if (onRefresh) onRefresh();
+    }
+  };
 
-    const targetMember = (members || []).find(m => m.id === userId);
-    const updatedCollaborators = isCurrentlyAssigned
-      ? (client.collaborators || []).filter(u => u.id !== userId)
-      : [...(client.collaborators || []), targetMember].filter(Boolean);
+  // Cambio Stato / Nascondi
+  const handleUpdateClientStatus = async (clientId, newStatus) => {
+    setClients(prev => (prev || []).map(c => c.id === clientId ? { ...c, status: newStatus } : c));
+    if (selectedClient?.id === clientId) {
+      setSelectedClient(prev => ({ ...prev, status: newStatus }));
+      setStatus(newStatus);
+    }
+
+    try {
+      const res = await fetch(`/api/clients/${clientId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok && onRefresh) onRefresh();
+    } catch (err) {
+      console.error(err);
+      if (onRefresh) onRefresh();
+    }
+  };
+
+  const handleToggleHideClient = async (client) => {
+    const isHidden = client.status === 'NASCOSTO';
+    const newStatus = isHidden ? 'CLIENTE' : 'NASCOSTO';
+    await handleUpdateClientStatus(client.id, newStatus);
+  };
+
+  // Apertura modale compiti per collaboratore-cliente
+  const openTaskModal = (client, member) => {
+    const userTasks = getMemberServicesForClient(client, member.name);
+    setTaskModalSelectedKeys(userTasks);
+    setNewCustomTaskInput('');
+    setTaskModalData({ client, member });
+  };
+
+  // Salvataggio compiti utente per cliente
+  const handleSaveMemberTasks = async (client, member, selectedTaskKeys) => {
+    const currentData = parseClientServices(client.sheetData);
+    const newServicesDetails = { ...currentData.servicesDetails };
+    const memberNameUpper = member.name.trim().toUpperCase();
+
+    // 1. Rimuovi utente dai compiti non selezionati
+    Object.keys(newServicesDetails).forEach(svc => {
+      if (!selectedTaskKeys.includes(svc)) {
+        newServicesDetails[svc] = (newServicesDetails[svc] || []).filter(
+          u => (u.name || '').trim().toUpperCase() !== memberNameUpper
+        );
+      }
+    });
+
+    // 2. Aggiungi utente ai compiti selezionati
+    selectedTaskKeys.forEach(svc => {
+      if (!newServicesDetails[svc]) {
+        newServicesDetails[svc] = [];
+      }
+      const alreadyIn = newServicesDetails[svc].some(
+        u => (u.name || '').trim().toUpperCase() === memberNameUpper
+      );
+      if (!alreadyIn) {
+        newServicesDetails[svc].push({ name: member.name });
+      }
+    });
+
+    const allServicesSet = new Set([
+      ...(currentData.services || []),
+      ...selectedTaskKeys,
+      ...Object.keys(newServicesDetails)
+    ]);
+    const newServices = Array.from(allServicesSet);
+
+    const newSheetDataObj = {
+      ...currentData,
+      services: newServices,
+      servicesDetails: newServicesDetails
+    };
+    const newSheetDataStr = JSON.stringify(newSheetDataObj);
+
+    // Sincronizza collaboratori: se l'utente ha almeno un compito o era già associato
+    const currentCollabIds = (client.collaborators || []).map(u => u.id);
+    let newCollabIds = [...currentCollabIds];
+    if (selectedTaskKeys.length > 0 && !newCollabIds.includes(member.id)) {
+      newCollabIds.push(member.id);
+    }
+
+    const updatedCollaborators = newCollabIds
+      .map(id => (members || []).find(m => m.id === id))
+      .filter(Boolean);
 
     const updatedClient = {
       ...client,
+      sheetData: newSheetDataStr,
       collaborators: updatedCollaborators
     };
 
     setClients(prev => (prev || []).map(c => c.id === client.id ? updatedClient : c));
     if (selectedClient?.id === client.id) {
       setSelectedClient(updatedClient);
-      setSelectedCollaboratorIds(newIds);
+      setSelectedCollaboratorIds(newCollabIds);
     }
+
+    setTaskModalData(null);
 
     try {
       const res = await fetch(`/api/clients/${client.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ collaborators: newIds })
+        body: JSON.stringify({
+          sheetData: newSheetDataStr,
+          collaborators: newCollabIds
+        })
       });
-      if (!res.ok) {
-        if (onRefresh) onRefresh();
-      }
+      if (res.ok && onRefresh) onRefresh();
     } catch (err) {
       console.error(err);
       if (onRefresh) onRefresh();
-    } finally {
-      setUpdatingAssignmentKey(null);
     }
+  };
+
+  // Toggle rapido assegnazione in tabella
+  const handleToggleAssignmentInTable = async (client, userId) => {
+    const targetMember = (members || []).find(m => m.id === userId);
+    if (!targetMember) return;
+
+    const currentIds = (client.collaborators || []).map(u => u.id);
+    const isCurrentlyAssigned = currentIds.includes(userId);
+
+    // Se non è ancora assegnato, lo assegniamo e apriamo direttamente il configuratore compiti
+    if (!isCurrentlyAssigned) {
+      const newIds = [...currentIds, userId];
+      const updatedCollaborators = [...(client.collaborators || []), targetMember];
+      const updatedClient = { ...client, collaborators: updatedCollaborators };
+
+      setClients(prev => (prev || []).map(c => c.id === client.id ? updatedClient : c));
+      if (selectedClient?.id === client.id) {
+        setSelectedClient(updatedClient);
+        setSelectedCollaboratorIds(newIds);
+      }
+
+      openTaskModal(client, targetMember);
+
+      try {
+        await fetch(`/api/clients/${client.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ collaborators: newIds })
+        });
+        if (onRefresh) onRefresh();
+      } catch(e) {
+        console.error(e);
+      }
+      return;
+    }
+
+    // Se è già assegnato, apriamo la modale compiti per permettere di configurarlo o rimuoverlo
+    openTaskModal(client, targetMember);
   };
 
   const openClientDetailsFromTable = (client) => {
@@ -135,12 +325,133 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
     return (cards || []).filter(card => card.clientId === clientId && !card.isArchived).length;
   };
 
+  const handleAddServiceInRubrica = async (svcKey) => {
+    if (!selectedClient) return;
+    const currentData = parseClientServices(selectedClient.sheetData);
+    const newServices = Array.from(new Set([...(currentData.services || []), svcKey]));
+    const newServicesDetails = { ...currentData.servicesDetails };
+    if (!newServicesDetails[svcKey]) {
+      newServicesDetails[svcKey] = [];
+    }
+    const newSheetData = JSON.stringify({ ...currentData, services: newServices, servicesDetails: newServicesDetails });
+    const updatedClient = { ...selectedClient, sheetData: newSheetData };
+    setSelectedClient(updatedClient);
+    setClients(prev => prev.map(c => c.id === selectedClient.id ? updatedClient : c));
+
+    try {
+      await fetch(`/api/clients/${selectedClient.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheetData: newSheetData })
+      });
+      if (onRefresh) onRefresh();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleRemoveServiceInRubrica = async (svcKey) => {
+    if (!selectedClient) return;
+    const currentData = parseClientServices(selectedClient.sheetData);
+    const newServices = (currentData.services || []).filter(s => s !== svcKey);
+    const newServicesDetails = { ...currentData.servicesDetails };
+    delete newServicesDetails[svcKey];
+
+    const newSheetData = JSON.stringify({ ...currentData, services: newServices, servicesDetails: newServicesDetails });
+    const updatedClient = { ...selectedClient, sheetData: newSheetData };
+    setSelectedClient(updatedClient);
+    setClients(prev => prev.map(c => c.id === selectedClient.id ? updatedClient : c));
+
+    try {
+      await fetch(`/api/clients/${selectedClient.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheetData: newSheetData })
+      });
+      if (onRefresh) onRefresh();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleAddUserToServiceInRubrica = async (svcKey, memberName) => {
+    if (!selectedClient || !memberName) return;
+    const currentData = parseClientServices(selectedClient.sheetData);
+    const newServicesDetails = { ...currentData.servicesDetails };
+    if (!newServicesDetails[svcKey]) newServicesDetails[svcKey] = [];
+
+    const upper = memberName.trim().toUpperCase();
+    if (!newServicesDetails[svcKey].some(u => (u.name || '').toUpperCase() === upper)) {
+      newServicesDetails[svcKey].push({ name: memberName.trim() });
+    }
+
+    const newServices = Array.from(new Set([...(currentData.services || []), svcKey]));
+    const newSheetData = JSON.stringify({ ...currentData, services: newServices, servicesDetails: newServicesDetails });
+
+    // Sync collaborators
+    const memberObj = (members || []).find(m => m.name.toUpperCase() === upper);
+    let newCollabIds = (selectedClient.collaborators || []).map(u => u.id);
+    if (memberObj && !newCollabIds.includes(memberObj.id)) {
+      newCollabIds.push(memberObj.id);
+    }
+    const updatedCollaborators = newCollabIds.map(id => (members || []).find(m => m.id === id)).filter(Boolean);
+
+    const updatedClient = { ...selectedClient, sheetData: newSheetData, collaborators: updatedCollaborators };
+    setSelectedClient(updatedClient);
+    setSelectedCollaboratorIds(newCollabIds);
+    setClients(prev => prev.map(c => c.id === selectedClient.id ? updatedClient : c));
+
+    try {
+      await fetch(`/api/clients/${selectedClient.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheetData: newSheetData, collaborators: newCollabIds })
+      });
+      if (onRefresh) onRefresh();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleRemoveUserFromServiceInRubrica = async (svcKey, memberName) => {
+    if (!selectedClient || !memberName) return;
+    const currentData = parseClientServices(selectedClient.sheetData);
+    const newServicesDetails = { ...currentData.servicesDetails };
+    const upper = memberName.trim().toUpperCase();
+    if (newServicesDetails[svcKey]) {
+      newServicesDetails[svcKey] = newServicesDetails[svcKey].filter(u => (u.name || '').toUpperCase() !== upper);
+    }
+
+    const newSheetData = JSON.stringify({ ...currentData, servicesDetails: newServicesDetails });
+    const updatedClient = { ...selectedClient, sheetData: newSheetData };
+    setSelectedClient(updatedClient);
+    setClients(prev => prev.map(c => c.id === selectedClient.id ? updatedClient : c));
+
+    try {
+      await fetch(`/api/clients/${selectedClient.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheetData: newSheetData })
+      });
+      if (onRefresh) onRefresh();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const filteredTableClients = clients.filter(c => {
+    // Escludi nascosti e vecchi se il toggle non è attivo
+    if (!showHiddenAndOld && tableStatusFilter === 'ALL') {
+      if (c.status === 'NASCOSTO' || c.status === 'OBSOLETO') return false;
+    }
+
     if (tableSearch) {
       const q = tableSearch.toLowerCase();
       const matchName = (c.name || '').toLowerCase().includes(q);
       const matchCollaborator = (c.collaborators || []).some(u => (u.name || '').toLowerCase().includes(q));
-      if (!matchName && !matchCollaborator) return false;
+      const { services } = parseClientServices(c.sheetData);
+      const matchService = services.some(s => s.toLowerCase().includes(q));
+      if (!matchName && !matchCollaborator && !matchService) return false;
     }
 
     if (tableStatusFilter !== 'ALL') {
@@ -435,15 +746,29 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
         <div style={{ display: 'flex', gap: '2rem', marginTop: '1rem', flexWrap: 'wrap' }}>
         {/* Lista Clienti */}
         <div style={{ flex: '1 1 300px', background: 'var(--bg-glass)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', alignSelf: 'flex-start' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={{ margin: 0 }}>I Tuoi Clienti ({clients.filter(c => filterActive ? !!c.sheetData : true).length})</h3>
-            <label style={{ fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
-              <input type="checkbox" checked={filterActive} onChange={e => setFilterActive(e.target.checked)} />
-              Solo Attivi
-            </label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', flexWrap: 'wrap', gap: '0.4rem' }}>
+            <h3 style={{ margin: 0, fontSize: '0.95rem' }}>
+              I Tuoi Clienti ({clients.filter(c => {
+                if (!showHiddenAndOld && (c.status === 'NASCOSTO' || c.status === 'OBSOLETO')) return false;
+                return filterActive ? !!c.sheetData : true;
+              }).length})
+            </h3>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <label style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                <input type="checkbox" checked={filterActive} onChange={e => setFilterActive(e.target.checked)} />
+                Fogli
+              </label>
+              <label style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', color: showHiddenAndOld ? 'var(--status-warning)' : 'var(--text-secondary)' }} title="Mostra anche clienti nascosti e vecchi">
+                <input type="checkbox" checked={showHiddenAndOld} onChange={e => setShowHiddenAndOld(e.target.checked)} />
+                Nascosti
+              </label>
+            </div>
           </div>
           <ul style={{ listStyle: 'none', padding: 0 }}>
-            {clients.filter(c => filterActive ? !!c.sheetData : true).map((c, index) => (
+            {clients.filter(c => {
+              if (!showHiddenAndOld && (c.status === 'NASCOSTO' || c.status === 'OBSOLETO')) return false;
+              return filterActive ? !!c.sheetData : true;
+            }).map((c, index) => (
               <li 
                 key={c.id} 
                 onClick={() => handleSelectClient(c)}
@@ -459,8 +784,20 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                 }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', overflow: 'hidden' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                     <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{c.name}</span>
+                    {c.status && c.status !== 'CLIENTE' && (
+                      <span style={{
+                        fontSize: '0.62rem',
+                        padding: '0.05rem 0.35rem',
+                        borderRadius: '8px',
+                        fontWeight: 'bold',
+                        background: c.status === 'UNA_TANTUM' ? 'rgba(168, 85, 247, 0.15)' : (c.status === 'PROSPECT' ? 'rgba(234, 179, 8, 0.15)' : (c.status === 'NASCOSTO' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.08)')),
+                        color: c.status === 'UNA_TANTUM' ? '#c084fc' : (c.status === 'PROSPECT' ? 'var(--status-warning)' : (c.status === 'NASCOSTO' ? 'var(--status-danger)' : 'var(--text-secondary)'))
+                      }}>
+                        {c.status === 'UNA_TANTUM' ? '1-Spot' : (c.status === 'NASCOSTO' ? 'Nascosto' : (c.status === 'OBSOLETO' ? 'Vecchio' : c.status))}
+                      </span>
+                    )}
                     {c.collaborators && c.collaborators.length > 0 && (
                       <span 
                         style={{ 
@@ -523,11 +860,13 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                   <select 
                     value={status} 
                     onChange={e => setStatus(e.target.value)} 
-                    style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '1.1rem' }}
+                    style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '1.05rem' }}
                   >
-                    <option value="CLIENTE">Attivo</option>
-                    <option value="PROSPECT">Prospect</option>
-                    <option value="OBSOLETO">Obsoleto</option>
+                    <option value="CLIENTE">🟢 Attivo (Continuativo)</option>
+                    <option value="UNA_TANTUM">🟡 Una Tantum (Spot)</option>
+                    <option value="PROSPECT">🔵 Prospect (Trattativa)</option>
+                    <option value="OBSOLETO">⚪ Vecchio / Chiuso</option>
+                    <option value="NASCOSTO">👁️‍🗨️ Nascosto (Archiviato)</option>
                   </select>
                 </div>
 
@@ -810,44 +1149,115 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
 
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '1.5rem 0' }} />
 
-            {/* Mostriamo i dati sincronizzati da Google Sheets se presenti */}
-            {selectedClient.sheetData && (
-              <div style={{ marginBottom: '1.5rem', padding: '0.8rem', background: 'rgba(66, 133, 244, 0.05)', borderRadius: '8px', border: '1px solid rgba(66, 133, 244, 0.2)' }}>
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: '#4285F4' }}>
-                  <FaGoogle size={14} /> Dati da Fogli Google
+            {/* Hub Compiti & Servizi Assegnati (Newsletter, Social, Shooting, ADV...) */}
+            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(66, 133, 244, 0.05)', borderRadius: '8px', border: '1px solid rgba(66, 133, 244, 0.2)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0, fontSize: '0.92rem', color: '#4285F4' }}>
+                  🛠️ Compiti & Servizi Assegnati (Newsletter, Social, ADV, ecc.)
                 </h3>
-                
-                {(() => {
-                  try {
-                    const data = JSON.parse(selectedClient.sheetData);
-                    return (
-                      <div style={{ fontSize: '0.8rem' }}>
-                        {data.servicesDetails && Object.keys(data.servicesDetails).length > 0 ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                            {Object.entries(data.servicesDetails).map(([service, users]) => (
-                              <div key={service} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: 'var(--bg-elevated)', padding: '0.3rem 0.5rem', borderRadius: '4px' }}>
-                                <strong style={{ minWidth: '100px' }}>{service}:</strong>
-                                <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
-                                  {users.map((u, idx) => (
-                                    <span key={idx} style={{ background: 'var(--bg-secondary)', padding: '0.1rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.75rem' }}>
-                                      {u.name} {u.effort ? <strong style={{ color: 'var(--accent-primary)' }}>({u.effort})</strong> : ''}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div style={{ color: 'var(--text-secondary)' }}>Nessun dettaglio servizio disponibile.</div>
-                        )}
-                      </div>
-                    );
-                  } catch(e) {
-                    return <p style={{ margin: 0, color: 'var(--status-delayed)', fontSize: '0.8rem' }}>Errore parsing dati.</p>;
-                  }
-                })()}
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                  Assegna i singoli compiti ai collaboratori
+                </span>
               </div>
-            )}
+
+              {/* Preset veloci per aggiungere compiti */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.8rem', background: 'rgba(255,255,255,0.02)', padding: '0.6rem', borderRadius: '6px' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>+ Aggiungi rapido compito/servizio:</span>
+                <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {PRESET_SERVICES.map(p => (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => handleAddServiceInRubrica(p.key)}
+                      style={{
+                        padding: '0.2rem 0.5rem',
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '12px',
+                        color: 'var(--text-primary)',
+                        fontSize: '0.72rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Lista dei compiti/servizi attivi con utenti assegnati */}
+              {(() => {
+                const { servicesDetails, services } = parseClientServices(selectedClient.sheetData);
+                const allActiveServices = Array.from(new Set([...(services || []), ...Object.keys(servicesDetails || {})]));
+
+                if (allActiveServices.length === 0) {
+                  return (
+                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                      Nessun compito specifico assegnato. Clicca sui pulsanti in alto per aggiungere compiti (Newsletter, Social, ADV, ecc.).
+                    </p>
+                  );
+                }
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {allActiveServices.map(svcKey => {
+                      const assignedUsers = servicesDetails[svcKey] || [];
+                      const preset = PRESET_SERVICES.find(p => p.key === svcKey);
+                      const svcTitle = preset ? preset.label : `📌 ${svcKey}`;
+
+                      return (
+                        <div key={svcKey} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-elevated)', padding: '0.5rem 0.8rem', borderRadius: '6px', border: '1px solid var(--border-color)', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                            <strong style={{ fontSize: '0.82rem', minWidth: '130px', color: 'var(--text-primary)' }}>{svcTitle}:</strong>
+                            
+                            {/* Collaboratori assegnati a questo compito */}
+                            <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                              {assignedUsers.map((u, idx) => (
+                                <span key={idx} style={{ background: 'var(--bg-secondary)', padding: '0.15rem 0.45rem', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                                  <span>{u.name} {u.effort ? <strong style={{ color: 'var(--accent-primary)' }}>({u.effort})</strong> : ''}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveUserFromServiceInRubrica(svcKey, u.name)}
+                                    style={{ background: 'transparent', border: 'none', color: 'var(--status-danger)', cursor: 'pointer', padding: 0, fontSize: '0.75rem' }}
+                                    title={`Rimuovi ${u.name} da ${svcKey}`}
+                                  >
+                                    ✕
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+
+                            {/* Dropdown per aggiungere un collaboratore a questo servizio */}
+                            <select
+                              value=""
+                              onChange={e => {
+                                if (e.target.value) handleAddUserToServiceInRubrica(svcKey, e.target.value);
+                              }}
+                              style={{ padding: '0.15rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-secondary)', fontSize: '0.72rem' }}
+                            >
+                              <option value="">+ Assegna Persona...</option>
+                              {members.filter(m => !assignedUsers.some(u => (u.name || '').toUpperCase() === m.name.toUpperCase())).map(m => (
+                                <option key={m.id} value={m.name}>{m.name}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* Tasto elimina compito */}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveServiceInRubrica(svcKey)}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--status-danger)', cursor: 'pointer', padding: '0.2rem' }}
+                            title="Elimina questo compito dal cliente"
+                          >
+                            <FaTrash size={12} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
 
             {/* Zona Pericolosa */}
             <div style={{ background: 'rgba(255,0,0,0.02)', border: '1px solid rgba(255,0,0,0.1)', borderRadius: '6px' }}>
@@ -995,7 +1405,7 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
             <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap', flex: 1 }}>
               <input
                 type="text"
-                placeholder="🔍 Cerca per nome cliente o collaboratore..."
+                placeholder="🔍 Cerca cliente, collaboratore o compito (es. newsletter, social...)"
                 value={tableSearch}
                 onChange={e => setTableSearch(e.target.value)}
                 style={{
@@ -1004,8 +1414,8 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                   border: '1px solid var(--border-color)',
                   background: 'var(--bg-primary)',
                   color: 'var(--text-primary)',
-                  fontSize: '0.85rem',
-                  minWidth: '260px'
+                  fontSize: '0.82rem',
+                  minWidth: '280px'
                 }}
               />
 
@@ -1018,22 +1428,34 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                   border: '1px solid var(--border-color)',
                   background: 'var(--bg-primary)',
                   color: 'var(--text-primary)',
-                  fontSize: '0.85rem'
+                  fontSize: '0.82rem'
                 }}
               >
                 <option value="ALL">Tutti gli Stati</option>
-                <option value="CLIENTE">Solo Attivi</option>
-                <option value="PROSPECT">Prospect</option>
-                <option value="OBSOLETO">Obsoleto</option>
+                <option value="CLIENTE">🟢 Solo Attivi</option>
+                <option value="UNA_TANTUM">🟡 Una Tantum</option>
+                <option value="PROSPECT">🔵 Prospect</option>
+                <option value="OBSOLETO">⚪ Vecchio / Chiuso</option>
+                <option value="NASCOSTO">👁️‍🗨️ Nascosti</option>
               </select>
 
-              {(tableSearch || tableStatusFilter !== 'ALL' || tableCollaboratorFilter) && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', cursor: 'pointer', color: showHiddenAndOld ? 'var(--status-warning)' : 'var(--text-secondary)' }} title="Mostra anche clienti nascosti o conclusi">
+                <input 
+                  type="checkbox" 
+                  checked={showHiddenAndOld} 
+                  onChange={e => setShowHiddenAndOld(e.target.checked)} 
+                />
+                <span>👁️ Mostra Nascosti & Vecchi</span>
+              </label>
+
+              {(tableSearch || tableStatusFilter !== 'ALL' || tableCollaboratorFilter || showHiddenAndOld) && (
                 <button
                   type="button"
                   onClick={() => {
                     setTableSearch('');
                     setTableStatusFilter('ALL');
                     setTableCollaboratorFilter(null);
+                    setShowHiddenAndOld(false);
                   }}
                   style={{
                     padding: '0.35rem 0.6rem',
@@ -1045,7 +1467,7 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                     cursor: 'pointer'
                   }}
                 >
-                  Azzera Filtri
+                  Azzera
                 </button>
               )}
             </div>
@@ -1082,7 +1504,7 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                   cursor: 'pointer'
                 }}
               >
-                📋 Elenco Compatto
+                📋 Elenco Dettagliato
               </button>
             </div>
           </div>
@@ -1097,7 +1519,7 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
             background: 'var(--bg-secondary)'
           }}>
             {tableMode === 'matrix' ? (
-              /* GRIGLIA MATRICE: CLIENTE × COLLABORATORI */
+              /* GRIGLIA MATRICE: CLIENTE × COLLABORATORI CON COMPITI */
               <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left', fontSize: '0.82rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-elevated)', position: 'sticky', top: 0, zIndex: 10 }}>
@@ -1108,12 +1530,12 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                       left: 0,
                       zIndex: 12,
                       background: 'var(--bg-elevated)',
-                      minWidth: '220px',
+                      minWidth: '240px',
                       boxShadow: '2px 0 5px rgba(0,0,0,0.2)'
                     }}>
                       Cliente ({filteredTableClients.length})
                     </th>
-                    <th style={{ padding: '0.75rem', borderBottom: '2px solid var(--border-color)', minWidth: '90px', textAlign: 'center' }}>
+                    <th style={{ padding: '0.75rem', borderBottom: '2px solid var(--border-color)', minWidth: '120px', textAlign: 'center' }}>
                       Stato
                     </th>
                     {members.map(m => {
@@ -1124,7 +1546,7 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                           padding: '0.6rem 0.5rem',
                           borderBottom: '2px solid var(--border-color)',
                           textAlign: 'center',
-                          minWidth: '100px',
+                          minWidth: '120px',
                           borderLeft: '1px solid rgba(255,255,255,0.05)'
                         }}>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem' }}>
@@ -1143,11 +1565,11 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                             }}>
                               {initials}
                             </span>
-                            <span style={{ fontSize: '0.75rem', maxWidth: '85px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <span style={{ fontSize: '0.75rem', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {m.name}
                             </span>
                             <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', opacity: 0.8 }}>
-                              ({memberClientCount})
+                              ({memberClientCount} clienti)
                             </span>
                           </div>
                         </th>
@@ -1169,15 +1591,16 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                     const activeCardsCount = getClientActiveCardsCount(client.id);
                     const clientColor = client.color || 'var(--accent-primary)';
                     const isEven = idx % 2 === 0;
+                    const isEditing = editingClientId === client.id;
 
                     return (
                       <tr key={client.id} style={{
                         background: isEven ? 'transparent' : 'rgba(255, 255, 255, 0.02)',
                         transition: 'background 0.15s ease'
                       }}>
-                        {/* Nome Cliente Sticky */}
+                        {/* Nome Cliente Sticky con Rinomina e Nascondi */}
                         <td style={{
-                          padding: '0.65rem 1rem',
+                          padding: '0.55rem 0.8rem',
                           borderBottom: '1px solid var(--border-color)',
                           position: 'sticky',
                           left: 0,
@@ -1185,81 +1608,189 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                           background: isEven ? 'var(--bg-secondary)' : '#192231',
                           boxShadow: '2px 0 5px rgba(0,0,0,0.15)'
                         }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: clientColor, flexShrink: 0 }} />
-                            <span 
-                              onClick={() => openClientDetailsFromTable(client)}
-                              style={{ fontWeight: '600', color: 'var(--text-primary)', cursor: 'pointer', transition: 'color 0.15s ease' }}
-                              onMouseOver={e => e.currentTarget.style.color = 'var(--accent-primary)'}
-                              onMouseOut={e => e.currentTarget.style.color = 'var(--text-primary)'}
-                              title="Clicca per aprire la scheda del cliente"
-                            >
-                              {client.name}
-                            </span>
-                          </div>
+                          {isEditing ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                              <input
+                                type="text"
+                                value={editingClientName}
+                                onChange={e => setEditingClientName(e.target.value)}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter') handleRenameClient(client.id, editingClientName);
+                                  if (e.key === 'Escape') setEditingClientId(null);
+                                }}
+                                autoFocus
+                                style={{
+                                  padding: '0.25rem 0.5rem',
+                                  borderRadius: '4px',
+                                  border: '1px solid var(--accent-primary)',
+                                  background: 'var(--bg-primary)',
+                                  color: 'var(--text-primary)',
+                                  fontSize: '0.82rem',
+                                  width: '140px'
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRenameClient(client.id, editingClientName)}
+                                style={{ background: 'var(--accent-primary)', border: 'none', color: '#000', borderRadius: '4px', padding: '0.25rem 0.4rem', cursor: 'pointer' }}
+                                title="Salva nome"
+                              >
+                                <FaCheck size={11} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditingClientId(null)}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.25rem' }}
+                                title="Annulla"
+                              >
+                                <FaTimes size={11} />
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: clientColor, flexShrink: 0 }} />
+                                <span 
+                                  onClick={() => openClientDetailsFromTable(client)}
+                                  style={{
+                                    fontWeight: '600',
+                                    color: client.status === 'NASCOSTO' ? 'var(--text-secondary)' : 'var(--text-primary)',
+                                    cursor: 'pointer',
+                                    transition: 'color 0.15s ease',
+                                    textOverflow: 'ellipsis',
+                                    overflow: 'hidden',
+                                    whiteSpace: 'nowrap',
+                                    textDecoration: client.status === 'NASCOSTO' ? 'line-through' : 'none'
+                                  }}
+                                  onMouseOver={e => e.currentTarget.style.color = 'var(--accent-primary)'}
+                                  onMouseOut={e => e.currentTarget.style.color = client.status === 'NASCOSTO' ? 'var(--text-secondary)' : 'var(--text-primary)'}
+                                  title="Clicca per aprire la scheda cliente"
+                                >
+                                  {client.name}
+                                </span>
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', flexShrink: 0 }}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingClientId(client.id);
+                                    setEditingClientName(client.name);
+                                  }}
+                                  style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.2rem', opacity: 0.6 }}
+                                  title="Rinomina cliente"
+                                >
+                                  <FaEdit size={11} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleHideClient(client)}
+                                  style={{ background: 'transparent', border: 'none', color: client.status === 'NASCOSTO' ? 'var(--status-warning)' : 'var(--text-secondary)', cursor: 'pointer', padding: '0.2rem', opacity: 0.7 }}
+                                  title={client.status === 'NASCOSTO' ? 'Cliente nascosto - Clicca per mostrare' : 'Nascondi cliente'}
+                                >
+                                  {client.status === 'NASCOSTO' ? <FaEyeSlash size={12} /> : <FaEye size={12} />}
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </td>
 
-                        {/* Stato */}
-                        <td style={{ padding: '0.65rem 0.5rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center' }}>
-                          <span style={{
-                            fontSize: '0.7rem',
-                            padding: '0.15rem 0.45rem',
-                            borderRadius: '10px',
-                            fontWeight: 'bold',
-                            background: client.status === 'PROSPECT' ? 'rgba(234, 179, 8, 0.15)' : (client.status === 'OBSOLETO' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(34, 197, 94, 0.15)'),
-                            color: client.status === 'PROSPECT' ? 'var(--status-warning)' : (client.status === 'OBSOLETO' ? 'var(--text-secondary)' : 'var(--accent-primary)')
-                          }}>
-                            {client.status || 'CLIENTE'}
-                          </span>
+                        {/* Stato Modificabile al Volo */}
+                        <td style={{ padding: '0.45rem 0.5rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center' }}>
+                          <select
+                            value={client.status || 'CLIENTE'}
+                            onChange={e => handleUpdateClientStatus(client.id, e.target.value)}
+                            style={{
+                              fontSize: '0.72rem',
+                              padding: '0.15rem 0.4rem',
+                              borderRadius: '8px',
+                              fontWeight: 'bold',
+                              border: '1px solid var(--border-color)',
+                              background: client.status === 'PROSPECT' ? 'rgba(234, 179, 8, 0.15)' : (client.status === 'OBSOLETO' ? 'rgba(255, 255, 255, 0.08)' : (client.status === 'NASCOSTO' ? 'rgba(239, 68, 68, 0.15)' : (client.status === 'UNA_TANTUM' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(34, 197, 94, 0.15)'))),
+                              color: client.status === 'PROSPECT' ? 'var(--status-warning)' : (client.status === 'OBSOLETO' ? 'var(--text-secondary)' : (client.status === 'NASCOSTO' ? 'var(--status-danger)' : (client.status === 'UNA_TANTUM' ? '#c084fc' : 'var(--accent-primary)'))),
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="CLIENTE">🟢 Attivo</option>
+                            <option value="UNA_TANTUM">🟡 1-Spot</option>
+                            <option value="PROSPECT">🔵 Prospect</option>
+                            <option value="OBSOLETO">⚪ Vecchio</option>
+                            <option value="NASCOSTO">👁️‍🗨️ Nascosto</option>
+                          </select>
                         </td>
 
-                        {/* Celle Collaboratori con Toggle Interattivo */}
+                        {/* Celle Collaboratori con Badge Compiti (Social, Newsletter, ecc.) & Configurazione */}
                         {members.map(m => {
                           const isAssigned = (client.collaborators || []).some(u => u.id === m.id);
-                          const isUpdating = updatingAssignmentKey === `${client.id}-${m.id}`;
+                          const userTasks = getMemberServicesForClient(client, m.name);
 
                           return (
                             <td key={m.id} style={{
-                              padding: '0.4rem 0.5rem',
+                              padding: '0.4rem 0.4rem',
                               borderBottom: '1px solid var(--border-color)',
                               textAlign: 'center',
                               borderLeft: '1px solid rgba(255,255,255,0.04)'
                             }}>
-                              <button
-                                type="button"
-                                onClick={() => handleToggleAssignmentInTable(client, m.id)}
-                                disabled={isUpdating}
-                                title={isAssigned ? `Rimuovi ${m.name} da ${client.name}` : `Assegna ${m.name} a ${client.name}`}
-                                style={{
-                                  width: '32px',
-                                  height: '32px',
-                                  borderRadius: '8px',
-                                  border: isAssigned ? '1px solid var(--accent-primary)' : '1px dashed rgba(255,255,255,0.18)',
-                                  background: isAssigned ? 'rgba(34, 197, 94, 0.18)' : 'transparent',
-                                  color: isAssigned ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                                  cursor: 'pointer',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: '0.85rem',
-                                  fontWeight: isAssigned ? 'bold' : 'normal',
-                                  transition: 'all 0.15s ease'
-                                }}
-                                onMouseOver={e => {
-                                  if (!isAssigned) {
+                              {isAssigned ? (
+                                <button
+                                  type="button"
+                                  onClick={() => openTaskModal(client, m)}
+                                  title={`Compiti di ${m.name}: ${userTasks.length > 0 ? userTasks.join(', ') : 'Team Generale'}. Clicca per modificare o rimuovere.`}
+                                  style={{
+                                    padding: '0.25rem 0.45rem',
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--accent-primary)',
+                                    background: 'rgba(34, 197, 94, 0.16)',
+                                    color: 'var(--accent-primary)',
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.3rem',
+                                    fontSize: '0.72rem',
+                                    fontWeight: '600',
+                                    transition: 'all 0.15s ease',
+                                    maxWidth: '110px'
+                                  }}
+                                >
+                                  <span>✓</span>
+                                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {userTasks.length > 0
+                                      ? userTasks.map(t => PRESET_SERVICES.find(p => p.key === t)?.short || t).join(', ')
+                                      : 'Team'}
+                                  </span>
+                                  <FaCog size={9} style={{ opacity: 0.7 }} />
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleAssignmentInTable(client, m.id)}
+                                  title={`Assegna ${m.name} e configura i compiti`}
+                                  style={{
+                                    width: '28px',
+                                    height: '28px',
+                                    borderRadius: '6px',
+                                    border: '1px dashed rgba(255,255,255,0.18)',
+                                    background: 'transparent',
+                                    color: 'var(--text-secondary)',
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '0.8rem',
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                  onMouseOver={e => {
                                     e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
                                     e.currentTarget.style.borderColor = 'var(--text-secondary)';
-                                  }
-                                }}
-                                onMouseOut={e => {
-                                  if (!isAssigned) {
+                                  }}
+                                  onMouseOut={e => {
                                     e.currentTarget.style.background = 'transparent';
                                     e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)';
-                                  }
-                                }}
-                              >
-                                {isUpdating ? '...' : (isAssigned ? '✓' : '+')}
-                              </button>
+                                  }}
+                                >
+                                  +
+                                </button>
+                              )}
                             </td>
                           );
                         })}
@@ -1339,13 +1870,14 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                 </tbody>
               </table>
             ) : (
-              /* MODALITÀ ELENCO COMPATTO */
+              /* MODALITÀ ELENCO DETTAGLIATO CON COMPITI ESPLICITI */
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-elevated)', position: 'sticky', top: 0, zIndex: 10 }}>
-                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)' }}>Cliente</th>
-                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)' }}>Stato</th>
-                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)' }}>Team Assegnato</th>
+                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)', minWidth: '180px' }}>Cliente</th>
+                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)', minWidth: '110px' }}>Stato</th>
+                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)', minWidth: '180px' }}>Team Assegnato</th>
+                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)', minWidth: '220px' }}>Compiti & Servizi Assegnati</th>
                     <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)', textAlign: 'center' }}>Schede Attive</th>
                     <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-color)', textAlign: 'center' }}>Azioni</th>
                   </tr>
@@ -1354,6 +1886,9 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                   {filteredTableClients.map((client, idx) => {
                     const activeCardsCount = getClientActiveCardsCount(client.id);
                     const clientColor = client.color || 'var(--accent-primary)';
+                    const { servicesDetails } = parseClientServices(client.sheetData);
+                    const activeServicesEntries = Object.entries(servicesDetails || {}).filter(([_, users]) => users && users.length > 0);
+                    const isEditing = editingClientId === client.id;
 
                     return (
                       <tr key={client.id} style={{
@@ -1361,30 +1896,107 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                         borderBottom: '1px solid var(--border-color)'
                       }}>
                         <td style={{ padding: '0.75rem 1rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: clientColor, flexShrink: 0 }} />
-                            <strong 
-                              onClick={() => openClientDetailsFromTable(client)}
-                              style={{ color: 'var(--text-primary)', cursor: 'pointer' }}
-                              onMouseOver={e => e.currentTarget.style.color = 'var(--accent-primary)'}
-                              onMouseOut={e => e.currentTarget.style.color = 'var(--text-primary)'}
-                            >
-                              {client.name}
-                            </strong>
-                          </div>
+                          {isEditing ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                              <input
+                                type="text"
+                                value={editingClientName}
+                                onChange={e => setEditingClientName(e.target.value)}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter') handleRenameClient(client.id, editingClientName);
+                                  if (e.key === 'Escape') setEditingClientId(null);
+                                }}
+                                autoFocus
+                                style={{
+                                  padding: '0.25rem 0.5rem',
+                                  borderRadius: '4px',
+                                  border: '1px solid var(--accent-primary)',
+                                  background: 'var(--bg-primary)',
+                                  color: 'var(--text-primary)',
+                                  fontSize: '0.82rem',
+                                  width: '140px'
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRenameClient(client.id, editingClientName)}
+                                style={{ background: 'var(--accent-primary)', border: 'none', color: '#000', borderRadius: '4px', padding: '0.25rem 0.4rem', cursor: 'pointer' }}
+                              >
+                                <FaCheck size={11} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditingClientId(null)}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.25rem' }}
+                              >
+                                <FaTimes size={11} />
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: clientColor, flexShrink: 0 }} />
+                                <strong 
+                                  onClick={() => openClientDetailsFromTable(client)}
+                                  style={{
+                                    color: client.status === 'NASCOSTO' ? 'var(--text-secondary)' : 'var(--text-primary)',
+                                    cursor: 'pointer',
+                                    textDecoration: client.status === 'NASCOSTO' ? 'line-through' : 'none'
+                                  }}
+                                  onMouseOver={e => e.currentTarget.style.color = 'var(--accent-primary)'}
+                                  onMouseOut={e => e.currentTarget.style.color = client.status === 'NASCOSTO' ? 'var(--text-secondary)' : 'var(--text-primary)'}
+                                >
+                                  {client.name}
+                                </strong>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingClientId(client.id);
+                                    setEditingClientName(client.name);
+                                  }}
+                                  style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.2rem', opacity: 0.6 }}
+                                  title="Rinomina cliente"
+                                >
+                                  <FaEdit size={11} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleHideClient(client)}
+                                  style={{ background: 'transparent', border: 'none', color: client.status === 'NASCOSTO' ? 'var(--status-warning)' : 'var(--text-secondary)', cursor: 'pointer', padding: '0.2rem', opacity: 0.7 }}
+                                  title={client.status === 'NASCOSTO' ? 'Ripristina cliente' : 'Nascondi cliente'}
+                                >
+                                  {client.status === 'NASCOSTO' ? <FaEyeSlash size={12} /> : <FaEye size={12} />}
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </td>
+
                         <td style={{ padding: '0.75rem 1rem' }}>
-                          <span style={{
-                            fontSize: '0.72rem',
-                            padding: '0.15rem 0.45rem',
-                            borderRadius: '10px',
-                            fontWeight: 'bold',
-                            background: client.status === 'PROSPECT' ? 'rgba(234, 179, 8, 0.15)' : (client.status === 'OBSOLETO' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(34, 197, 94, 0.15)'),
-                            color: client.status === 'PROSPECT' ? 'var(--status-warning)' : (client.status === 'OBSOLETO' ? 'var(--text-secondary)' : 'var(--accent-primary)')
-                          }}>
-                            {client.status || 'CLIENTE'}
-                          </span>
+                          <select
+                            value={client.status || 'CLIENTE'}
+                            onChange={e => handleUpdateClientStatus(client.id, e.target.value)}
+                            style={{
+                              fontSize: '0.72rem',
+                              padding: '0.15rem 0.4rem',
+                              borderRadius: '8px',
+                              fontWeight: 'bold',
+                              border: '1px solid var(--border-color)',
+                              background: client.status === 'PROSPECT' ? 'rgba(234, 179, 8, 0.15)' : (client.status === 'OBSOLETO' ? 'rgba(255, 255, 255, 0.08)' : (client.status === 'NASCOSTO' ? 'rgba(239, 68, 68, 0.15)' : (client.status === 'UNA_TANTUM' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(34, 197, 94, 0.15)'))),
+                              color: client.status === 'PROSPECT' ? 'var(--status-warning)' : (client.status === 'OBSOLETO' ? 'var(--text-secondary)' : (client.status === 'NASCOSTO' ? 'var(--status-danger)' : (client.status === 'UNA_TANTUM' ? '#c084fc' : 'var(--accent-primary)'))),
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="CLIENTE">🟢 Attivo</option>
+                            <option value="UNA_TANTUM">🟡 1-Spot</option>
+                            <option value="PROSPECT">🔵 Prospect</option>
+                            <option value="OBSOLETO">⚪ Vecchio</option>
+                            <option value="NASCOSTO">👁️‍🗨️ Nascosto</option>
+                          </select>
                         </td>
+
                         <td style={{ padding: '0.75rem 1rem' }}>
                           <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', alignItems: 'center' }}>
                             {(client.collaborators || []).map(u => (
@@ -1407,6 +2019,42 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                             )}
                           </div>
                         </td>
+
+                        {/* Compiti & Servizi Assegnati */}
+                        <td style={{ padding: '0.75rem 1rem' }}>
+                          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                            {activeServicesEntries.length > 0 ? (
+                              activeServicesEntries.map(([svc, users]) => {
+                                const preset = PRESET_SERVICES.find(p => p.key === svc);
+                                const svcLabel = preset ? preset.short : svc;
+                                const userNames = users.map(u => u.name?.split(' ')[0]).join(', ');
+                                return (
+                                  <span
+                                    key={svc}
+                                    style={{
+                                      background: 'rgba(66, 133, 244, 0.12)',
+                                      border: '1px solid rgba(66, 133, 244, 0.25)',
+                                      color: '#60a5fa',
+                                      padding: '0.15rem 0.5rem',
+                                      borderRadius: '12px',
+                                      fontSize: '0.72rem',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '0.3rem'
+                                    }}
+                                  >
+                                    <strong>{svcLabel}:</strong> {userNames}
+                                  </span>
+                                );
+                              })
+                            ) : (
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                Nessun compito configurato
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
                         <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
                           <span style={{
                             fontSize: '0.75rem',
@@ -1418,6 +2066,7 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                             {activeCardsCount > 0 ? `${activeCardsCount} schede` : '—'}
                           </span>
                         </td>
+
                         <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
                           <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
                             <button
@@ -1450,7 +2099,7 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                   })}
                   {filteredTableClients.length === 0 && (
                     <tr>
-                      <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                      <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
                         Nessun cliente trovato con i filtri attuali.
                       </td>
                     </tr>
@@ -1458,6 +2107,182 @@ export default function ClientsView({ clients: initialClients, cards = [], membe
                 </tbody>
               </table>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* MODALE ASSEGNAZIONE & CONFIGURAZIONE COMPITI (NEWSLETTER, SOCIAL, ADV, ECC.) */}
+      {taskModalData && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000
+        }}>
+          <div style={{
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            padding: '1.5rem',
+            width: '460px',
+            maxWidth: '92%',
+            boxShadow: 'var(--shadow-lg)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.8rem' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-primary)' }}>
+                  🛠️ Compiti per {taskModalData.member.name}
+                </h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', fontWeight: 'bold' }}>
+                  Cliente: {taskModalData.client.name}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTaskModalData(null)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '1.3rem', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              Seleziona gli incarichi specifici (newsletter, social, adv, shooting, ecc.) assegnati a <strong>{taskModalData.member.name}</strong>:
+            </div>
+
+            {/* Checklist compiti disponibili */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', maxHeight: '280px', overflowY: 'auto' }}>
+              {Array.from(new Set([
+                ...PRESET_SERVICES.map(p => p.key),
+                ...taskModalSelectedKeys
+              ])).map(key => {
+                const isChecked = taskModalSelectedKeys.includes(key);
+                const presetObj = PRESET_SERVICES.find(p => p.key === key);
+                const label = presetObj ? presetObj.label : `📌 ${key}`;
+
+                return (
+                  <label
+                    key={key}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.6rem',
+                      padding: '0.45rem 0.75rem',
+                      borderRadius: '8px',
+                      background: isChecked ? 'rgba(34, 197, 94, 0.12)' : 'var(--bg-primary)',
+                      border: isChecked ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                      cursor: 'pointer',
+                      fontSize: '0.82rem',
+                      fontWeight: isChecked ? '600' : 'normal',
+                      color: isChecked ? 'var(--accent-primary)' : 'var(--text-primary)',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => {
+                        setTaskModalSelectedKeys(prev =>
+                          prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+                        );
+                      }}
+                      style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }}
+                    />
+                    <span>{label}</span>
+                  </label>
+                );
+              })}
+            </div>
+
+            {/* Aggiunta compito personalizzato */}
+            <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.2rem' }}>
+              <input
+                type="text"
+                placeholder="Altro compito (es. Podcast, Eventi...)"
+                value={newCustomTaskInput}
+                onChange={e => setNewCustomTaskInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (newCustomTaskInput.trim()) {
+                      const upper = newCustomTaskInput.trim().toUpperCase();
+                      if (!taskModalSelectedKeys.includes(upper)) {
+                        setTaskModalSelectedKeys(prev => [...prev, upper]);
+                      }
+                      setNewCustomTaskInput('');
+                    }
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  padding: '0.4rem 0.6rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.78rem'
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (newCustomTaskInput.trim()) {
+                    const upper = newCustomTaskInput.trim().toUpperCase();
+                    if (!taskModalSelectedKeys.includes(upper)) {
+                      setTaskModalSelectedKeys(prev => [...prev, upper]);
+                    }
+                    setNewCustomTaskInput('');
+                  }
+                }}
+                style={{
+                  padding: '0.4rem 0.75rem',
+                  borderRadius: '6px',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.78rem',
+                  cursor: 'pointer'
+                }}
+              >
+                + Aggiungi
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem', marginTop: '0.6rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.8rem' }}>
+              <button
+                type="button"
+                onClick={() => setTaskModalData(null)}
+                style={{
+                  padding: '0.45rem 1rem',
+                  background: 'transparent',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-secondary)',
+                  borderRadius: '6px',
+                  fontSize: '0.82rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSaveMemberTasks(taskModalData.client, taskModalData.member, taskModalSelectedKeys)}
+                style={{
+                  padding: '0.45rem 1.2rem',
+                  background: 'var(--accent-primary)',
+                  border: 'none',
+                  color: '#000',
+                  fontWeight: 'bold',
+                  borderRadius: '6px',
+                  fontSize: '0.82rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Salva Compiti
+              </button>
+            </div>
           </div>
         </div>
       )}

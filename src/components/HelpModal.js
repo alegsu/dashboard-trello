@@ -150,6 +150,16 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.52.0</h4>
+                <ul style={noteUlStyle}>
+                  <li>✏️ <strong>Rinomina Rapida Inline dei Clienti:</strong> Ora puoi rinominare qualsiasi cliente direttamente dalla Tabella Matrice cliccando sull&apos;icona matita ✏️, oltre che dal modulo di dettaglio della Rubrica. Il salvataggio è immediato su tutto il gestionale!</li>
+                  <li>👁️ <strong>Gestione Clienti Nascosti, Vecchi & Una Tantum:</strong> Fai ordine nella lista con il nuovo pulsante rapido <code>👁️</code>: puoi nascondere al volo clienti vecchi o una tantum dalla vista quotidiana. Attiva il toggle <em>👁️ Mostra Nascosti &amp; Vecchi</em> in alto per ripristinarli o modificarne lo stato (Attivo, Una Tantum, Prospect, Obsoleto, Nascosto) in qualsiasi momento.</li>
+                  <li>🛠️ <strong>Integrazione Compiti &amp; Servizi per Collaboratore:</strong> Cliccando sulle celle della Tabella Matrice si apre il configuratore compiti: puoi assegnare o rimuovere con un click mansioni specifiche (<em>Social, Newsletter, ADV, Shooting, Sito Web, Grafica, Blog Post</em> o compiti personalizzati) per ogni collaboratore-cliente!</li>
+                  <li>📋 <strong>Hub Compiti &amp; Servizi nella Scheda Cliente:</strong> Nel dettaglio cliente della Rubrica trovi il nuovo hub interattivo per vedere e gestire tutti i servizi attivi con i collaboratori dedicati a ciascun compito.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.51.0</h4>
                 <ul style={noteUlStyle}>
                   <li>📊 <strong>Nuova Tabella Matrice Clienti & Utenti:</strong> Arriva la vista tabellare panoramica per monitorare l&apos;intero ecosistema dei clienti e dei collaboratori assegnati! Accessibile con il nuovo selettore <em>📊 Tabella Matrice</em> nella sezione Clienti.</li>

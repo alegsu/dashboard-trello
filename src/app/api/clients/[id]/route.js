@@ -17,6 +17,7 @@ export async function PUT(request, { params }) {
         ...(body.status !== undefined && { status: body.status }),
         ...(body.socialPlan !== undefined && { socialPlan: body.socialPlan }),
         ...(body.pedSheets !== undefined && { pedSheets: body.pedSheets }),
+        ...(body.sheetData !== undefined && { sheetData: body.sheetData }),
         ...(body.collaborators !== undefined && {
           collaborators: {
             set: (Array.isArray(body.collaborators) ? body.collaborators : []).map(userId => ({ id: userId }))
