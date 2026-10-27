@@ -150,7 +150,7 @@ export default function BoatsAIView({ currentUser }) {
     setIsUploading(true);
 
     try {
-      const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB per blocco (sicuro per Vercel)
+      const CHUNK_SIZE = 2097150; // Esattamente multiplo di 3 per evitare padding Base64 (=) intermedio
       const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
       const uploadId = 'up_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
 
@@ -170,9 +170,10 @@ export default function BoatsAIView({ currentUser }) {
         const start = i * CHUNK_SIZE;
         const end = Math.min(start + CHUNK_SIZE, file.size);
         const chunkBlob = file.slice(start, end);
-        const base64Chunk = await blobToBase64(chunkBlob);
-
+        const rawBase64 = await blobToBase64(chunkBlob);
         const isLast = i === totalChunks - 1;
+        // Rimuovi eventuale padding '=' dai blocchi intermedi per consentire concatenazione pulita
+        const base64Chunk = isLast ? rawBase64 : rawBase64.replace(/=+$/, '');
         setUploadFeedback({
           type: 'info',
           message: isLast

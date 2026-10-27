@@ -10,6 +10,26 @@ export async function GET() {
   try {
     const [boats, settings] = await Promise.all([
       prisma.boatSheet.findMany({
+        select: {
+          id: true,
+          title: true,
+          model: true,
+          manufacturer: true,
+          year: true,
+          length: true,
+          cabins: true,
+          baths: true,
+          engines: true,
+          price: true,
+          description: true,
+          features: true,
+          fileName: true,
+          fileSize: true,
+          fileUrl: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true
+        },
         orderBy: { createdAt: 'desc' }
       }),
       prisma.systemSetting.findMany({

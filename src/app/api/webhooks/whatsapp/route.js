@@ -203,8 +203,27 @@ async function processWhatsAppMessage(body) {
       console.log(`🚤 [BoatsAI] Messaggio da numero autorizzato test barche (${from} - ${contactName}): "${textBody}"`);
 
       try {
+        // Carica solo le specifiche testuali per il prompt AI (escludendo il pesante fileDataBase64)
         const boatSheets = await prisma.boatSheet.findMany({
           where: { isActive: true },
+          select: {
+            id: true,
+            title: true,
+            model: true,
+            manufacturer: true,
+            year: true,
+            length: true,
+            cabins: true,
+            baths: true,
+            engines: true,
+            price: true,
+            description: true,
+            features: true,
+            fileName: true,
+            fileSize: true,
+            fileUrl: true,
+            isActive: true
+          },
           orderBy: { createdAt: 'desc' }
         });
 
@@ -220,10 +239,19 @@ async function processWhatsAppMessage(body) {
           await sendWhatsAppMessage(phoneNumberId, accessToken, from, aiResult.replyMessage);
         }
 
-        // 2. Se l'utente ha chiesto di ricevere la scheda in allegato
+        // 2. Se l'utente ha chiesto di ricevere la scheda o brochure in allegato
         if (aiResult.sendAttachment && aiResult.boatIdToSend) {
-          const targetBoat = boatSheets.find(b => b.id === aiResult.boatIdToSend) ||
-            await prisma.boatSheet.findUnique({ where: { id: aiResult.boatIdToSend } });
+          // Carica il file binario solo per la specifica barca richiesta
+          const targetBoat = await prisma.boatSheet.findUnique({
+            where: { id: aiResult.boatIdToSend },
+            select: {
+              id: true,
+              title: true,
+              fileName: true,
+              fileUrl: true,
+              fileDataBase64: true
+            }
+          });
 
           if (targetBoat) {
             let resolvedBaseUrl = settingMap['BASE_URL'] || process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://dashboard-trello.vercel.app'));
@@ -255,6 +283,14 @@ async function processWhatsAppMessage(body) {
         }
       } catch (errBoat) {
         console.error('❌ [BoatsAI] Errore elaborazione richiesta barche:', errBoat);
+        try {
+          await prisma.systemSetting.upsert({
+            where: { key: 'LAST_BOAT_ERROR' },
+            update: { value: `${new Date().toISOString()}: ${errBoat?.message || String(errBoat)}` },
+            create: { key: 'LAST_BOAT_ERROR', value: `${new Date().toISOString()}: ${errBoat?.message || String(errBoat)}` }
+          });
+        } catch (e) {}
+
         await sendWhatsAppMessage(
           phoneNumberId,
           accessToken,
