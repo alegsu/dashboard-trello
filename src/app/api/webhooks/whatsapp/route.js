@@ -234,8 +234,23 @@ async function processWhatsAppMessage(body) {
             const docFilename = targetBoat.fileName || `${targetBoat.title.replace(/\s+/g, '_')}.pdf`;
             const docCaption = `📋 Scheda Tecnica: ${targetBoat.title}`;
 
-            console.log(`🚤 [BoatsAI] Invio documento scheda barca (${docFilename}) a ${from}...`);
-            await sendWhatsAppDocument(phoneNumberId, accessToken, from, downloadUrl, docFilename, docCaption);
+            let fileBuffer = null;
+            if (targetBoat.fileDataBase64 && targetBoat.fileDataBase64.length > 100) {
+              fileBuffer = Buffer.from(targetBoat.fileDataBase64, 'base64');
+            } else if (targetBoat.fileUrl && targetBoat.fileUrl.startsWith('data:application/pdf;base64,') && targetBoat.fileUrl.length > 500) {
+              fileBuffer = Buffer.from(targetBoat.fileUrl.replace('data:application/pdf;base64,', ''), 'base64');
+            }
+
+            console.log(`🚤 [BoatsAI] Invio documento scheda barca (${docFilename}, hasBuffer: ${!!fileBuffer}) a ${from}...`);
+            await sendWhatsAppDocument({
+              phoneNumberId,
+              accessToken,
+              to: from,
+              documentUrl,
+              filename: docFilename,
+              caption: docCaption,
+              fileBuffer
+            });
           }
         }
       } catch (errBoat) {

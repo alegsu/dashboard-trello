@@ -6,9 +6,7 @@ import { extractText } from 'unpdf';
 export function normalizePhoneNumber(phone) {
   if (!phone) return '';
   let clean = phone.toString().replace(/[^0-9]/g, '');
-  // Rimuovi eventuale 00 iniziale
   if (clean.startsWith('00')) clean = clean.substring(2);
-  // Se inizia con 39 (Italia) ed è lungo 12 cifre, tieni sia la versione con 39 che senza
   return clean;
 }
 
@@ -19,7 +17,6 @@ export function isPhoneMatch(phoneA, phoneB) {
   if (!normA || !normB) return false;
   if (normA === normB) return true;
   if (normA.endsWith(normB) || normB.endsWith(normA)) {
-    // Es. 393913514685 vs 3913514685
     const diff = Math.abs(normA.length - normB.length);
     if (diff === 2 || diff === 3) return true;
   }
@@ -116,59 +113,134 @@ ${pdfText.slice(0, 15000)}
   }
 }
 
-// Invia un documento PDF via WhatsApp Cloud API
-export async function sendWhatsAppDocument(phoneNumberId, accessToken, to, documentUrl, filename, caption = '') {
-  if (!phoneNumberId || !accessToken || !to || !documentUrl) {
-    console.warn('[BoatsAI] Parametri mancanti per invio documento WhatsApp:', {
-      hasPhoneId: !!phoneNumberId,
-      hasToken: !!accessToken,
-      hasTo: !!to,
-      hasDocUrl: !!documentUrl
-    });
+// Invia un documento PDF via WhatsApp Cloud API con supporto sia per Upload Diretto Binario che per Link
+export async function sendWhatsAppDocument(optionsOrPhoneId, maybeToken, maybeTo, maybeUrl, maybeFilename, maybeCaption) {
+  let phoneNumberId, accessToken, to, documentUrl, filename, caption, fileBuffer;
+
+  if (typeof optionsOrPhoneId === 'object' && optionsOrPhoneId !== null) {
+    phoneNumberId = optionsOrPhoneId.phoneNumberId;
+    accessToken = optionsOrPhoneId.accessToken;
+    to = optionsOrPhoneId.to;
+    documentUrl = optionsOrPhoneId.documentUrl;
+    filename = optionsOrPhoneId.filename || 'Scheda_Barca.pdf';
+    caption = optionsOrPhoneId.caption || '';
+    fileBuffer = optionsOrPhoneId.fileBuffer || null;
+  } else {
+    phoneNumberId = optionsOrPhoneId;
+    accessToken = maybeToken;
+    to = maybeTo;
+    documentUrl = maybeUrl;
+    filename = maybeFilename || 'Scheda_Barca.pdf';
+    caption = maybeCaption || '';
+    fileBuffer = null;
+  }
+
+  if (!phoneNumberId || !accessToken || !to) {
+    console.warn('[BoatsAI] Parametri mancanti per invio documento WhatsApp');
     return { success: false, error: 'Parametri mancanti' };
   }
 
   const cleanPhone = to.toString().replace(/[^0-9]/g, '');
-  const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
 
-  const payload = {
-    messaging_product: 'whatsapp',
-    recipient_type: 'individual',
-    to: cleanPhone,
-    type: 'document',
-    document: {
-      link: documentUrl,
-      filename: filename || 'Scheda_Barca.pdf'
+  // 1. STRATEGIA PRIMARIA: Caricamento diretto del file su Meta Media API
+  // In questo modo Meta possiede il file sui propri server ed evita qualsiasi errore 401 o di rete!
+  if (fileBuffer && Buffer.isBuffer(fileBuffer) && fileBuffer.length > 500) {
+    try {
+      console.log(`[BoatsAI] 📤 Upload diretto del PDF (${fileBuffer.length} bytes, "${filename}") su Meta Media API...`);
+      const formData = new FormData();
+      formData.append('messaging_product', 'whatsapp');
+      formData.append('type', 'application/pdf');
+      const blob = new Blob([fileBuffer], { type: 'application/pdf' });
+      formData.append('file', blob, filename);
+
+      const mediaRes = await fetch(`https://graph.facebook.com/v21.0/${phoneNumberId}/media`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: formData
+      });
+
+      if (mediaRes.ok) {
+        const mediaData = await mediaRes.json();
+        if (mediaData.id) {
+          console.log(`[BoatsAI] ✅ Media ID ottenuto da Meta: ${mediaData.id}. Invio messaggio documento...`);
+          const msgPayload = {
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: cleanPhone,
+            type: 'document',
+            document: {
+              id: mediaData.id,
+              filename: filename
+            }
+          };
+          if (caption) msgPayload.document.caption = caption;
+
+          const msgRes = await fetch(`https://graph.facebook.com/v21.0/${phoneNumberId}/messages`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(msgPayload)
+          });
+
+          if (msgRes.ok) {
+            console.log(`[BoatsAI] 🎉 Documento "${filename}" consegnato con successo su WhatsApp via Meta Media ID a ${cleanPhone}!`);
+            return { success: true, method: 'media_id' };
+          } else {
+            console.warn('[BoatsAI] Invio via media_id fallito, tento fallback link:', await msgRes.text());
+          }
+        }
+      } else {
+        console.warn('[BoatsAI] Upload Meta Media API fallito, tento fallback link:', await mediaRes.text());
+      }
+    } catch (uploadErr) {
+      console.warn('[BoatsAI] Eccezione durante upload Meta Media:', uploadErr.message);
     }
-  };
-
-  if (caption) {
-    payload.document.caption = caption;
   }
 
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
+  // 2. STRATEGIA SECONDARIA: Invio tramite link HTTP/HTTPS
+  if (documentUrl) {
+    try {
+      console.log(`[BoatsAI] Invio documento via link URL a ${cleanPhone}: ${documentUrl}...`);
+      const payload = {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: cleanPhone,
+        type: 'document',
+        document: {
+          link: documentUrl,
+          filename: filename
+        }
+      };
+      if (caption) payload.document.caption = caption;
 
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error('[BoatsAI] Errore invio documento WhatsApp Meta API:', errText);
-      return { success: false, error: errText };
+      const res = await fetch(`https://graph.facebook.com/v21.0/${phoneNumberId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        console.log(`[BoatsAI] ✅ Documento "${filename}" inviato con successo via link URL a ${cleanPhone}`);
+        return { success: true, method: 'link' };
+      } else {
+        const errText = await res.text();
+        console.error('[BoatsAI] Errore invio documento via link Meta API:', errText);
+        return { success: false, error: errText };
+      }
+    } catch (err) {
+      console.error('[BoatsAI] Eccezione invio documento via link:', err);
+      return { success: false, error: err.message };
     }
-
-    const data = await res.json();
-    console.log(`[BoatsAI] ✅ Documento "${filename}" inviato con successo a ${cleanPhone}`);
-    return { success: true, data };
-  } catch (err) {
-    console.error('[BoatsAI] Eccezione invio documento WhatsApp:', err);
-    return { success: false, error: err.message };
   }
+
+  return { success: false, error: 'Nessun buffer o link disponibile per il documento' };
 }
 
 // Invia un messaggio di testo standard WhatsApp
@@ -227,22 +299,28 @@ export async function processBoatAssistantQuery({
 
   const systemPrompt = `
 Sei l'Assistente Nautico Intelligente via WhatsApp di un prestigioso broker e concessionario nautico.
-Il tuo compito è assistere il cliente (${senderName}), rispondere a ogni domanda su barche, yacht, schede tecniche, disponibilità, motorizzazioni e dotazioni, e inviare in allegato la scheda PDF quando richiesta.
+Il tuo compito principale è assistere il cliente (${senderName}), rispondere a domande su barche, yacht e schede tecniche, E SOPRATTUTTO INVIARE IN ALLEGATO IL FILE PDF DELLA BROCHURE / SCHEDA quando richiesta!
 
 CATALOGO BARCHE ATTUALMENTE DISPONIBILI:
 ${catalogContext || 'Nessuna barca attualmente a catalogo.'}
 
-REGOLE DI COMPORTAMENTO:
-1. Sii cordiale, professionale, appassionato di nautica e impeccabile. Usa emoji marittime con eleganza (🚤, ⚓, 🌊, 📋, 🛥️, ✨).
-2. Se il cliente chiede informazioni generali sulle barche o cerca barche con specifiche caratteristiche (es. "Quali barche avete?", "Avete qualcosa con 3 cabine?", "Cosa mi consigli per 6 persone?"), rispondi consigliando le barche pertinenti dal catalogo ed elencando brevemente i dettagli chiave (modello, lunghezza, cabine, prezzo).
-3. Se il cliente chiede di RICEVERE IN ALLEGATO la scheda / brochure / PDF di una determinata barca (es. "Mandami la scheda della barca xx", "Inviami il pdf", "Vorrei l'allegato dell'Oceanis", "Mi mandi i dettagli in allegato?"):
-   - Riconosci la barca richiesta e indica il suo "boatIdToSend".
-   - Imposta "sendAttachment": true.
-   - Genera un messaggio di accompagnamento ("replyMessage") cordiale in cui confermi che stai inviando la scheda in allegato e riassumi 2-3 caratteristiche salienti.
-4. Se il cliente chiede la scheda di una barca che non è in catalogo o il nome è ambiguo, spiega gentilmente quali schede sono disponibili e chiedi conferma.
-5. Se non viene richiesto l'allegato (solo domande o saluti), imposta "sendAttachment": false e "boatIdToSend": null.
+REGOLE CRUCIALI SULL'INVIO DELLE BROCHURE / SCHEDE (MASSIMA PRIORITÀ):
+1. Se il messaggio del cliente contiene una richiesta o menzione di:
+   - "brochure", "scheda", "scheda tecnica", "allegato", "pdf", "file", "documento", "depliant", "materiale", "fascicolo"
+   - oppure frasi come: "mandami la brochure", "mi mandi la brochure", "vorrei la brochure", "inviami la brochure", "hai la brochure di...", "posso avere la brochure?", "mandami il pdf", "vorrei la scheda", "voglio vedere i dettagli"
+   DEVI ASSOLUTAMENTE IMPOSTARE:
+   - "sendAttachment": true
+   - "boatIdToSend": <l'ID esatto della barca a catalogo corrispondente>
+2. NON limitarti MAI a descrivere la barca solo via testo se il cliente ha chiesto una brochure o scheda! Se ha chiesto una brochure, "sendAttachment" DEVE ESSERE SEMPRE true!
+3. Come individuare la barca da inviare ("boatIdToSend"):
+   - Se il cliente nomina il modello o cantiere (es. "57steel", "sanlorenzo", "sl86"), assegna l'ID di quella barca.
+   - Se il cliente chiede genericamente "mandami la brochure" senza specificare il nome della barca e ci sono barche a catalogo, seleziona la barca più rilevante (o la prima barca disponibile).
+4. Nel testo del messaggio di accompagnamento ("replyMessage"):
+   - Conferma con entusiasmo e professionalità che stai inviando la brochure/scheda tecnica in allegato: es. "Certamente! Ti ho allegato qui sotto la brochure ufficiale in PDF di [Nome Barca] 🚤📎".
+   - Aggiungi un breve riepilogo elegante dei dati principali (lunghezza, cabine, motori, prezzo).
+5. Solo se il cliente fa un semplice saluto o fa solo domande generali senza richiedere brochure o documenti (es. "Quali barche avete?", "Che barche ci sono con 3 cabine?"), imposta "sendAttachment": false e "boatIdToSend": null.
 
-RISPONDI ESCLUSIVAMENTE con un JSON strutturato così:
+RISPONDI RIGOROSAMENTE in formato JSON valido:
 {
   "replyMessage": "Messaggio di testo formattato per WhatsApp da inviare al cliente",
   "sendAttachment": true o false,
@@ -257,7 +335,7 @@ RISPONDI ESCLUSIVAMENTE con un JSON strutturato così:
       { role: 'user', content: `Mittente: ${senderName} (${senderPhone})\nMessaggio: ${userMessage}` }
     ],
     response_format: { type: 'json_object' },
-    temperature: 0.2
+    temperature: 0.1
   });
 
   try {
@@ -266,7 +344,7 @@ RISPONDI ESCLUSIVAMENTE con un JSON strutturato così:
   } catch (err) {
     console.error('[BoatsAI] Errore parsing risposta AI barche:', err);
     return {
-      replyMessage: "Ciao! Ho ricevuto la tua richiesta sulle barche. Un nostro consulente verificherà la disponibilità delle schede.",
+      replyMessage: "Ciao! Ho ricevuto la tua richiesta sulla brochure. Un nostro consulente verificherà la disponibilità.",
       sendAttachment: false,
       boatIdToSend: null
     };

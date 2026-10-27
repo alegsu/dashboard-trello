@@ -65,7 +65,8 @@ export async function POST(request) {
     console.log(`[Boats API] Analisi AI delle caratteristiche per "${fileName}"...`);
     const metadata = await extractBoatMetadataWithAI(pdfText, fileName);
 
-    // 3. Salva file su Vercel Blob (o genera URL)
+    // 3. Salva file su Vercel Blob (se configurato) e conserva sempre il base64 in DB per consegna garantita
+    const base64Data = buffer.toString('base64');
     let fileUrl = '';
     try {
       if (process.env.BLOB_READ_WRITE_TOKEN) {
@@ -74,13 +75,13 @@ export async function POST(request) {
           contentType: 'application/pdf'
         });
         fileUrl = blob.url;
-      } else {
-        // Fallback locale / base64 se token blob assente
-        fileUrl = `data:application/pdf;base64,${buffer.toString('base64').slice(0, 100)}`; // placeholder
       }
     } catch (blobErr) {
-      console.warn('[Boats API] Errore salvataggio Blob, fallback:', blobErr.message);
-      fileUrl = `/api/boats/document?name=${encodeURIComponent(fileName)}`;
+      console.warn('[Boats API] Errore salvataggio Blob, uso fallback DB:', blobErr.message);
+    }
+
+    if (!fileUrl) {
+      fileUrl = `data:application/pdf;base64,${base64Data}`;
     }
 
     // 4. Salva nel database
@@ -98,6 +99,7 @@ export async function POST(request) {
         description: metadata.description,
         features: metadata.features,
         fileUrl: fileUrl,
+        fileDataBase64: base64Data,
         fileName: fileName,
         fileSize: fileSize,
         mimeType: 'application/pdf',

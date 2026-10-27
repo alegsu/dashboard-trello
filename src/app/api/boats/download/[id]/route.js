@@ -15,7 +15,34 @@ export async function GET(request, { params }) {
 
     const fileName = encodeURIComponent(boat.fileName || `${boat.title.replace(/\s+/g, '_')}.pdf`);
 
-    // 1. Se il file è salvato su Vercel Blob
+    // 1. Priorità massima: Se abbiamo il binario base64 salvato nel database
+    if (boat.fileDataBase64 && boat.fileDataBase64.length > 100) {
+      const buffer = Buffer.from(boat.fileDataBase64, 'base64');
+      return new NextResponse(buffer, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `inline; filename="${fileName}"`,
+          'Content-Length': buffer.length.toString(),
+          'Cache-Control': 'public, max-age=3600'
+        }
+      });
+    }
+
+    // 2. Se fileUrl contiene i dati base64 completi (es. data:application/pdf;base64,...)
+    if (boat.fileUrl && boat.fileUrl.startsWith('data:application/pdf;base64,') && boat.fileUrl.length > 500) {
+      const base64Data = boat.fileUrl.replace('data:application/pdf;base64,', '');
+      const buffer = Buffer.from(base64Data, 'base64');
+      return new NextResponse(buffer, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `inline; filename="${fileName}"`,
+          'Content-Length': buffer.length.toString(),
+          'Cache-Control': 'public, max-age=3600'
+        }
+      });
+    }
+
+    // 3. Se il file è salvato su Vercel Blob
     if (boat.fileUrl && boat.fileUrl.includes('blob.vercel-storage.com')) {
       try {
         const result = await get(boat.fileUrl, { access: 'private' });
@@ -31,7 +58,7 @@ export async function GET(request, { params }) {
       }
     }
 
-    // 2. Se è un link Google Drive diretto
+    // 4. Se è un link Google Drive diretto
     if (boat.googleDriveId) {
       const gdriveUrl = `https://drive.google.com/uc?export=download&id=${boat.googleDriveId}`;
       try {
@@ -52,7 +79,7 @@ export async function GET(request, { params }) {
       return NextResponse.redirect(gdriveUrl);
     }
 
-    // 3. Se è un URL HTTP/HTTPS esterno
+    // 5. Se è un URL HTTP/HTTPS esterno
     if (boat.fileUrl && boat.fileUrl.startsWith('http')) {
       try {
         const extRes = await fetch(boat.fileUrl);

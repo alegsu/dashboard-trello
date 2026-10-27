@@ -371,6 +371,7 @@ model BoatSheet {
   description   String?  @db.Text // testo/riassunto estratto da AI
   features      String?  @db.Text // dotazioni e punti di forza
   fileUrl       String   @db.Text // link per scaricare il PDF (blob, local o drive)
+  fileDataBase64 String? @db.Text // file PDF completo codificato in base64 per invio garantito
   googleDriveId String?  // ID file su Google Drive (se sincronizzato)
   fileName      String   // es. "Scheda_Oceanis_51.pdf"
   fileSize      Int?
