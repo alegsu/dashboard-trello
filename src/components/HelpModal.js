@@ -150,6 +150,18 @@ export default function HelpModal({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingBottom: '2rem' }}>
 
               <div style={noteCardStyle}>
+                <h4 style={noteHeaderStyle}>🚀 v2.53.0 — Assistente Nautico Barche AI su WhatsApp (Test Parallelo)</h4>
+                <ul style={noteUlStyle}>
+                  <li>🚤 <strong>Nuovo Tab Riservato &quot;Barche AI&quot; per Alessandro:</strong> Ambiente di test e demo completamente isolato dal flusso Kanban/CRM quotidiano. Visibile esclusivamente all&apos;utente Alessandro per mostrare al cliente il potenziale dell&apos;AI nautica via WhatsApp!</li>
+                  <li>📱 <strong>Instradamento Parallelo su 3 Numeri Autorizzati:</strong> Configura fino a 3 numeri telefonici di test. Quando uno di questi numeri scrive (o invia note vocali) su WhatsApp, dialoga direttamente con l&apos;esperto nautico AI senza creare task di agenzia o interferire con le bacheche.</li>
+                  <li>📁 <strong>Integrazione Google Drive &amp; Caricamento Diretto PDF:</strong> Collega la tua cartella Google Drive con le schede barca per la sincronizzazione automatica, oppure trascina direttamente i PDF (brochure tecniche) con il caricatore drag &amp; drop rapido!</li>
+                  <li>🧠 <strong>Estrazione Intelligente Specifiche con AI:</strong> Quando carichi un PDF, l&apos;AI legge il documento e ne estrae in automatico cantiere, modello, anno, lunghezza, cabine, bagni, motorizzazioni, prezzo e punti di forza salienti.</li>
+                  <li>📎 <strong>Invio Automatico Scheda PDF in Allegato via WhatsApp:</strong> Se il cliente su WhatsApp chiede informazioni o richiede la scheda tecnica (&quot;Mi mandi la scheda dell&apos;Oceanis 51?&quot;), l&apos;AI risponde con le specifiche e consegna il file PDF direttamente come allegato documentale nella chat di WhatsApp!</li>
+                  <li>💬 <strong>Simulatore WhatsApp Live in Piattaforma:</strong> Prova subito le risposte, la ricerca delle barche per cabine o prezzo e l&apos;invio allegati direttamente dal gestionale grazie alla console di test integrata prima di scrivere da smartphone.</li>
+                </ul>
+              </div>
+
+              <div style={noteCardStyle}>
                 <h4 style={noteHeaderStyle}>🚀 v2.52.0</h4>
                 <ul style={noteUlStyle}>
                   <li>✏️ <strong>Rinomina Rapida Inline dei Clienti:</strong> Ora puoi rinominare qualsiasi cliente direttamente dalla Tabella Matrice cliccando sull&apos;icona matita ✏️, oltre che dal modulo di dettaglio della Rubrica. Il salvataggio è immediato su tutto il gestionale!</li>

@@ -22,6 +22,7 @@ import RogerMascot from './RogerMascot';
 import NotificationPoller from './NotificationPoller';
 import LeaderboardModal from './LeaderboardModal';
 import CRMTab from './CRMTab';
+import BoatsAIView from './BoatsAIView';
 import { Layout, Columns, Search, Filter, Tag, User, Folder, Target, Zap, Activity, Grid, List as ListIcon, Building, ShieldCheck, Edit2, Bell, HelpCircle, Clock, Menu, X, Trophy } from 'lucide-react';
 
 export default function DashboardClient({ initialBoards: initialBoardsProp, initialLists: initialListsProp, initialCards: initialCardsProp, initialMembers, initialClients: initialClientsProp }) {
@@ -36,6 +37,14 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
   const initialCards = liveCards;
   
   const [currentUser, setCurrentUser] = useState(null);
+
+  const isAlessandro = Boolean(
+    currentUser && (
+      currentUser.email === 'alessandro@shinyup.it' ||
+      currentUser.name?.toLowerCase() === 'ale' ||
+      currentUser.name?.toLowerCase() === 'alessandro'
+    )
+  );
 
   const visibleBoards = useMemo(() => {
     return initialBoards.filter(b => 
@@ -345,7 +354,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               <h1 className="text-gradient" style={{ margin: 0, fontSize: '1.3rem', textShadow: '0 0 20px rgba(161, 189, 207, 0.2)' }}><span style={{ color: 'var(--accent-primary)' }}>Gestion</span>Ale</h1>
             </div>
             <span style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', boxShadow: '0 0 10px rgba(161, 189, 207, 0.4)', padding: '0.15rem 0.5rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
-              v2.52.0
+              v2.53.0
             </span>
           </div>
 
@@ -512,6 +521,17 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             🎯 La Mia Giornata
           </button>
           
+          {isAlessandro && (
+            <button 
+              type="button"
+              className={`${styles.mobileActionBtn} ${view === 'boats-ai' ? styles.active : ''}`}
+              onClick={() => setView(view === 'boats-ai' ? 'kanban' : 'boats-ai')}
+              style={view === 'boats-ai' ? { background: '#06b6d4', color: '#fff', borderColor: '#06b6d4' } : { borderColor: '#06b6d4', color: '#06b6d4' }}
+            >
+              🚤 Barche AI
+            </button>
+          )}
+          
           {view === 'kanban' && (
             <button 
               type="button"
@@ -655,6 +675,23 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
               )}
               {currentUser?.role === 'admin' && (
                 <button className={`${styles.navButton} ${view === 'management' ? styles.active : ''}`} onClick={() => setView('management')} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-primary)' }}>👑 Management</button>
+              )}
+              {isAlessandro && (
+                <button 
+                  className={`${styles.navButton} ${view === 'boats-ai' ? styles.active : ''}`} 
+                  onClick={() => setView('boats-ai')} 
+                  style={{ 
+                    padding: '0.3rem 0.6rem', 
+                    fontSize: '0.8rem', 
+                    color: '#06b6d4', 
+                    fontWeight: 700, 
+                    border: view === 'boats-ai' ? '1px solid #06b6d4' : '1px solid rgba(6, 182, 212, 0.4)',
+                    background: view === 'boats-ai' ? 'rgba(6, 182, 212, 0.15)' : 'transparent'
+                  }}
+                  title="Test Assistente Barche AI WhatsApp"
+                >
+                  🚤 Barche AI
+                </button>
               )}
               <button className={styles.navButton} onClick={() => setShowLeaderboard(true)} style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}>
                 🏆 Classifica
@@ -1025,7 +1062,10 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
           {view === 'archive' && (
             <ArchiveView clients={initialClients} />
           )}
-          {visibleBoards.length === 0 && view !== 'settings' && view !== 'archive' && (
+          {view === 'boats-ai' && isAlessandro && (
+            <BoatsAIView currentUser={currentUser} />
+          )}
+          {visibleBoards.length === 0 && view !== 'settings' && view !== 'archive' && view !== 'boats-ai' && (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
               Nessuna bacheca disponibile o creata.
             </div>
@@ -1092,7 +1132,7 @@ export default function DashboardClient({ initialBoards: initialBoardsProp, init
             </div>
             
             <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '1rem', opacity: 0.7 }}>
-              v2.52.0
+              v2.53.0
             </div>
           </div>
         </div>

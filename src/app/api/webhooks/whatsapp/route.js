@@ -1,6 +1,7 @@
 import { NextResponse, after } from 'next/server';
 import { prisma } from '@/utils/prisma';
 import OpenAI, { toFile } from 'openai';
+import { processBoatAssistantQuery, sendWhatsAppDocument, isPhoneMatch } from '@/utils/boats-ai';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -134,7 +135,7 @@ async function processWhatsAppMessage(body) {
     // Recupera credenziali WhatsApp dal database o env
     const settings = await prisma.systemSetting.findMany({
       where: {
-        key: { in: ['WHATSAPP_PHONE_NUMBER_ID', 'WHATSAPP_ACCESS_TOKEN'] }
+        key: { in: ['WHATSAPP_PHONE_NUMBER_ID', 'WHATSAPP_ACCESS_TOKEN', 'BOAT_AI_ENABLED', 'BOAT_AI_TEST_PHONES', 'BASE_URL'] }
       }
     });
     const settingMap = {};
@@ -190,6 +191,67 @@ async function processWhatsAppMessage(body) {
     if (!textBody) return;
 
     console.log(`📩 Messaggio WhatsApp ricevuto da ${contactName} (${from}): "${textBody}"`);
+
+    // --- TEST PARALLELO BARCHE AI: Controllo numeri abilitati ---
+    const boatAiEnabled = settingMap['BOAT_AI_ENABLED'] === 'true';
+    const boatTestPhonesRaw = settingMap['BOAT_AI_TEST_PHONES'] || '';
+    const boatTestPhones = boatTestPhonesRaw.split(',').map(p => p.trim()).filter(Boolean);
+
+    const isSenderInBoatTest = boatAiEnabled && boatTestPhones.some(testNum => isPhoneMatch(from, testNum));
+
+    if (isSenderInBoatTest) {
+      console.log(`🚤 [BoatsAI] Messaggio da numero autorizzato test barche (${from} - ${contactName}): "${textBody}"`);
+
+      try {
+        const boatSheets = await prisma.boatSheet.findMany({
+          where: { isActive: true },
+          orderBy: { createdAt: 'desc' }
+        });
+
+        const aiResult = await processBoatAssistantQuery({
+          userMessage: textBody,
+          senderName: contactName,
+          senderPhone: from,
+          boatSheets
+        });
+
+        // 1. Invia messaggio di risposta testuale
+        if (aiResult.replyMessage) {
+          await sendWhatsAppMessage(phoneNumberId, accessToken, from, aiResult.replyMessage);
+        }
+
+        // 2. Se l'utente ha chiesto di ricevere la scheda in allegato
+        if (aiResult.sendAttachment && aiResult.boatIdToSend) {
+          const targetBoat = boatSheets.find(b => b.id === aiResult.boatIdToSend) ||
+            await prisma.boatSheet.findUnique({ where: { id: aiResult.boatIdToSend } });
+
+          if (targetBoat) {
+            let resolvedBaseUrl = settingMap['BASE_URL'] || process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://dashboard-trello.vercel.app'));
+            resolvedBaseUrl = resolvedBaseUrl.replace('https://https://', 'https://').replace('http://https://', 'https://');
+            if (resolvedBaseUrl.endsWith('/')) resolvedBaseUrl = resolvedBaseUrl.slice(0, -1);
+
+            const downloadUrl = `${resolvedBaseUrl}/api/boats/download/${targetBoat.id}`;
+            const docFilename = targetBoat.fileName || `${targetBoat.title.replace(/\s+/g, '_')}.pdf`;
+            const docCaption = `📋 Scheda Tecnica: ${targetBoat.title}`;
+
+            console.log(`🚤 [BoatsAI] Invio documento scheda barca (${docFilename}) a ${from}...`);
+            await sendWhatsAppDocument(phoneNumberId, accessToken, from, downloadUrl, docFilename, docCaption);
+          }
+        }
+      } catch (errBoat) {
+        console.error('❌ [BoatsAI] Errore elaborazione richiesta barche:', errBoat);
+        await sendWhatsAppMessage(
+          phoneNumberId,
+          accessToken,
+          from,
+          "⚓ Si è verificato un errore momentaneo nell'assistente nautico. Riprova tra pochi istanti!"
+        );
+      }
+
+      // Concludi qui l'elaborazione per non creare schede di agenzia
+      return;
+    }
+    // -------------------------------------------------------------
 
     // Carica contesto dal database: Clienti, Utenti/Collaboratori, Progetti, Schede aperte
     const [clients, users, projects, openCards] = await Promise.all([

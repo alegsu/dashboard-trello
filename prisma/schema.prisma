@@ -356,3 +356,26 @@ model Lead {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
 }
+
+model BoatSheet {
+  id            String   @id @default(cuid())
+  title         String   // es. "Beneteau Oceanis 51.1"
+  model         String?  // es. "Oceanis 51.1"
+  manufacturer  String?  // es. "Beneteau"
+  year          Int?     // es. 2022
+  length        Float?   // metri
+  cabins        Int?     // numero cabine
+  baths         Int?     // numero bagni
+  engines       String?  // motorizzazione
+  price         String?  // prezzo o "Su richiesta"
+  description   String?  @db.Text // testo/riassunto estratto da AI
+  features      String?  @db.Text // dotazioni e punti di forza
+  fileUrl       String   @db.Text // link per scaricare il PDF (blob, local o drive)
+  googleDriveId String?  // ID file su Google Drive (se sincronizzato)
+  fileName      String   // es. "Scheda_Oceanis_51.pdf"
+  fileSize      Int?
+  mimeType      String   @default("application/pdf")
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
