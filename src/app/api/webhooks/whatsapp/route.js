@@ -258,7 +258,7 @@ async function processWhatsAppMessage(body) {
             resolvedBaseUrl = resolvedBaseUrl.replace('https://https://', 'https://').replace('http://https://', 'https://');
             if (resolvedBaseUrl.endsWith('/')) resolvedBaseUrl = resolvedBaseUrl.slice(0, -1);
 
-            const downloadUrl = `${resolvedBaseUrl}/api/boats/download/${targetBoat.id}`;
+            const documentUrl = `${resolvedBaseUrl}/api/boats/download/${targetBoat.id}`;
             const docFilename = targetBoat.fileName || `${targetBoat.title.replace(/\s+/g, '_')}.pdf`;
             const docCaption = `📋 Scheda Tecnica: ${targetBoat.title}`;
 
