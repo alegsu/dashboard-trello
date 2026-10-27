@@ -46,7 +46,20 @@ export async function extractTextFromPdfBuffer(buffer) {
 export async function extractBoatMetadataWithAI(pdfText, fileName = '') {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    throw new Error('OPENAI_API_KEY non configurata');
+    console.warn('[BoatsAI] OPENAI_API_KEY non presente, uso metadati predefiniti');
+    return {
+      title: fileName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
+      model: null,
+      manufacturer: null,
+      year: null,
+      length: null,
+      cabins: null,
+      baths: null,
+      engines: null,
+      price: 'Su richiesta',
+      description: pdfText.slice(0, 500) || 'Scheda barca disponibile.',
+      features: null
+    };
   }
 
   const openai = new OpenAI({ apiKey });

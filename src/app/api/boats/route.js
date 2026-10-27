@@ -4,6 +4,7 @@ import { put } from '@vercel/blob';
 import { extractTextFromPdfBuffer, extractBoatMetadataWithAI } from '@/utils/boats-ai';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 export async function GET() {
   try {

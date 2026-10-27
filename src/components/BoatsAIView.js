@@ -125,7 +125,19 @@ export default function BoatsAIView({ currentUser }) {
     }
   };
 
-  // Caricamento diretto file PDF
+  // Helper per convertire un Blob in base64 in modo performante
+  const blobToBase64 = (blob) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result;
+      const base64 = typeof result === 'string' ? result.split(',')[1] : '';
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+
+  // Caricamento diretto file PDF con supporto Chunking per bypassare i limiti di Vercel (4.5MB)
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -136,31 +148,72 @@ export default function BoatsAIView({ currentUser }) {
     }
 
     setIsUploading(true);
-    setUploadFeedback({ type: 'info', message: `Lettura del PDF ed estrazione caratteristiche con IA in corso... (${file.name})` });
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB per blocco (sicuro per Vercel)
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+      const uploadId = 'up_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
 
-      const res = await fetch('/api/boats', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (res.ok) {
-        const newBoat = await res.json();
-        setBoats(prev => [newBoat, ...prev]);
-        setUploadFeedback({ type: 'success', message: `✨ Scheda barca "${newBoat.title}" estratta e aggiunta con successo!` });
+      if (totalChunks > 1) {
+        setUploadFeedback({
+          type: 'info',
+          message: `File di ${(file.size / 1024 / 1024).toFixed(1)} MB: suddivisione in ${totalChunks} blocchi per caricamento sicuro...`
+        });
       } else {
-        const errData = await res.json().catch(() => ({}));
-        setUploadFeedback({ type: 'error', message: `❌ Errore: ${errData.error || 'Impossibile elaborare il PDF'}` });
+        setUploadFeedback({
+          type: 'info',
+          message: `Lettura ed estrazione caratteristiche con IA in corso... (${file.name})`
+        });
+      }
+
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, file.size);
+        const chunkBlob = file.slice(start, end);
+        const base64Chunk = await blobToBase64(chunkBlob);
+
+        const isLast = i === totalChunks - 1;
+        setUploadFeedback({
+          type: 'info',
+          message: isLast
+            ? `Finalizzazione ed estrazione dati IA in corso... (100%)`
+            : `Caricamento blocco ${i + 1} di ${totalChunks}... (${Math.round(((i + 1) / totalChunks) * 100)}%)`
+        });
+
+        const res = await fetch('/api/boats/chunk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            uploadId,
+            chunkIndex: i,
+            totalChunks,
+            fileName: file.name,
+            fileSize: file.size,
+            base64Chunk
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `Errore caricamento blocco ${i + 1}`);
+        }
+
+        if (isLast) {
+          const newBoat = await res.json();
+          setBoats(prev => [newBoat, ...prev]);
+          setUploadFeedback({
+            type: 'success',
+            message: `✨ Scheda barca "${newBoat.title}" elaborata e aggiunta con successo!`
+          });
+        }
       }
     } catch (err) {
-      setUploadFeedback({ type: 'error', message: `❌ Errore caricamento: ${err.message}` });
+      console.error('[BoatsAI] Errore caricamento:', err);
+      setUploadFeedback({ type: 'error', message: `❌ Errore: ${err.message}` });
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      setTimeout(() => setUploadFeedback(null), 6000);
+      setTimeout(() => setUploadFeedback(null), 7000);
     }
   };
 
